@@ -1,0 +1,358 @@
+import { useState, MutableRefObject, useRef, useEffect } from "react";
+import { Copy } from "lucide-react";
+
+interface ChallengeCardProps {
+  previewRef: MutableRefObject<HTMLDivElement | null>;
+  showToast: (msg: string) => void;
+}
+
+export default function ChallengeCardGenerator({ previewRef, showToast }: ChallengeCardProps) {
+  const [formData, setFormData] = useState({
+    name: "",
+    type: "Distance",
+    target: "",
+    startDate: "",
+    endDate: "",
+    rules: "",
+    reward: "",
+    community: "",
+    difficulty: "Moderate"
+  });
+
+  const [template, setTemplate] = useState("community challenge");
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const width = entry.contentRect.width;
+        const target = 480; 
+        if (width < target) {
+          setScale(width / target);
+        } else {
+          setScale(1);
+        }
+      }
+    });
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  const handleChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleCopy = () => {
+    const lines = [
+      `Challenge: ${formData.name || "-"}`,
+      `Type: ${formData.type || "-"}`,
+      `Target: ${formData.target || "-"}`,
+      `Dates: ${formData.startDate || "-"} to ${formData.endDate || "-"}`,
+      `Rules: ${formData.rules || "-"}`,
+      `Difficulty: ${formData.difficulty || "-"}`,
+      "Made with RunCard Studio."
+    ];
+
+    navigator.clipboard.writeText(lines.join("\n"));
+    showToast("Challenge Card copied to clipboard");
+  };
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
+      <div className="lg:col-span-4 flex flex-col gap-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Challenge Data</h2>
+        </div>
+
+        <div className="bg-surface border border-brand-border p-5 rounded-lg flex flex-col gap-4 shadow-xl">
+          <div>
+             <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-1">Challenge Name</label>
+             <input 
+               type="text" 
+               value={formData.name}
+               onChange={e => handleChange("name", e.target.value)}
+               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+               placeholder="100 Days of Running"
+             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+               <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-1">Type</label>
+               <select 
+                 value={formData.type}
+                 onChange={e => handleChange("type", e.target.value)}
+                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none cursor-pointer"
+               >
+                 <option value="Distance">Distance</option>
+                 <option value="Time">Time</option>
+                 <option value="Streak">Streak</option>
+                 <option value="Elevation">Elevation</option>
+                 <option value="Workout">Workout</option>
+                 <option value="Custom">Custom</option>
+               </select>
+            </div>
+            <div>
+               <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-1">Difficulty</label>
+               <select 
+                 value={formData.difficulty}
+                 onChange={e => handleChange("difficulty", e.target.value)}
+                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none cursor-pointer"
+               >
+                 <option value="Easy">Easy</option>
+                 <option value="Moderate">Moderate</option>
+                 <option value="Hard">Hard</option>
+                 <option value="Brutal">Brutal</option>
+               </select>
+            </div>
+          </div>
+
+          <div>
+             <label className="block text-[11px] font-mono text-primary-coral font-bold uppercase tracking-wider mb-1">Target</label>
+             <input 
+               type="text" 
+               value={formData.target}
+               onChange={e => handleChange("target", e.target.value)}
+               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-primary-coral transition-all font-bold"
+               placeholder="Run 500km total"
+             />
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+             <div>
+               <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-1">Start Date</label>
+               <input 
+                 type="text" 
+                 value={formData.startDate}
+                 onChange={e => handleChange("startDate", e.target.value)}
+                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+                 placeholder="Jan 1"
+               />
+             </div>
+             <div>
+               <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-1">End Date</label>
+               <input 
+                 type="text" 
+                 value={formData.endDate}
+                 onChange={e => handleChange("endDate", e.target.value)}
+                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+                 placeholder="Apr 10"
+               />
+             </div>
+          </div>
+
+          <div>
+             <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-1">Rules / Criteria</label>
+             <textarea 
+               value={formData.rules}
+               onChange={e => handleChange("rules", e.target.value)}
+               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none resize-none h-16 transition-colors"
+               placeholder="Run every single day."
+             ></textarea>
+          </div>
+
+          <div>
+             <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-1">Reward (Opt)</label>
+             <input 
+               type="text" 
+               value={formData.reward}
+               onChange={e => handleChange("reward", e.target.value)}
+               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+               placeholder="New shoes"
+             />
+          </div>
+          
+          <div>
+             <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-1">Community / Team (Opt)</label>
+             <input 
+               type="text" 
+               value={formData.community}
+               onChange={e => handleChange("community", e.target.value)}
+               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+               placeholder="Track Club"
+             />
+          </div>
+
+          <button onClick={handleCopy} className="w-full py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]">
+            <Copy className="w-4 h-4 text-secondary-lime" /> Copy Text
+          </button>
+        </div>
+      </div>
+
+      <div className="lg:col-span-8 flex flex-col gap-6 pb-20">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Live Preview</h2>
+                    <div className="flex overflow-x-auto no-scrollbar gap-2 pb-2">
+            {[
+              { id: 'community challenge', label: 'Community Challenge' },
+              { id: 'solo mission', label: 'Solo Mission' },
+              { id: 'dark challenge', label: 'Dark Challenge' }
+            ].map(t => (
+              <button 
+                key={t.id}
+                onClick={() => setTemplate(t.id)}
+                className={`px-3 py-1.5 text-xs font-bold uppercase whitespace-nowrap transition-colors cursor-pointer border rounded-full shrink-0
+                  ${template === t.id ? 'border-secondary-lime text-secondary-lime bg-secondary-lime/10' : 'border-brand-border text-text-muted hover:border-primary-coral hover:text-text-primary'}`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div ref={containerRef} className="w-full bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:16px_16px] bg-[#07080a] border border-brand-border rounded-xl p-4 md:p-8 flex items-center justify-center min-h-[600px] overflow-hidden relative">
+          <div 
+            style={{ 
+              transform: `scale(${scale})`, 
+              transformOrigin: "center",
+              transition: "transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)" 
+            }}
+            className="shrink-0"
+          >
+            <div 
+              ref={previewRef}
+              className={`w-[440px] flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none overflow-hidden
+                ${template === 'community challenge' ? 'bg-white border-2 border-[#121316] text-[#121316] p-8 font-sans' : ''}
+                ${template === 'solo mission' ? 'bg-[#181a1f] border border-[#22252a] text-[#f2f4f7] rounded-xl p-8 font-mono' : ''}
+                ${template === 'dark challenge' ? 'bg-[#0f1012] border border-[#ff0055]/30 text-white rounded-lg p-8' : ''}
+              `}
+              style={{ minHeight: '440px' }}
+            >
+               
+               {template === 'community challenge' && (
+                 <>
+                   <div className="text-center mb-6 border-b-2 border-black pb-4">
+                     <span className="inline-block px-3 py-1 bg-black text-white text-[10px] font-black uppercase tracking-widest mb-3">Community Challenge</span>
+                     <h1 className="text-3xl font-black uppercase tracking-tighter leading-none mb-2">{formData.name || 'CHALLENGE NAME'}</h1>
+                     {formData.community && <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Hosted by {formData.community}</p>}
+                   </div>
+
+                   <div className="flex-1 flex flex-col">
+                     <div className="bg-gray-100 p-4 border border-gray-200 mb-4 text-center">
+                       <div className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1">Target</div>
+                       <div className="text-2xl font-black uppercase">{formData.target || '-'}</div>
+                     </div>
+
+                     <div className="grid grid-cols-2 gap-4 mb-6">
+                       <div className="text-center py-2 border border-gray-200 border-dashed">
+                         <div className="text-[10px] uppercase text-gray-500 font-bold mb-1">Type</div>
+                         <div className="font-bold uppercase text-sm">{formData.type}</div>
+                       </div>
+                       <div className="text-center py-2 border border-gray-200 border-dashed">
+                         <div className="text-[10px] uppercase text-gray-500 font-bold mb-1">Difficulty</div>
+                         <div className="font-bold uppercase text-sm">{formData.difficulty}</div>
+                       </div>
+                     </div>
+
+                     <div className="flex justify-between items-center bg-black text-white px-4 py-3 mb-6">
+                        <div className="text-xs font-bold uppercase tracking-widest">Start: {formData.startDate || '-'}</div>
+                        <div className="text-xs font-bold uppercase tracking-widest text-[#a0cc00]">End: {formData.endDate || '-'}</div>
+                     </div>
+
+                     <div className="mb-4">
+                        <div className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-1 border-b border-gray-200 pb-1">Rules</div>
+                        <p className="text-sm font-medium text-gray-800 pt-1">{formData.rules || 'No rules defined.'}</p>
+                     </div>
+                   </div>
+
+                   {formData.reward && (
+                     <div className="mt-4 pt-4 border-t border-gray-200 text-center">
+                       <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Reward</div>
+                       <div className="text-sm font-black uppercase text-[#1a56db]">{formData.reward}</div>
+                     </div>
+                   )}
+                 </>
+               )}
+
+               {template === 'solo mission' && (
+                 <>
+                   <div className="flex justify-between items-start mb-8">
+                     <h1 className="text-2xl font-black uppercase leading-tight w-2/3">{formData.name || 'SOLO MISSION'}</h1>
+                     <div className="text-right">
+                       <div className="text-[10px] uppercase text-gray-500 opacity-60">Status</div>
+                       <div className="text-xs font-bold uppercase text-secondary-lime">Accepted</div>
+                     </div>
+                   </div>
+
+                   <div className="mb-8">
+                     <div className="text-[10px] uppercase tracking-widest text-gray-500 mb-2">Parameters</div>
+                     <div className="bg-[#111316] border border-[#22252a] p-4 flex flex-col gap-3">
+                       <div className="flex justify-between border-b border-[#22252a] pb-2">
+                         <span className="uppercase text-gray-400 text-xs">Target</span>
+                         <span className="font-bold text-white text-sm truncate max-w-[60%] text-right">{formData.target || '-'}</span>
+                       </div>
+                       <div className="flex justify-between border-b border-[#22252a] pb-2">
+                         <span className="uppercase text-gray-400 text-xs">Timeframe</span>
+                         <span className="font-bold text-white text-sm">{formData.startDate || '-'} / {formData.endDate || '-'}</span>
+                       </div>
+                       <div className="flex justify-between">
+                         <span className="uppercase text-gray-400 text-xs">Difficulty</span>
+                         <span className="font-bold text-white text-sm">{formData.difficulty}</span>
+                       </div>
+                     </div>
+                   </div>
+
+                   <div className="flex-1 mb-6">
+                      <div className="text-[10px] uppercase tracking-widest text-gray-500 mb-2">Directives</div>
+                      <p className="text-sm leading-relaxed text-gray-300 border-l border-secondary-lime pl-3 whitespace-pre-wrap">{formData.rules || 'Execute mission.'}</p>
+                   </div>
+
+                   <div className="mt-auto border-t border-[#22252a] pt-4 flex justify-between items-end">
+                     <div>
+                       <div className="text-[9px] uppercase tracking-widest text-gray-600 mb-1">Type</div>
+                       <div className="text-xs font-bold text-gray-400">{formData.type}</div>
+                     </div>
+                     <div className="text-[9px] uppercase tracking-[0.2em] text-[#22252a] font-bold">RunCard Studio</div>
+                   </div>
+                 </>
+               )}
+
+               {template === 'dark challenge' && (
+                 <>
+                   <div className="absolute top-0 right-0 bg-[#ff0055] text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 bg-opacity-80">Challenge</div>
+                   
+                   <div className="mb-6 pt-4">
+                     <p className="text-[10px] font-mono text-[#ff0055] uppercase tracking-widest mb-1">{formData.type} {"//"} {formData.difficulty}</p>
+                     <h1 className="text-3xl font-black uppercase tracking-tighter leading-none mb-4">{formData.name || 'CHALLENGE'}</h1>
+                   </div>
+
+                   <div className="bg-[#181a1f] p-5 border border-[#22252a] rounded-md mb-6 relative overflow-hidden">
+                     <div className="absolute top-0 left-0 w-1 h-full bg-[#ff0055]"></div>
+                     <span className="block text-[10px] font-mono text-gray-400 uppercase tracking-widest mb-1">Target</span>
+                     <span className="text-2xl font-black font-sans uppercase text-white">{formData.target || '-'}</span>
+                   </div>
+
+                   <div className="flex gap-4 mb-6 text-sm font-mono border-b border-dashed border-[#22252a] pb-6">
+                     <div className="flex-1">
+                       <span className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">Start Date</span>
+                       <span className="font-bold">{formData.startDate || '-'}</span>
+                     </div>
+                     <div className="flex-1">
+                       <span className="block text-[10px] text-gray-500 uppercase tracking-widest mb-1">End Date</span>
+                       <span className="font-bold">{formData.endDate || '-'}</span>
+                     </div>
+                   </div>
+
+                   <div className="flex-1 mb-6 text-sm">
+                      <span className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-2">Rules</span>
+                      <p className="text-gray-300 font-sans">{formData.rules || 'None'}</p>
+                   </div>
+
+                   {formData.reward && (
+                     <div className="mt-auto border border-[#22252a] bg-[#121316] p-3 text-center rounded">
+                       <span className="text-[10px] text-gray-500 uppercase tracking-widest">Reward</span>
+                       <div className="font-bold text-[#secondary-lime] text-sm uppercase">{formData.reward}</div>
+                     </div>
+                   )}
+                 </>
+               )}
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

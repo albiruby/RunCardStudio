@@ -1,0 +1,6 @@
+{
+  "name": "RunCard Studio",
+  "description": "Local-first sports card generator for runners, athletes, and coaches.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
