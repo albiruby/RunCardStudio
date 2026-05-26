@@ -8,7 +8,22 @@
     "start": "next start",
     "lint": "eslint .",
     "clean": "next clean",
-    "update": "node update.js"
+    "update": "node update.js",
+    "updatewm": "node update_watermark2.js",
+    "updatewm3": "node update_watermark3.js",
+    "updatewm-clip": "node update_watermark_clipboard.js",
+    "updateunits": "node update_units.js",
+    "updatecopy": "node update_copy.js",
+    "ucopy": "node update_copy.js",
+    "uf": "node update_fallback.js",
+    "uts": "node update_ts.js",
+    "ur": "node update_responsive.js",
+    "ui": "node update_inputs.js",
+    "uif": "node update_inputs_fix.js",
+    "ud": "node update_drafts.js",
+    "ft": "node fix_ts.js",
+    "frs": "node fix_race_split.js",
+    "fix": "node fix_bs.js"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

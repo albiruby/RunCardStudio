@@ -1,5 +1,5 @@
 import { useState, MutableRefObject, useRef, useEffect } from "react";
-import { Copy } from "lucide-react";
+import { Copy, Save } from "lucide-react";
 
 interface GoalCardProps {
   previewRef: MutableRefObject<HTMLDivElement | null>;
@@ -42,25 +42,139 @@ export default function GoalCardGenerator({ previewRef, showToast }: GoalCardPro
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
-
   const handleCopy = () => {
-    const lines = [
-      `Goal: ${formData.title || "-"}`,
-      `Target: ${formData.targetEvent || "-"}`,
-      `Target Time: ${formData.targetTime || "-"}`,
-      `Date: ${formData.targetDate || "-"}`,
-      `Focus: ${formData.mainFocus || "-"}`,
-      `Status: ${formData.status || "-"}`,
-      "Made with RunCard Studio."
-    ];
+    const lines = [];
+    if (formData.title !== undefined && formData.title !== null && (formData.title as any) !== false && (formData.title as any) !== "—" && (formData.title as any) !== "Input required" && String(formData.title).trim() !== "") {
+      const val = typeof formData.title === 'boolean' ? 'Yes' : formData.title;
+      lines.push("Title: " + val);
+    }
+    if (formData.targetEvent !== undefined && formData.targetEvent !== null && (formData.targetEvent as any) !== false && (formData.targetEvent as any) !== "—" && (formData.targetEvent as any) !== "Input required" && String(formData.targetEvent).trim() !== "") {
+      const val = typeof formData.targetEvent === 'boolean' ? 'Yes' : formData.targetEvent;
+      lines.push("Target Event: " + val);
+    }
+    if (formData.targetTime !== undefined && formData.targetTime !== null && (formData.targetTime as any) !== false && (formData.targetTime as any) !== "—" && (formData.targetTime as any) !== "Input required" && String(formData.targetTime).trim() !== "") {
+      const val = typeof formData.targetTime === 'boolean' ? 'Yes' : formData.targetTime;
+      lines.push("Target Time: " + val);
+    }
+    if (formData.targetDate !== undefined && formData.targetDate !== null && (formData.targetDate as any) !== false && (formData.targetDate as any) !== "—" && (formData.targetDate as any) !== "Input required" && String(formData.targetDate).trim() !== "") {
+      const val = typeof formData.targetDate === 'boolean' ? 'Yes' : formData.targetDate;
+      lines.push("Target Date: " + val);
+    }
+    if (formData.currentBest !== undefined && formData.currentBest !== null && (formData.currentBest as any) !== false && (formData.currentBest as any) !== "—" && (formData.currentBest as any) !== "Input required" && String(formData.currentBest).trim() !== "") {
+      const val = typeof formData.currentBest === 'boolean' ? 'Yes' : formData.currentBest;
+      lines.push("Current Best: " + val);
+    }
+    if (formData.mainFocus !== undefined && formData.mainFocus !== null && (formData.mainFocus as any) !== false && (formData.mainFocus as any) !== "—" && (formData.mainFocus as any) !== "Input required" && String(formData.mainFocus).trim() !== "") {
+      const val = typeof formData.mainFocus === 'boolean' ? 'Yes' : formData.mainFocus;
+      lines.push("Main Focus: " + val);
+    }
+    if (formData.motivation !== undefined && formData.motivation !== null && (formData.motivation as any) !== false && (formData.motivation as any) !== "—" && (formData.motivation as any) !== "Input required" && String(formData.motivation).trim() !== "") {
+      const val = typeof formData.motivation === 'boolean' ? 'Yes' : formData.motivation;
+      lines.push("Motivation: " + val);
+    }
+    if (formData.status !== undefined && formData.status !== null && (formData.status as any) !== false && (formData.status as any) !== "—" && (formData.status as any) !== "Input required" && String(formData.status).trim() !== "") {
+      const val = typeof formData.status === 'boolean' ? 'Yes' : formData.status;
+      lines.push("Status: " + val);
+    }
+    lines.push("");
+    lines.push("Made with RunCard Studio");
+    const textToCopy = lines.join("\n");
+    
+    const fallbackCopy = (text: string) => {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        showToast("Copied to clipboard!");
+      } catch (err) {
+        showToast("Failed to copy.");
+      }
+      textArea.remove();
+    };
 
-    navigator.clipboard.writeText(lines.join("\n"));
-    showToast("Goal Card copied to clipboard");
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textToCopy)
+        .then(() => showToast("Copied to clipboard!"))
+        .catch((err) => {
+          fallbackCopy(textToCopy);
+        });
+    } else {
+      fallbackCopy(textToCopy);
+    }
   };
+
+
+  const getPlainFormDataForCurrentCard = () => {
+    return { ...formData };
+  };
+
+  const saveCurrentDraft = () => {
+    const plainData = getPlainFormDataForCurrentCard();
+    for (const key in plainData) {
+      const val = (plainData as any)[key];
+      if (typeof HTMLElement !== "undefined" && val instanceof HTMLElement) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Node !== "undefined" && val instanceof Node) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Event !== "undefined" && val instanceof Event) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof File !== "undefined" && val instanceof File) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Blob !== "undefined" && val instanceof Blob) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof val === "function") { showToast("Draft contains unsafe data and was not saved."); return; }
+    }
+
+    const pd = plainData as any;
+    const title = pd.name || pd.title || pd.athleteName || pd.sessionName || pd.runnerName || pd.raceName || pd.sessionType || pd.distanceChoice || "Untitled Draft";
+
+    const draft = {
+      id: "draft_" + Date.now() + "_" + Math.random().toString(36).substring(2, 9),
+      cardType: "goal-card",
+      title: String(title),
+      template: typeof template !== 'undefined' ? template : "default",
+      exportSize: typeof window !== 'undefined' ? localStorage.getItem('runcard-default-export-size') || "square" : "square",
+      formData: plainData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      version: "1.0"
+    };
+
+    try {
+      const existingStr = localStorage.getItem('runcard-drafts');
+      let drafts = [];
+      if (existingStr) {
+        drafts = JSON.parse(existingStr);
+      }
+      drafts.push(draft);
+      localStorage.setItem('runcard-drafts', JSON.stringify(drafts));
+      showToast("Draft saved!");
+    } catch(err) {
+      showToast("Failed to save draft.");
+    }
+  };
+
+  useEffect(() => {
+    try {
+       if (typeof window !== 'undefined') {
+          const loadStr = localStorage.getItem('runcard-draft-load');
+          if (loadStr) {
+             const draft = JSON.parse(loadStr);
+             if (draft && draft.cardType === "goal-card") {
+                if (draft.formData) setFormData(draft.formData);
+                if (draft.template && typeof setTemplate === "function") setTemplate(draft.template);
+                // Template is loaded if the form has a template state.
+                // We'll just check if setTemplate exists in this code.
+             }
+          }
+       }
+    } catch {}
+  }, []);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
-      <div className="lg:col-span-4 flex flex-col gap-6">
+      <div className="lg:col-span-4 flex flex-col gap-6 w-full">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Goal Data</h2>
         </div>
@@ -72,7 +186,7 @@ export default function GoalCardGenerator({ previewRef, showToast }: GoalCardPro
                type="text" 
                value={formData.title}
                onChange={e => handleChange("title", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                placeholder="Sub 3 Project"
              />
           </div>
@@ -83,7 +197,7 @@ export default function GoalCardGenerator({ previewRef, showToast }: GoalCardPro
                type="text" 
                value={formData.targetEvent}
                onChange={e => handleChange("targetEvent", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                placeholder="City Marathon"
              />
           </div>
@@ -95,7 +209,7 @@ export default function GoalCardGenerator({ previewRef, showToast }: GoalCardPro
                  type="text" 
                  value={formData.targetTime}
                  onChange={e => handleChange("targetTime", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                  placeholder="2:59:59"
                />
              </div>
@@ -105,7 +219,7 @@ export default function GoalCardGenerator({ previewRef, showToast }: GoalCardPro
                  type="text" 
                  value={formData.targetDate}
                  onChange={e => handleChange("targetDate", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                  placeholder="Nov 2026"
                />
              </div>
@@ -118,7 +232,7 @@ export default function GoalCardGenerator({ previewRef, showToast }: GoalCardPro
                  type="text" 
                  value={formData.currentBest}
                  onChange={e => handleChange("currentBest", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                  placeholder="3:15:20"
                />
              </div>
@@ -127,7 +241,7 @@ export default function GoalCardGenerator({ previewRef, showToast }: GoalCardPro
                <select 
                  value={formData.status}
                  onChange={e => handleChange("status", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none cursor-pointer"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none cursor-pointer"
                >
                  <option value="Planning">Planning</option>
                  <option value="Building">Building</option>
@@ -144,7 +258,7 @@ export default function GoalCardGenerator({ previewRef, showToast }: GoalCardPro
                type="text" 
                value={formData.mainFocus}
                onChange={e => handleChange("mainFocus", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                placeholder="Consistency & mileage"
              />
           </div>
@@ -154,21 +268,21 @@ export default function GoalCardGenerator({ previewRef, showToast }: GoalCardPro
              <textarea 
                value={formData.motivation}
                onChange={e => handleChange("motivation", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none resize-none h-16 transition-colors"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none resize-none h-16 transition-colors"
                placeholder="Unfinished business."
              ></textarea>
           </div>
 
-          <button onClick={handleCopy} className="w-full py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]">
-            <Copy className="w-4 h-4 text-secondary-lime" /> Copy Text
-          </button>
+          <button onClick={() => saveCurrentDraft()} className="w-full mt-2 lg:mt-4 py-2 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-4 h-4 text-primary-action" /> SAVE DRAFT</button>
+          <button onClick={handleCopy} className="w-full py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY GOAL
+</button>
         </div>
       </div>
 
       <div className="lg:col-span-8 flex flex-col gap-6 pb-20">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Live Preview</h2>
-                    <div className="flex overflow-x-auto no-scrollbar gap-2 pb-2">
+                    <div className="flex overflow-x-auto no-scrollbar gap-2 w-full md:w-auto pb-4 md:pb-2 border-b border-brand-border md:border-none">
             {[
               { id: 'target board', label: 'Target Board' },
               { id: 'countdown card', label: 'Countdown Card' },
@@ -273,7 +387,7 @@ export default function GoalCardGenerator({ previewRef, showToast }: GoalCardPro
                    </div>
 
                    <div className="mt-auto pt-4 flex items-end justify-between">
-                     <div className="text-[8px] font-mono tracking-widest uppercase opacity-30">RunCard Studio</div>
+                     <div className="text-[8px] font-mono tracking-widest uppercase opacity-30">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'RunCard Studio'}</div>
                      {formData.motivation && (
                        <div className="text-xs italic text-gray-400 font-serif text-right max-w-[70%]">
                          &quot;{formData.motivation}&quot;
@@ -321,7 +435,7 @@ export default function GoalCardGenerator({ previewRef, showToast }: GoalCardPro
                        <p className="text-sm font-serif italic text-gray-700">&quot;{formData.motivation}&quot;</p>
                      </div>
                    )}
-                   <div className="absolute bottom-4 right-10 text-[8px] font-mono tracking-widest text-gray-300 uppercase">RunCard Studio</div>
+                   <div className="absolute bottom-4 right-10 text-[8px] font-mono tracking-widest text-gray-300 uppercase">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'RunCard Studio'}</div>
                  </div>
                )}
 

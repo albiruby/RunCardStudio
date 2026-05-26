@@ -1,5 +1,5 @@
 import { useState, MutableRefObject, useRef, useEffect } from "react";
-import { Copy, AlertCircle } from "lucide-react";
+import { Copy, Save, AlertCircle } from "lucide-react";
 
 interface WorkoutCardProps {
   previewRef: MutableRefObject<HTMLDivElement | null>;
@@ -42,35 +42,140 @@ export default function WorkoutCardGenerator({ previewRef, showToast }: WorkoutC
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
-
   const handleCopyWorkout = () => {
-    const activeTitle = formData.title || "5X1K VO2MAX INTERVALS";
-    const activeWarmup = formData.warmup || "2km easy jog, dynamic drills, 3x100m strides";
-    const activeMainSet = formData.mainSet || "5 x 1000m @ 3:45 pace // 3 min active shuffle recovery";
-    const activeRest = formData.rest || "Walk 90s, stay hydrated";
-    const activeCooldown = formData.cooldown || "1.5km recovery jog + light stretching";
-    const activeGoal = formData.targetIntensity || "Zone 5 / VO2 Max";
-    
     const lines = [];
-    lines.push(`[${formData.sport.toUpperCase()}] ${activeTitle}`);
-    lines.push(`Goal Intensity: ${activeGoal}`);
-    lines.push(`\nWarm-up:\n${activeWarmup}`);
-    lines.push(`\nMain Set:\n${activeMainSet}`);
-    lines.push(`\nRest:\n${activeRest}`);
-    lines.push(`\nCooldown:\n${activeCooldown}`);
-    if (formData.notes) {
-      lines.push(`\nNotes:\n${formData.notes}`);
+    if (formData.title !== undefined && formData.title !== null && (formData.title as any) !== false && (formData.title as any) !== "—" && (formData.title as any) !== "Input required" && String(formData.title).trim() !== "") {
+      const val = typeof formData.title === 'boolean' ? 'Yes' : formData.title;
+      lines.push("Title: " + val);
     }
-    lines.push(`\nMade with RunCard Studio.`);
+    if (formData.sport !== undefined && formData.sport !== null && (formData.sport as any) !== false && (formData.sport as any) !== "—" && (formData.sport as any) !== "Input required" && String(formData.sport).trim() !== "") {
+      const val = typeof formData.sport === 'boolean' ? 'Yes' : formData.sport;
+      lines.push("Sport: " + val);
+    }
+    if (formData.warmup !== undefined && formData.warmup !== null && (formData.warmup as any) !== false && (formData.warmup as any) !== "—" && (formData.warmup as any) !== "Input required" && String(formData.warmup).trim() !== "") {
+      const val = typeof formData.warmup === 'boolean' ? 'Yes' : formData.warmup;
+      lines.push("Warmup: " + val);
+    }
+    if (formData.mainSet !== undefined && formData.mainSet !== null && (formData.mainSet as any) !== false && (formData.mainSet as any) !== "—" && (formData.mainSet as any) !== "Input required" && String(formData.mainSet).trim() !== "") {
+      const val = typeof formData.mainSet === 'boolean' ? 'Yes' : formData.mainSet;
+      lines.push("Main Set: " + val);
+    }
+    if (formData.rest !== undefined && formData.rest !== null && (formData.rest as any) !== false && (formData.rest as any) !== "—" && (formData.rest as any) !== "Input required" && String(formData.rest).trim() !== "") {
+      const val = typeof formData.rest === 'boolean' ? 'Yes' : formData.rest;
+      lines.push("Rest: " + val);
+    }
+    if (formData.cooldown !== undefined && formData.cooldown !== null && (formData.cooldown as any) !== false && (formData.cooldown as any) !== "—" && (formData.cooldown as any) !== "Input required" && String(formData.cooldown).trim() !== "") {
+      const val = typeof formData.cooldown === 'boolean' ? 'Yes' : formData.cooldown;
+      lines.push("Cooldown: " + val);
+    }
+    if (formData.targetIntensity !== undefined && formData.targetIntensity !== null && (formData.targetIntensity as any) !== false && (formData.targetIntensity as any) !== "—" && (formData.targetIntensity as any) !== "Input required" && String(formData.targetIntensity).trim() !== "") {
+      const val = typeof formData.targetIntensity === 'boolean' ? 'Yes' : formData.targetIntensity;
+      lines.push("Target Intensity: " + val);
+    }
+    if (formData.notes !== undefined && formData.notes !== null && (formData.notes as any) !== false && (formData.notes as any) !== "—" && (formData.notes as any) !== "Input required" && String(formData.notes).trim() !== "") {
+      const val = typeof formData.notes === 'boolean' ? 'Yes' : formData.notes;
+      lines.push("Notes: " + val);
+    }
+    lines.push("");
+    lines.push("Made with RunCard Studio");
+    const textToCopy = lines.join("\n");
+    
+    const fallbackCopy = (text: string) => {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        showToast("Copied to clipboard!");
+      } catch (err) {
+        showToast("Failed to copy.");
+      }
+      textArea.remove();
+    };
 
-    navigator.clipboard.writeText(lines.join("\n"));
-    showToast("Workout copied to clipboard");
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textToCopy)
+        .then(() => showToast("Copied to clipboard!"))
+        .catch((err) => {
+          fallbackCopy(textToCopy);
+        });
+    } else {
+      fallbackCopy(textToCopy);
+    }
   };
+
+
+  const getPlainFormDataForCurrentCard = () => {
+    return { ...formData };
+  };
+
+  const saveCurrentDraft = () => {
+    const plainData = getPlainFormDataForCurrentCard();
+    for (const key in plainData) {
+      const val = (plainData as any)[key];
+      if (typeof HTMLElement !== "undefined" && val instanceof HTMLElement) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Node !== "undefined" && val instanceof Node) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Event !== "undefined" && val instanceof Event) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof File !== "undefined" && val instanceof File) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Blob !== "undefined" && val instanceof Blob) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof val === "function") { showToast("Draft contains unsafe data and was not saved."); return; }
+    }
+
+    const pd = plainData as any;
+    const title = pd.name || pd.title || pd.athleteName || pd.sessionName || pd.runnerName || pd.raceName || pd.sessionType || pd.distanceChoice || "Untitled Draft";
+
+    const draft = {
+      id: "draft_" + Date.now() + "_" + Math.random().toString(36).substring(2, 9),
+      cardType: "workout-card",
+      title: String(title),
+      template: typeof template !== 'undefined' ? template : "default",
+      exportSize: typeof window !== 'undefined' ? localStorage.getItem('runcard-default-export-size') || "square" : "square",
+      formData: plainData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      version: "1.0"
+    };
+
+    try {
+      const existingStr = localStorage.getItem('runcard-drafts');
+      let drafts = [];
+      if (existingStr) {
+        drafts = JSON.parse(existingStr);
+      }
+      drafts.push(draft);
+      localStorage.setItem('runcard-drafts', JSON.stringify(drafts));
+      showToast("Draft saved!");
+    } catch(err) {
+      showToast("Failed to save draft.");
+    }
+  };
+
+  useEffect(() => {
+    try {
+       if (typeof window !== 'undefined') {
+          const loadStr = localStorage.getItem('runcard-draft-load');
+          if (loadStr) {
+             const draft = JSON.parse(loadStr);
+             if (draft && draft.cardType === "workout-card") {
+                if (draft.formData) setFormData(draft.formData);
+                if (draft.template && typeof setTemplate === "function") setTemplate(draft.template);
+                // Template is loaded if the form has a template state.
+                // We'll just check if setTemplate exists in this code.
+             }
+          }
+       }
+    } catch {}
+  }, []);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
       {/* LEFT: FORM (4 cols) */}
-      <div className="lg:col-span-4 flex flex-col gap-6">
+      <div className="lg:col-span-4 flex flex-col gap-6 w-full">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Workout Plan</h2>
         </div>
@@ -83,7 +188,7 @@ export default function WorkoutCardGenerator({ previewRef, showToast }: WorkoutC
                  type="text" 
                  value={formData.title}
                  onChange={e => handleChange("title", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                  placeholder="5x1k VO2Max Intervals"
                />
              </div>
@@ -92,7 +197,7 @@ export default function WorkoutCardGenerator({ previewRef, showToast }: WorkoutC
                <select 
                  value={formData.sport}
                  onChange={e => handleChange("sport", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none uppercase font-mono cursor-pointer"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none uppercase font-mono cursor-pointer"
                >
                  <option value="Running">Running</option>
                  <option value="Cycling">Cycling</option>
@@ -110,7 +215,7 @@ export default function WorkoutCardGenerator({ previewRef, showToast }: WorkoutC
                type="text" 
                value={formData.targetIntensity}
                onChange={e => handleChange("targetIntensity", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none"
                placeholder="Zone 5 / VO2 Max"
              />
           </div>
@@ -120,7 +225,7 @@ export default function WorkoutCardGenerator({ previewRef, showToast }: WorkoutC
              <textarea 
                value={formData.warmup}
                onChange={e => handleChange("warmup", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none resize-none h-16 transition-colors"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none resize-none h-16 transition-colors"
                placeholder="2km easy jog, dynamic drills, 3x100m strides"
              ></textarea>
           </div>
@@ -130,7 +235,7 @@ export default function WorkoutCardGenerator({ previewRef, showToast }: WorkoutC
              <textarea 
                value={formData.mainSet}
                onChange={e => handleChange("mainSet", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none resize-none h-24 transition-colors"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none resize-none h-24 transition-colors"
                placeholder="5 x 1000m @ 3:45 pace // 3 min active shuffle recovery"
              ></textarea>
           </div>
@@ -140,7 +245,7 @@ export default function WorkoutCardGenerator({ previewRef, showToast }: WorkoutC
              <textarea 
                value={formData.rest}
                onChange={e => handleChange("rest", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-tertiary-cyan outline-none resize-none h-16 transition-colors"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-tertiary-cyan outline-none resize-none h-16 transition-colors"
                placeholder="Walk 90s, stay hydrated"
              ></textarea>
           </div>
@@ -150,7 +255,7 @@ export default function WorkoutCardGenerator({ previewRef, showToast }: WorkoutC
              <textarea 
                value={formData.cooldown}
                onChange={e => handleChange("cooldown", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none resize-none h-16 transition-colors"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none resize-none h-16 transition-colors"
                placeholder="1.5km recovery jog + light lower limb stretching"
              ></textarea>
           </div>
@@ -160,22 +265,22 @@ export default function WorkoutCardGenerator({ previewRef, showToast }: WorkoutC
              <textarea 
                value={formData.notes}
                onChange={e => handleChange("notes", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none resize-none h-16 transition-colors"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none resize-none h-16 transition-colors"
                placeholder="Keep posture upright on last reps."
              ></textarea>
           </div>
 
-          <button onClick={handleCopyWorkout} className="w-full py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]">
-            <Copy className="w-4 h-4 text-secondary-lime" /> Copy Workout
-          </button>
+          <button onClick={() => saveCurrentDraft()} className="w-full mt-2 lg:mt-4 py-2 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-4 h-4 text-primary-action" /> SAVE DRAFT</button>
+          <button onClick={handleCopyWorkout} className="w-full py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY WORKOUT
+</button>
         </div>
       </div>
 
       {/* RIGHT: PREVIEW (8 cols) */}
-      <div className="lg:col-span-8 flex flex-col gap-6">
-        <div className="flex items-center justify-between">
+      <div className="lg:col-span-8 flex flex-col gap-6 lg:sticky lg:top-[128px] lg:self-start mb-24 lg:mb-0">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Live Preview</h2>
-                    <div className="flex overflow-x-auto no-scrollbar gap-2 pb-2">
+                    <div className="flex overflow-x-auto no-scrollbar gap-2 w-full md:w-auto pb-4 md:pb-2 border-b border-brand-border md:border-none">
             {[
               { id: 'coach', label: 'Coach Board' },
               { id: 'track', label: 'Track Session' },
@@ -263,9 +368,7 @@ export default function WorkoutCardGenerator({ previewRef, showToast }: WorkoutC
                  </div>
                )}
 
-               <div className="text-center font-mono text-[9px] tracking-[0.25em] uppercase mt-auto opacity-40 pt-4 border-t border-dashed border-brand-border">
-                 made with RunCard Studio
-               </div>
+               <div className="text-center font-mono text-[9px] tracking-[0.25em] uppercase mt-auto opacity-40 pt-4 border-t border-dashed border-brand-border">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'made with RunCard Studio'}</div>
             </div>
           </div>
         </div>

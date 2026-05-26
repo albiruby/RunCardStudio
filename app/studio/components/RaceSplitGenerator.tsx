@@ -1,5 +1,5 @@
 import { useState, MutableRefObject, useRef, useEffect } from "react";
-import { Copy, AlertCircle } from "lucide-react";
+import { Copy, Save, AlertCircle } from "lucide-react";
 
 interface RaceSplitProps {
   previewRef: MutableRefObject<HTMLDivElement | null>;
@@ -14,6 +14,8 @@ const DISTANCES = {
   "Custom": 0,
 };
 
+const getUnit = () => typeof window !== 'undefined' && window.localStorage.getItem('runcard-unit') === 'imperial' ? 'mi' : 'km';
+
 export default function RaceSplitGenerator({ previewRef, showToast }: RaceSplitProps) {
   const [formData, setFormData] = useState({
     distanceChoice: "Half Marathon",
@@ -25,6 +27,7 @@ export default function RaceSplitGenerator({ previewRef, showToast }: RaceSplitP
     strategy: "Even Split"
   });
 
+  const unit = getUnit();
   const [template, setTemplate] = useState("table");
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
@@ -157,25 +160,135 @@ export default function RaceSplitGenerator({ previewRef, showToast }: RaceSplitP
   const dist = getDistance();
   const rawSecs = (parseInt(formData.hr) || 0) * 3600 + (parseInt(formData.min) || 0) * 60 + (parseInt(formData.sec) || 0);
   const avgPaceSecs = dist > 0 ? rawSecs / dist : 0;
-
   const handleCopySplits = () => {
-    if (splits.length === 0) return;
     const lines = [];
-    lines.push(`Race Plan: ${formData.distanceChoice === "Custom" ? (formData.customDistance || "0") + "km" : formData.distanceChoice}`);
-    lines.push(`Target: ${formData.hr}:${formData.min}:${formData.sec}`);
-    lines.push(`Strategy: ${formData.strategy}`);
-    lines.push(`\nKM\tPACE\tTIME`);
-    splits.forEach(s => {
-      lines.push(`${s.marker.toFixed(1)}\t${formatPace(s.splitPace)}\t${formatTime(s.cumTime)}`);
-    });
-    navigator.clipboard.writeText(lines.join("\n"));
-    showToast("Splits copied");
+    if (formData.distanceChoice !== undefined && formData.distanceChoice !== null && (formData.distanceChoice as any) !== false && (formData.distanceChoice as any) !== "—" && (formData.distanceChoice as any) !== "Input required" && String(formData.distanceChoice).trim() !== "") {
+      const val = typeof formData.distanceChoice === 'boolean' ? 'Yes' : formData.distanceChoice;
+      lines.push("Distance Choice: " + val);
+    }
+    if (formData.customDistance !== undefined && formData.customDistance !== null && (formData.customDistance as any) !== false && (formData.customDistance as any) !== "—" && (formData.customDistance as any) !== "Input required" && String(formData.customDistance).trim() !== "") {
+      const val = typeof formData.customDistance === 'boolean' ? 'Yes' : formData.customDistance;
+      lines.push("Custom Distance: " + val);
+    }
+    if (formData.hr !== undefined && formData.hr !== null && (formData.hr as any) !== false && (formData.hr as any) !== "—" && (formData.hr as any) !== "Input required" && String(formData.hr).trim() !== "") {
+      const val = typeof formData.hr === 'boolean' ? 'Yes' : formData.hr;
+      lines.push("Hr: " + val);
+    }
+    if (formData.min !== undefined && formData.min !== null && (formData.min as any) !== false && (formData.min as any) !== "—" && (formData.min as any) !== "Input required" && String(formData.min).trim() !== "") {
+      const val = typeof formData.min === 'boolean' ? 'Yes' : formData.min;
+      lines.push("Min: " + val);
+    }
+    if (formData.sec !== undefined && formData.sec !== null && (formData.sec as any) !== false && (formData.sec as any) !== "—" && (formData.sec as any) !== "Input required" && String(formData.sec).trim() !== "") {
+      const val = typeof formData.sec === 'boolean' ? 'Yes' : formData.sec;
+      lines.push("Sec: " + val);
+    }
+    if (formData.interval !== undefined && formData.interval !== null && (formData.interval as any) !== false && (formData.interval as any) !== "—" && (formData.interval as any) !== "Input required" && String(formData.interval).trim() !== "") {
+      const val = typeof formData.interval === 'boolean' ? 'Yes' : formData.interval;
+      lines.push("Interval: " + val);
+    }
+    if (formData.strategy !== undefined && formData.strategy !== null && (formData.strategy as any) !== false && (formData.strategy as any) !== "—" && (formData.strategy as any) !== "Input required" && String(formData.strategy).trim() !== "") {
+      const val = typeof formData.strategy === 'boolean' ? 'Yes' : formData.strategy;
+      lines.push("Strategy: " + val);
+    }
+    lines.push("");
+    lines.push("Made with RunCard Studio");
+    const textToCopy = lines.join("\n");
+    
+    const fallbackCopy = (text: string) => {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        showToast("Copied to clipboard!");
+      } catch (err) {
+        showToast("Failed to copy.");
+      }
+      textArea.remove();
+    };
+
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textToCopy)
+        .then(() => showToast("Copied to clipboard!"))
+        .catch((err) => {
+          fallbackCopy(textToCopy);
+        });
+    } else {
+      fallbackCopy(textToCopy);
+    }
   };
+
+  const getPlainFormDataForCurrentCard = () => {
+    return { ...formData };
+  };
+
+  const saveCurrentDraft = () => {
+    const plainData = getPlainFormDataForCurrentCard();
+    for (const key in plainData) {
+      const val = (plainData as any)[key];
+      if (typeof HTMLElement !== "undefined" && val instanceof HTMLElement) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Node !== "undefined" && val instanceof Node) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Event !== "undefined" && val instanceof Event) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof File !== "undefined" && val instanceof File) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Blob !== "undefined" && val instanceof Blob) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof val === "function") { showToast("Draft contains unsafe data and was not saved."); return; }
+    }
+
+    const pd = plainData as any;
+    const title = pd.name || pd.title || pd.athleteName || pd.sessionName || pd.runnerName || pd.raceName || pd.sessionType || pd.distanceChoice || "Untitled Draft";
+
+    const draft = {
+      id: "draft_" + Date.now() + "_" + Math.random().toString(36).substring(2, 9),
+      cardType: "race-split",
+      title: String(title),
+      template: typeof template !== 'undefined' ? template : "default",
+      exportSize: typeof window !== 'undefined' ? localStorage.getItem('runcard-default-export-size') || "square" : "square",
+      formData: plainData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      version: "1.0"
+    };
+
+    try {
+      const existingStr = localStorage.getItem('runcard-drafts');
+      let drafts = [];
+      if (existingStr) {
+        drafts = JSON.parse(existingStr);
+      }
+      drafts.push(draft);
+      localStorage.setItem('runcard-drafts', JSON.stringify(drafts));
+      showToast("Draft saved!");
+    } catch(err) {
+      showToast("Failed to save draft.");
+    }
+  };
+
+  useEffect(() => {
+    try {
+       if (typeof window !== 'undefined') {
+          const loadStr = localStorage.getItem('runcard-draft-load');
+          if (loadStr) {
+             const draft = JSON.parse(loadStr);
+             if (draft && draft.cardType === "race-split") {
+                if (draft.formData) setFormData(draft.formData);
+                if (draft.template && typeof setTemplate === "function") setTemplate(draft.template);
+                // Template is loaded if the form has a template state.
+                // We'll just check if setTemplate exists in this code.
+             }
+          }
+       }
+    } catch {}
+  }, []);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
       {/* LEFT: FORM (4 cols) */}
-      <div className="lg:col-span-4 flex flex-col gap-6">
+      <div className="lg:col-span-4 flex flex-col gap-6 w-full">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Race Configuration</h2>
         </div>
@@ -186,19 +299,19 @@ export default function RaceSplitGenerator({ previewRef, showToast }: RaceSplitP
             <select 
               value={formData.distanceChoice}
               onChange={e => handleChange("distanceChoice", e.target.value)}
-              className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none cursor-pointer transition-colors"
+              className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none cursor-pointer transition-colors"
             >
               <option value="5K">5K</option>
               <option value="10K">10K</option>
               <option value="Half Marathon">Half Marathon</option>
               <option value="Marathon">Marathon</option>
-              <option value="Custom">Custom (km)</option>
+              <option value="Custom">Custom ({unit})</option>
             </select>
           </div>
 
           {formData.distanceChoice === "Custom" && (
             <div>
-              <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-1">Custom Distance (km)</label>
+              <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-1">Custom Distance ({unit})</label>
               <input 
                 type="number" 
                 step="0.1"
@@ -253,10 +366,10 @@ export default function RaceSplitGenerator({ previewRef, showToast }: RaceSplitP
                 <select 
                   value={formData.interval}
                   onChange={e => handleChange("interval", e.target.value)}
-                  className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none cursor-pointer"
+                  className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none cursor-pointer"
                 >
-                  <option value="1">1 km</option>
-                  <option value="5">5 km</option>
+                  <option value="1">1 {unit}</option>
+                  <option value="5">5 {unit}</option>
                 </select>
              </div>
              <div>
@@ -264,7 +377,7 @@ export default function RaceSplitGenerator({ previewRef, showToast }: RaceSplitP
                 <select 
                   value={formData.strategy}
                   onChange={e => handleChange("strategy", e.target.value)}
-                  className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none cursor-pointer"
+                  className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none cursor-pointer"
                 >
                   <option value="Even Split">Even Split</option>
                   <option value="Negative Split">Negative Split</option>
@@ -274,17 +387,17 @@ export default function RaceSplitGenerator({ previewRef, showToast }: RaceSplitP
              </div>
           </div>
 
-          <button onClick={handleCopySplits} className="w-full mt-4 py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]">
-            <Copy className="w-4 h-4 text-secondary-lime" /> Copy Splits
-          </button>
+          <button onClick={() => saveCurrentDraft()} className="w-full mt-2 lg:mt-4 py-2 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-4 h-4 text-primary-action" /> SAVE DRAFT</button>
+          <button onClick={handleCopySplits} className="w-full mt-4 py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY SPLITS
+</button>
         </div>
       </div>
 
       {/* RIGHT: PREVIEW (8 cols) */}
       <div className="lg:col-span-8 flex flex-col gap-6 pb-20 animate-fade-in">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Live Preview</h2>
-                    <div className="flex overflow-x-auto no-scrollbar gap-2 pb-2">
+                    <div className="flex overflow-x-auto no-scrollbar gap-2 w-full md:w-auto pb-4 md:pb-2 border-b border-brand-border md:border-none">
             {[
               { id: 'table', label: 'Performance Table' },
               { id: 'plan', label: 'Race Plan' },
@@ -326,7 +439,7 @@ export default function RaceSplitGenerator({ previewRef, showToast }: RaceSplitP
                   <div className="flex justify-between items-start">
                     <div>
                       <h1 className={`text-2xl font-black uppercase tracking-tight leading-tight ${template === 'plan' ? 'text-black' : 'text-text-primary'}`}>
-                        {formData.distanceChoice === 'Custom' ? (formData.customDistance || '21.1') + ' km' : formData.distanceChoice}
+                        {formData.distanceChoice === 'Custom' ? (formData.customDistance || '21.1') + ' ' + unit : formData.distanceChoice}
                       </h1>
                       <p className={`font-mono text-xs uppercase tracking-widest ${template === 'plan' ? 'text-[#71717a]' : 'text-secondary-lime'}`}>
                         {formData.strategy}
@@ -344,7 +457,7 @@ export default function RaceSplitGenerator({ previewRef, showToast }: RaceSplitP
                {/* Table Content */}
                <div className={`flex flex-col ${template === 'table' ? 'p-0' : ''}`}>
                   <div className={`grid grid-cols-3 gap-2 px-6 py-2.5 font-mono text-[10px] uppercase tracking-widest border-b ${template === 'plan' ? 'border-[#e4e4e7] opacity-60' : 'border-[#22252a] opacity-70'}`}>
-                    <div>Marker (KM)</div>
+                    <div>Marker ({unit.toUpperCase()})</div>
                     <div className="text-center">Interval Pace</div>
                     <div className="text-right">Cumulative</div>
                   </div>
@@ -357,7 +470,9 @@ export default function RaceSplitGenerator({ previewRef, showToast }: RaceSplitP
                         const isFaster = split.splitPace < avgPaceSecs - 2; // threshold for visual highlight
                         const isSlower = split.splitPace > avgPaceSecs + 2;
 
-                        return (
+                      
+
+  return (
                           <div key={i} className={`grid grid-cols-3 gap-2 px-6 py-3.2 font-mono text-sm border-b transition-colors ${template === 'plan' ? 'border-[#e4e4e7]' : 'border-[#22252a] border-opacity-30'}`}>
                             <div className={`font-black ${template === 'plan' ? 'text-black' : 'text-text-primary'}`}>
                               {split.marker === dist ? (Number.isInteger(dist) ? dist : dist.toFixed(2)) : split.marker}
@@ -379,8 +494,8 @@ export default function RaceSplitGenerator({ previewRef, showToast }: RaceSplitP
 
                {/* Footer */}
                <div className={`mt-4 ${template === 'table' ? 'bg-[#121316] p-4 border-t border-[#22252a]' : 'px-6 pt-4'} flex justify-between font-mono text-[9px] tracking-widest uppercase opacity-50`}>
-                  <span>Avg Pace: {formatPace(avgPaceSecs)}/km</span>
-                  <span>made with RunCard Studio</span>
+                  <span>Avg Pace: {formatPace(avgPaceSecs)}/{unit}</span>
+                  <span>{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'made with RunCard Studio'}</span>
                </div>
                
                {template === 'table' && (

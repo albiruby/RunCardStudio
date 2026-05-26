@@ -1,10 +1,12 @@
 import { useState, MutableRefObject, useRef, useEffect } from "react";
-import { Copy, AlertCircle } from "lucide-react";
+import { Copy, Save, AlertCircle } from "lucide-react";
 
 interface RaceRecapProps {
   previewRef: MutableRefObject<HTMLDivElement | null>;
   showToast: (msg: string) => void;
 }
+
+const getUnit = () => typeof window !== 'undefined' && window.localStorage.getItem('runcard-unit') === 'imperial' ? 'mi' : 'km';
 
 export default function RaceRecapGenerator({ previewRef, showToast }: RaceRecapProps) {
   const [formData, setFormData] = useState({
@@ -20,6 +22,7 @@ export default function RaceRecapGenerator({ previewRef, showToast }: RaceRecapP
     nextTarget: ""
   });
 
+  const unit = getUnit();
   const [template, setTemplate] = useState("carbon");
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
@@ -47,13 +50,13 @@ export default function RaceRecapGenerator({ previewRef, showToast }: RaceRecapP
 
   const getPaceValue = () => {
     if (formData.manualPaceToggle) {
-       return formData.avgPace || "4:38/km";
+       return formData.avgPace || "4:38/{unit}";
     }
 
     const distStr = formData.distance || "42.2";
     const dist = parseFloat(distStr);
     const timeStr = formData.finishTime || "03:15:24";
-    if (isNaN(dist) || dist <= 0 || !timeStr) return "4:38/km";
+    if (isNaN(dist) || dist <= 0 || !timeStr) return "4:38/{unit}";
     
     const parts = timeStr.split(":");
     let totalSeconds = 0;
@@ -72,36 +75,156 @@ export default function RaceRecapGenerator({ previewRef, showToast }: RaceRecapP
     const secondsPerKm = totalSeconds / dist;
     const mins = Math.floor(secondsPerKm / 60);
     const secs = Math.floor(secondsPerKm % 60).toString().padStart(2, "0");
-    return `${mins}:${secs}/km`;
+    return `${mins}:${secs}/{unit}`;
   };
 
   const handleChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
-
   const handleCopyRecap = () => {
-    const p = getPaceValue();
-    const activeRace = formData.raceName || "CHICAGO MARATHON";
-    const activeDist = formData.distance || "42.2 KM";
-    const activeTime = formData.finishTime || "03:15:24";
     const lines = [];
-    lines.push(`Race Recap: ${activeRace}`);
-    lines.push(`${activeDist} done in ${activeTime}.`);
-    lines.push(`Avg Pace: ${p}.`);
-    if (formData.rank) lines.push(`Rank/Cat: ${formData.rank}.`);
-    if (formData.bestMoment) lines.push(`Highlight: ${formData.bestMoment}`);
-    lines.push(`Made with RunCard Studio.`);
+    if (formData.raceName !== undefined && formData.raceName !== null && (formData.raceName as any) !== false && (formData.raceName as any) !== "—" && (formData.raceName as any) !== "Input required" && String(formData.raceName).trim() !== "") {
+      const val = typeof formData.raceName === 'boolean' ? 'Yes' : formData.raceName;
+      lines.push("Race Name: " + val);
+    }
+    if (formData.distance !== undefined && formData.distance !== null && (formData.distance as any) !== false && (formData.distance as any) !== "—" && (formData.distance as any) !== "Input required" && String(formData.distance).trim() !== "") {
+      const val = typeof formData.distance === 'boolean' ? 'Yes' : formData.distance;
+      lines.push("Distance: " + val);
+    }
+    if (formData.finishTime !== undefined && formData.finishTime !== null && (formData.finishTime as any) !== false && (formData.finishTime as any) !== "—" && (formData.finishTime as any) !== "Input required" && String(formData.finishTime).trim() !== "") {
+      const val = typeof formData.finishTime === 'boolean' ? 'Yes' : formData.finishTime;
+      lines.push("Finish Time: " + val);
+    }
+    if (formData.manualPaceToggle !== undefined && formData.manualPaceToggle !== null && (formData.manualPaceToggle as any) !== false && (formData.manualPaceToggle as any) !== "—" && (formData.manualPaceToggle as any) !== "Input required" && String(formData.manualPaceToggle).trim() !== "") {
+      const val = typeof formData.manualPaceToggle === 'boolean' ? 'Yes' : formData.manualPaceToggle;
+      lines.push("Manual Pace Toggle: " + val);
+    }
+    if (formData.avgPace !== undefined && formData.avgPace !== null && (formData.avgPace as any) !== false && (formData.avgPace as any) !== "—" && (formData.avgPace as any) !== "Input required" && String(formData.avgPace).trim() !== "") {
+      const val = typeof formData.avgPace === 'boolean' ? 'Yes' : formData.avgPace;
+      lines.push("Avg Pace: " + val);
+    }
+    if (formData.date !== undefined && formData.date !== null && (formData.date as any) !== false && (formData.date as any) !== "—" && (formData.date as any) !== "Input required" && String(formData.date).trim() !== "") {
+      const val = typeof formData.date === 'boolean' ? 'Yes' : formData.date;
+      lines.push("Date: " + val);
+    }
+    if (formData.location !== undefined && formData.location !== null && (formData.location as any) !== false && (formData.location as any) !== "—" && (formData.location as any) !== "Input required" && String(formData.location).trim() !== "") {
+      const val = typeof formData.location === 'boolean' ? 'Yes' : formData.location;
+      lines.push("Location: " + val);
+    }
+    if (formData.rank !== undefined && formData.rank !== null && (formData.rank as any) !== false && (formData.rank as any) !== "—" && (formData.rank as any) !== "Input required" && String(formData.rank).trim() !== "") {
+      const val = typeof formData.rank === 'boolean' ? 'Yes' : formData.rank;
+      lines.push("Rank: " + val);
+    }
+    if (formData.bestMoment !== undefined && formData.bestMoment !== null && (formData.bestMoment as any) !== false && (formData.bestMoment as any) !== "—" && (formData.bestMoment as any) !== "Input required" && String(formData.bestMoment).trim() !== "") {
+      const val = typeof formData.bestMoment === 'boolean' ? 'Yes' : formData.bestMoment;
+      lines.push("Best Moment: " + val);
+    }
+    if (formData.nextTarget !== undefined && formData.nextTarget !== null && (formData.nextTarget as any) !== false && (formData.nextTarget as any) !== "—" && (formData.nextTarget as any) !== "Input required" && String(formData.nextTarget).trim() !== "") {
+      const val = typeof formData.nextTarget === 'boolean' ? 'Yes' : formData.nextTarget;
+      lines.push("Next Target: " + val);
+    }
+    lines.push("");
+    lines.push("Made with RunCard Studio");
+    const textToCopy = lines.join("\n");
+    
+    const fallbackCopy = (text: string) => {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        showToast("Copied to clipboard!");
+      } catch (err) {
+        showToast("Failed to copy.");
+      }
+      textArea.remove();
+    };
 
-    navigator.clipboard.writeText(lines.join(" "));
-    showToast("Race recap copied");
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textToCopy)
+        .then(() => showToast("Copied to clipboard!"))
+        .catch((err) => {
+          fallbackCopy(textToCopy);
+        });
+    } else {
+      fallbackCopy(textToCopy);
+    }
   };
 
   const currentPace = getPaceValue();
 
+
+  const getPlainFormDataForCurrentCard = () => {
+    return { ...formData };
+  };
+
+  const saveCurrentDraft = () => {
+    const plainData = getPlainFormDataForCurrentCard();
+    for (const key in plainData) {
+      const val = (plainData as any)[key];
+      if (typeof HTMLElement !== "undefined" && val instanceof HTMLElement) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Node !== "undefined" && val instanceof Node) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Event !== "undefined" && val instanceof Event) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof File !== "undefined" && val instanceof File) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Blob !== "undefined" && val instanceof Blob) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof val === "function") { showToast("Draft contains unsafe data and was not saved."); return; }
+    }
+
+    const pd = plainData as any;
+    const title = pd.name || pd.title || pd.athleteName || pd.sessionName || pd.runnerName || pd.raceName || pd.sessionType || pd.distanceChoice || "Untitled Draft";
+
+    const draft = {
+      id: "draft_" + Date.now() + "_" + Math.random().toString(36).substring(2, 9),
+      cardType: "race-recap",
+      title: String(title),
+      template: typeof template !== 'undefined' ? template : "default",
+      exportSize: typeof window !== 'undefined' ? localStorage.getItem('runcard-default-export-size') || "square" : "square",
+      formData: plainData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      version: "1.0"
+    };
+
+    try {
+      const existingStr = localStorage.getItem('runcard-drafts');
+      let drafts = [];
+      if (existingStr) {
+        drafts = JSON.parse(existingStr);
+      }
+      drafts.push(draft);
+      localStorage.setItem('runcard-drafts', JSON.stringify(drafts));
+      showToast("Draft saved!");
+    } catch(err) {
+      showToast("Failed to save draft.");
+    }
+  };
+
+  useEffect(() => {
+    try {
+       if (typeof window !== 'undefined') {
+          const loadStr = localStorage.getItem('runcard-draft-load');
+          if (loadStr) {
+             const draft = JSON.parse(loadStr);
+             if (draft && draft.cardType === "race-recap") {
+                if (draft.formData) setFormData(draft.formData);
+                if (draft.template && typeof setTemplate === "function") setTemplate(draft.template);
+                // Template is loaded if the form has a template state.
+                // We'll just check if setTemplate exists in this code.
+             }
+          }
+       }
+    } catch {}
+  }, []);
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
       {/* LEFT: FORM (4 cols) */}
-      <div className="lg:col-span-4 flex flex-col gap-6">
+      <div className="lg:col-span-4 flex flex-col gap-6 w-full">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Race Data</h2>
         </div>
@@ -113,7 +236,7 @@ export default function RaceRecapGenerator({ previewRef, showToast }: RaceRecapP
                type="text" 
                value={formData.raceName}
                onChange={e => handleChange("raceName", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none transition-colors"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none transition-colors"
                placeholder="CHICAGO MARATHON"
              />
           </div>
@@ -166,8 +289,8 @@ export default function RaceRecapGenerator({ previewRef, showToast }: RaceRecapP
                 type="text" 
                 value={formData.avgPace}
                 onChange={e => handleChange("avgPace", e.target.value)}
-                className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none font-mono"
-                placeholder="e.g. 4:38 /km"
+                className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none font-mono"
+                placeholder="e.g. 4:38 /{unit}"
               />
             )}
           </div>
@@ -179,7 +302,7 @@ export default function RaceRecapGenerator({ previewRef, showToast }: RaceRecapP
                  type="date" 
                  value={formData.date}
                  onChange={e => handleChange("date", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none"
                />
              </div>
              <div>
@@ -188,7 +311,7 @@ export default function RaceRecapGenerator({ previewRef, showToast }: RaceRecapP
                  type="text" 
                  value={formData.location}
                  onChange={e => handleChange("location", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none"
                  placeholder="CHICAGO, IL"
                />
              </div>
@@ -200,7 +323,7 @@ export default function RaceRecapGenerator({ previewRef, showToast }: RaceRecapP
                type="text" 
                value={formData.rank}
                onChange={e => handleChange("rank", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none"
                placeholder="PR (#246)"
              />
           </div>
@@ -210,7 +333,7 @@ export default function RaceRecapGenerator({ previewRef, showToast }: RaceRecapP
              <textarea 
                value={formData.bestMoment}
                onChange={e => handleChange("bestMoment", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none resize-none h-16 transition-colors"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none resize-none h-16 transition-colors"
                placeholder="CROWD YELLING AT MILE 20 GAVE ME A SECOND WIND."
              ></textarea>
           </div>
@@ -221,22 +344,22 @@ export default function RaceRecapGenerator({ previewRef, showToast }: RaceRecapP
                type="text" 
                value={formData.nextTarget}
                onChange={e => handleChange("nextTarget", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none"
                placeholder="SUB 3:10 AT BOSTON"
              />
           </div>
 
-          <button onClick={handleCopyRecap} className="w-full py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]">
-            <Copy className="w-4 h-4 text-secondary-lime" /> Copy Recap
-          </button>
+          <button onClick={() => saveCurrentDraft()} className="w-full mt-2 lg:mt-4 py-2 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-4 h-4 text-primary-action" /> SAVE DRAFT</button>
+          <button onClick={handleCopyRecap} className="w-full py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY RECAP
+</button>
         </div>
       </div>
 
       {/* RIGHT: PREVIEW (8 cols) */}
-      <div className="lg:col-span-8 flex flex-col gap-6">
-        <div className="flex items-center justify-between">
+      <div className="lg:col-span-8 flex flex-col gap-6 lg:sticky lg:top-[128px] lg:self-start mb-24 lg:mb-0">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Live Preview</h2>
-                    <div className="flex overflow-x-auto no-scrollbar gap-2 pb-2">
+                    <div className="flex overflow-x-auto no-scrollbar gap-2 w-full md:w-auto pb-4 md:pb-2 border-b border-brand-border md:border-none">
             {[
               { id: 'carbon', label: 'Dark Carbon' },
               { id: 'white', label: 'Clean White' },
@@ -336,9 +459,7 @@ export default function RaceRecapGenerator({ previewRef, showToast }: RaceRecapP
                  </div>
                )}
 
-               <div className="text-center font-mono text-[9px] tracking-[0.25em] uppercase mt-auto opacity-40 pt-4 border-t border-dashed border-brand-border">
-                 made with RunCard Studio
-               </div>
+               <div className="text-center font-mono text-[9px] tracking-[0.25em] uppercase mt-auto opacity-40 pt-4 border-t border-dashed border-brand-border">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'made with RunCard Studio'}</div>
             </div>
           </div>
         </div>

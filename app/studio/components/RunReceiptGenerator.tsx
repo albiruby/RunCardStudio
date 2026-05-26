@@ -1,10 +1,12 @@
 import { useState, MutableRefObject, useRef, useEffect } from "react";
-import { Copy, AlertCircle } from "lucide-react";
+import { Copy, Save, AlertCircle } from "lucide-react";
 
 interface RunReceiptProps {
   previewRef: MutableRefObject<HTMLDivElement | null>;
   showToast: (msg: string) => void;
 }
+
+const getUnit = () => typeof window !== 'undefined' && window.localStorage.getItem('runcard-unit') === 'imperial' ? 'mi' : 'km';
 
 export default function RunReceiptGenerator({ previewRef, showToast }: RunReceiptProps) {
   const [formData, setFormData] = useState({
@@ -21,6 +23,7 @@ export default function RunReceiptGenerator({ previewRef, showToast }: RunReceip
     notes: ""
   });
 
+  const unit = getUnit();
   const [template, setTemplate] = useState("carbon");
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
@@ -70,22 +73,83 @@ export default function RunReceiptGenerator({ previewRef, showToast }: RunReceip
     const secs = Math.floor(secondsPerKm % 60).toString().padStart(2, "0");
     return `${mins}:${secs}`;
   };
-
   const handleCopyCaption = () => {
-    const p = getPaceValue();
-    const activeDist = formData.distance || "10.00";
-    const activeDur = formData.duration || "00:48:30";
     const lines = [];
-    lines.push(`${activeDist} km done in ${activeDur}.`);
-    if (p !== "—") lines.push(`Pace: ${p}/km.`);
-    lines.push(`RPE: ${formData.rpe}/10.`);
-    if (formData.mood || formData.weather) {
-      lines.push(`Mood: ${formData.mood || "Smooth"} | Weather: ${formData.weather || "Sunny"}.`);
+    if (formData.name !== undefined && formData.name !== null && (formData.name as any) !== false && (formData.name as any) !== "—" && (formData.name as any) !== "Input required" && String(formData.name).trim() !== "") {
+      const val = typeof formData.name === 'boolean' ? 'Yes' : formData.name;
+      lines.push("Name: " + val);
     }
-    lines.push(`Made with RunCard Studio.`);
+    if (formData.date !== undefined && formData.date !== null && (formData.date as any) !== false && (formData.date as any) !== "—" && (formData.date as any) !== "Input required" && String(formData.date).trim() !== "") {
+      const val = typeof formData.date === 'boolean' ? 'Yes' : formData.date;
+      lines.push("Date: " + val);
+    }
+    if (formData.distance !== undefined && formData.distance !== null && (formData.distance as any) !== false && (formData.distance as any) !== "—" && (formData.distance as any) !== "Input required" && String(formData.distance).trim() !== "") {
+      const val = typeof formData.distance === 'boolean' ? 'Yes' : formData.distance;
+      lines.push("Distance: " + val);
+    }
+    if (formData.duration !== undefined && formData.duration !== null && (formData.duration as any) !== false && (formData.duration as any) !== "—" && (formData.duration as any) !== "Input required" && String(formData.duration).trim() !== "") {
+      const val = typeof formData.duration === 'boolean' ? 'Yes' : formData.duration;
+      lines.push("Duration: " + val);
+    }
+    if (formData.location !== undefined && formData.location !== null && (formData.location as any) !== false && (formData.location as any) !== "—" && (formData.location as any) !== "Input required" && String(formData.location).trim() !== "") {
+      const val = typeof formData.location === 'boolean' ? 'Yes' : formData.location;
+      lines.push("Location: " + val);
+    }
+    if (formData.rpe !== undefined && formData.rpe !== null && (formData.rpe as any) !== false && (formData.rpe as any) !== "—" && (formData.rpe as any) !== "Input required" && String(formData.rpe).trim() !== "") {
+      const val = typeof formData.rpe === 'boolean' ? 'Yes' : formData.rpe;
+      lines.push("Rpe: " + val);
+    }
+    if (formData.mood !== undefined && formData.mood !== null && (formData.mood as any) !== false && (formData.mood as any) !== "—" && (formData.mood as any) !== "Input required" && String(formData.mood).trim() !== "") {
+      const val = typeof formData.mood === 'boolean' ? 'Yes' : formData.mood;
+      lines.push("Mood: " + val);
+    }
+    if (formData.weather !== undefined && formData.weather !== null && (formData.weather as any) !== false && (formData.weather as any) !== "—" && (formData.weather as any) !== "Input required" && String(formData.weather).trim() !== "") {
+      const val = typeof formData.weather === 'boolean' ? 'Yes' : formData.weather;
+      lines.push("Weather: " + val);
+    }
+    if (formData.win !== undefined && formData.win !== null && (formData.win as any) !== false && (formData.win as any) !== "—" && (formData.win as any) !== "Input required" && String(formData.win).trim() !== "") {
+      const val = typeof formData.win === 'boolean' ? 'Yes' : formData.win;
+      lines.push("Win: " + val);
+    }
+    if (formData.damage !== undefined && formData.damage !== null && (formData.damage as any) !== false && (formData.damage as any) !== "—" && (formData.damage as any) !== "Input required" && String(formData.damage).trim() !== "") {
+      const val = typeof formData.damage === 'boolean' ? 'Yes' : formData.damage;
+      lines.push("Damage: " + val);
+    }
+    if (formData.notes !== undefined && formData.notes !== null && (formData.notes as any) !== false && (formData.notes as any) !== "—" && (formData.notes as any) !== "Input required" && String(formData.notes).trim() !== "") {
+      const val = typeof formData.notes === 'boolean' ? 'Yes' : formData.notes;
+      lines.push("Notes: " + val);
+    }
+    lines.push("");
+    lines.push("Made with RunCard Studio");
+    const textToCopy = lines.join("\n");
+    
+    const fallbackCopy = (text: string) => {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        showToast("Copied to clipboard!");
+      } catch (err) {
+        showToast("Failed to copy.");
+      }
+      textArea.remove();
+    };
 
-    navigator.clipboard.writeText(lines.join(" "));
-    showToast("Caption copied");
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textToCopy)
+        .then(() => showToast("Copied to clipboard!"))
+        .catch((err) => {
+          fallbackCopy(textToCopy);
+        });
+    } else {
+      fallbackCopy(textToCopy);
+    }
   };
 
   const handleChange = (field: string, value: string) => {
@@ -94,10 +158,73 @@ export default function RunReceiptGenerator({ previewRef, showToast }: RunReceip
 
   const pace = getPaceValue();
 
+
+  const getPlainFormDataForCurrentCard = () => {
+    return { ...formData };
+  };
+
+  const saveCurrentDraft = () => {
+    const plainData = getPlainFormDataForCurrentCard();
+    for (const key in plainData) {
+      const val = (plainData as any)[key];
+      if (typeof HTMLElement !== "undefined" && val instanceof HTMLElement) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Node !== "undefined" && val instanceof Node) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Event !== "undefined" && val instanceof Event) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof File !== "undefined" && val instanceof File) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Blob !== "undefined" && val instanceof Blob) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof val === "function") { showToast("Draft contains unsafe data and was not saved."); return; }
+    }
+
+    const pd = plainData as any;
+    const title = pd.name || pd.title || pd.athleteName || pd.sessionName || pd.runnerName || pd.raceName || pd.sessionType || pd.distanceChoice || "Untitled Draft";
+
+    const draft = {
+      id: "draft_" + Date.now() + "_" + Math.random().toString(36).substring(2, 9),
+      cardType: "run-receipt",
+      title: String(title),
+      template: typeof template !== 'undefined' ? template : "default",
+      exportSize: typeof window !== 'undefined' ? localStorage.getItem('runcard-default-export-size') || "square" : "square",
+      formData: plainData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      version: "1.0"
+    };
+
+    try {
+      const existingStr = localStorage.getItem('runcard-drafts');
+      let drafts = [];
+      if (existingStr) {
+        drafts = JSON.parse(existingStr);
+      }
+      drafts.push(draft);
+      localStorage.setItem('runcard-drafts', JSON.stringify(drafts));
+      showToast("Draft saved!");
+    } catch(err) {
+      showToast("Failed to save draft.");
+    }
+  };
+
+  useEffect(() => {
+    try {
+       if (typeof window !== 'undefined') {
+          const loadStr = localStorage.getItem('runcard-draft-load');
+          if (loadStr) {
+             const draft = JSON.parse(loadStr);
+             if (draft && draft.cardType === "run-receipt") {
+                if (draft.formData) setFormData(draft.formData);
+                if (draft.template && typeof setTemplate === "function") setTemplate(draft.template);
+                // Template is loaded if the form has a template state.
+                // We'll just check if setTemplate exists in this code.
+             }
+          }
+       }
+    } catch {}
+  }, []);
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
       {/* LEFT: FORM (4 cols) */}
-      <div className="lg:col-span-4 flex flex-col gap-6">
+      <div className="lg:col-span-4 flex flex-col gap-6 w-full">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Run Parameters</h2>
         </div>
@@ -110,7 +237,7 @@ export default function RunReceiptGenerator({ previewRef, showToast }: RunReceip
                  type="text" 
                  value={formData.name}
                  onChange={e => handleChange("name", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none transition-colors"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none transition-colors"
                  placeholder="ATHLETE RUNNER"
                />
              </div>
@@ -120,13 +247,13 @@ export default function RunReceiptGenerator({ previewRef, showToast }: RunReceip
                  type="date" 
                  value={formData.date}
                  onChange={e => handleChange("date", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none transition-colors"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none transition-colors"
                />
              </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
              <div>
-               <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-1">Distance (km)</label>
+               <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-1">Distance ({unit})</label>
                <input 
                  type="number" 
                  step="0.01"
@@ -164,7 +291,7 @@ export default function RunReceiptGenerator({ previewRef, showToast }: RunReceip
                type="text" 
                value={formData.location}
                onChange={e => handleChange("location", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none transition-colors"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none transition-colors"
                placeholder="OCEANFRONT PARKWAY"
              />
           </div>
@@ -189,7 +316,7 @@ export default function RunReceiptGenerator({ previewRef, showToast }: RunReceip
                <select 
                  value={formData.mood}
                  onChange={e => handleChange("mood", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none transition-colors"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none transition-colors"
                >
                  <option value="">Smooth (Default)</option>
                  <option value="Strong">Strong</option>
@@ -204,7 +331,7 @@ export default function RunReceiptGenerator({ previewRef, showToast }: RunReceip
                <select 
                  value={formData.weather}
                  onChange={e => handleChange("weather", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none transition-colors"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none transition-colors"
                >
                  <option value="">Sunny (Default)</option>
                  <option value="Sunny">Sunny</option>
@@ -223,7 +350,7 @@ export default function RunReceiptGenerator({ previewRef, showToast }: RunReceip
                  type="text" 
                  value={formData.win}
                  onChange={e => handleChange("win", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none transition-colors"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none transition-colors"
                  placeholder="e.g. FAST FINAL KM"
                />
              </div>
@@ -233,7 +360,7 @@ export default function RunReceiptGenerator({ previewRef, showToast }: RunReceip
                  type="text" 
                  value={formData.damage}
                  onChange={e => handleChange("damage", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none"
                  placeholder="e.g. NONE / ZERO"
                />
              </div>
@@ -244,22 +371,22 @@ export default function RunReceiptGenerator({ previewRef, showToast }: RunReceip
              <textarea 
                value={formData.notes}
                onChange={e => handleChange("notes", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none resize-none h-20 transition-colors"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none resize-none h-20 transition-colors"
                placeholder="PACE WAS SOLID. FELT VERY SMOOTH THROUGH THE HILLS."
              ></textarea>
           </div>
 
-          <button onClick={handleCopyCaption} className="w-full py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]">
-            <Copy className="w-4 h-4 text-secondary-lime" /> Copy Caption
-          </button>
+          <button onClick={() => saveCurrentDraft()} className="w-full mt-2 lg:mt-4 py-2 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-4 h-4 text-primary-action" /> SAVE DRAFT</button>
+          <button onClick={handleCopyCaption} className="w-full py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY CAPTION
+</button>
         </div>
       </div>
 
       {/* RIGHT: PREVIEW (8 cols) */}
-      <div className="lg:col-span-8 flex flex-col gap-6">
-        <div className="flex items-center justify-between">
+      <div className="lg:col-span-8 flex flex-col gap-6 lg:sticky lg:top-[128px] lg:self-start mb-24 lg:mb-0">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Live Preview</h2>
-                    <div className="flex overflow-x-auto no-scrollbar gap-2 pb-2">
+                    <div className="flex overflow-x-auto no-scrollbar gap-2 w-full md:w-auto pb-4 md:pb-2 border-b border-brand-border md:border-none">
             {[
               { id: 'carbon', label: 'Thermal Receipt' },
               { id: 'thermal', label: 'Neon Sport' },
@@ -319,7 +446,7 @@ export default function RunReceiptGenerator({ previewRef, showToast }: RunReceip
               <div className="mb-6">
                  <p className="font-mono text-[9px] opacity-60 uppercase tracking-widest mb-1">Distance</p>
                  <h1 className={`font-mono text-6xl font-extrabold tracking-tighter mb-4 ${template === 'neon' ? 'text-secondary-lime' : template === 'carbon' ? 'text-text-primary' : 'text-black'}`}>
-                   {formData.distance || '10.00'}<span className="text-lg opacity-60 ml-1.5 lowercase">km</span>
+                   {formData.distance || '10.00'}<span className="text-lg opacity-60 ml-1.5 lowercase">{unit}</span>
                  </h1>
                  
                  <div className="grid grid-cols-2 gap-4">
@@ -330,7 +457,7 @@ export default function RunReceiptGenerator({ previewRef, showToast }: RunReceip
                    <div>
                      <p className="font-mono text-[9px] opacity-60 uppercase tracking-widest mb-1">Avg Pace</p>
                      <p className="font-mono text-2xl font-black text-primary-coral">
-                       {pace}<span className="text-xs opacity-60 font-medium ml-1">/km</span>
+                       {pace}<span className="text-xs opacity-60 font-medium ml-1">/{unit}</span>
                      </p>
                    </div>
                  </div>
@@ -373,9 +500,7 @@ export default function RunReceiptGenerator({ previewRef, showToast }: RunReceip
               </div>
 
               {/* Footer / Watermark */}
-              <div className="mt-auto text-center font-mono opacity-40 text-[9px] uppercase tracking-[0.2em] pt-4 border-t border-dashed border-brand-border">
-                made with RunCard Studio
-              </div>
+              <div className="mt-auto text-center font-mono opacity-40 text-[9px] uppercase tracking-[0.2em] pt-4 border-t border-dashed border-brand-border">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'made with RunCard Studio'}</div>
               
               {/* Thermal bottom edge effect */}
               {template === 'thermal' && (

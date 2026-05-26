@@ -16,6 +16,8 @@ import GoalCardGenerator from "./components/GoalCardGenerator";
 import ChallengeCardGenerator from "./components/ChallengeCardGenerator";
 import FuelingPlanGenerator from "./components/FuelingPlanGenerator";
 import ShoeRotationGenerator from "./components/ShoeRotationGenerator";
+import RoutePosterGenerator from "./components/RoutePosterGenerator";
+import ClientRender from "./components/ClientRender";
 import { Download, Copy, Save, RotateCcw, FileText, Menu, X, ArrowLeft } from "lucide-react";
 import * as htmlToImage from "html-to-image";
 import { jsPDF } from "jspdf";
@@ -36,6 +38,7 @@ const TAB_TYPES = [
   { id: "challenge-card", label: "Challenge Card", implemented: true },
   { id: "fueling-plan", label: "Fueling Plan Card", implemented: true },
   { id: "shoe-rotation", label: "Shoe Rotation Card", implemented: true },
+  { id: "route-poster", label: "Route Poster", implemented: true },
 ];
 
 function ComingSoonPlaceholder({ activeTab }: { activeTab: string }) {
@@ -83,7 +86,7 @@ function StudioContent() {
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [isExporting, setIsExporting] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
-  const [exportSize, setExportSize] = useState("Square Post");
+  const [exportSize, setExportSize] = useState("square");
   const previewRef = useRef<HTMLDivElement>(null);
 
   // Allow resetting child forms by passing a flag or calling a ref? 
@@ -98,6 +101,15 @@ function StudioContent() {
         setActiveTab(prev => prev !== type ? type : prev);
       }, 0);
     }
+    
+    // Load default export size from settings
+    setTimeout(() => {
+      const savedSize = localStorage.getItem('runcard-default-export-size');
+      if (savedSize) {
+        setExportSize(savedSize);
+      }
+    }, 0);
+    
     return () => clearTimeout(t);
   }, [searchParams]);
 
@@ -120,11 +132,11 @@ function StudioContent() {
       let th = cardCanvas.height;
       let suffix = "auto";
       
-      if (exportSize === "Square Post") { tw = 1080; th = 1080; suffix = "square"; }
-      else if (exportSize === "Instagram Story") { tw = 1080; th = 1920; suffix = "story"; }
-      else if (exportSize === "Landscape") { tw = 1920; th = 1080; suffix = "landscape"; }
-      else if (exportSize === "Compact Card") { tw = 1200; th = 628; suffix = "compact"; }
-      else if (exportSize === "Printable") { tw = 2480; th = 3508; suffix = "printable"; } // A4 300dpi
+      if (exportSize === "square") { tw = 1080; th = 1080; suffix = "square"; }
+      else if (exportSize === "story") { tw = 1080; th = 1920; suffix = "story"; }
+      else if (exportSize === "landscape") { tw = 1920; th = 1080; suffix = "landscape"; }
+      else if (exportSize === "compact") { tw = 1200; th = 628; suffix = "compact"; }
+      else if (exportSize === "printable") { tw = 2480; th = 3508; suffix = "printable"; } // A4 300dpi
 
       const finalCanvas = document.createElement("canvas");
       finalCanvas.width = tw;
@@ -216,7 +228,7 @@ function StudioContent() {
   const isPdfFriendly = activeTab === 'race-split' || activeTab === 'pace-band';
 
   return (
-    <div className="flex flex-col flex-1 pb-16">
+    <div className="flex flex-col flex-1 pb-24 lg:pb-16">
       {/* Toolbar Sticky */}
       <div className="bg-surface-lowest border-b border-brand-border sticky top-16 z-40">
         <div className="max-w-[1280px] mx-auto px-4 md:px-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 py-4">
@@ -235,48 +247,83 @@ function StudioContent() {
             ))}
           </div>
 
-          <div className="flex items-center gap-2 w-full lg:w-auto overflow-x-auto no-scrollbar">
+          <div className="flex items-center justify-between lg:justify-end gap-2 w-full lg:w-auto overflow-x-auto no-scrollbar">
              <button
                 onClick={handleReset}
                 disabled={!isImplemented}
                 className="px-3 py-2 text-xs font-bold uppercase tracking-wider border border-brand-border text-text-muted hover:text-text-primary hover:bg-surface rounded transition-colors flex items-center gap-1 bg-surface-lowest disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
              >
-                <RotateCcw className="w-4 h-4" /> Reset
+                <RotateCcw className="w-4 h-4" /> Reset Form
              </button>
              
-             <div className="h-6 w-px bg-brand-border mx-1 shrink-0"></div>
+             <div className="hidden lg:block h-6 w-px bg-brand-border mx-1 shrink-0"></div>
 
-             <select 
-               value={exportSize}
-               onChange={e => setExportSize(e.target.value)}
-               className="bg-surface-lowest text-text-primary px-3 py-2 rounded text-xs font-bold uppercase border border-brand-border outline-none focus:border-secondary-lime shrink-0"
-             >
-               <option value="Square Post">Square Post</option>
-               <option value="Instagram Story">IG Story</option>
-               <option value="Landscape">Landscape</option>
-               <option value="Compact Card">Compact Card</option>
-               {isPdfFriendly && <option value="Printable">Printable</option>}
-             </select>
-
-             <button
-                onClick={handleExportPng}
-                disabled={isExporting || !isImplemented}
-                className="px-4 py-2 text-xs font-bold uppercase tracking-wider bg-primary-action text-white hover:bg-opacity-90 rounded transition-colors flex items-center gap-1 shadow-[0_0_15px_rgba(255,84,81,0.2)] disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-             >
-                <Download className="w-4 h-4" /> {isExporting ? 'Exporting...' : 'Export PNG'}
-             </button>
-
-             {isPdfFriendly && (
-               <button
-                  onClick={handleExportPdf}
-                  disabled={isExporting || !isImplemented}
-                  className="px-4 py-2 text-xs font-bold uppercase tracking-wider bg-secondary-lime text-surface-lowest hover:bg-opacity-90 rounded transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+             <div className="hidden lg:flex items-center gap-2">
+               <select 
+                 value={exportSize}
+                 onChange={e => setExportSize(e.target.value)}
+                 className="bg-surface-lowest text-text-primary px-3 py-2 rounded text-xs font-bold uppercase border border-brand-border outline-none focus:border-secondary-lime shrink-0"
                >
-                  <FileText className="w-4 h-4" /> PDF
+                 <option value="square">Square Post</option>
+                 <option value="story">IG Story</option>
+                 <option value="landscape">Landscape</option>
+                 <option value="compact">Compact Card</option>
+                 {isPdfFriendly && <option value="printable">Printable</option>}
+               </select>
+
+               <button
+                  onClick={handleExportPng}
+                  disabled={isExporting || !isImplemented}
+                  className="px-4 py-2 text-xs font-bold uppercase tracking-wider bg-primary-action text-white hover:bg-opacity-90 rounded transition-colors flex items-center gap-1 shadow-[0_0_15px_rgba(255,84,81,0.2)] disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+               >
+                  <Download className="w-4 h-4" /> {isExporting ? 'Exporting...' : 'Export PNG'}
                </button>
-             )}
+
+               {isPdfFriendly && (
+                 <button
+                    onClick={handleExportPdf}
+                    disabled={isExporting || !isImplemented}
+                    className="px-4 py-2 text-xs font-bold uppercase tracking-wider bg-secondary-lime text-surface-lowest hover:bg-opacity-90 rounded transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                 >
+                    <FileText className="w-4 h-4" /> PDF
+                 </button>
+               )}
+             </div>
           </div>
         </div>
+      </div>
+
+      {/* Mobile Sticky Bottom Export Bar */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-surface-lowest border-t border-brand-border p-3 z-[60] flex gap-2 items-center">
+         <select 
+           value={exportSize}
+           onChange={e => setExportSize(e.target.value)}
+           className="bg-surface-lowest text-text-primary px-2 py-3 rounded text-[10px] font-bold uppercase border border-brand-border outline-none focus:border-secondary-lime shrink-0 flex-[1.5]"
+         >
+           <option value="square">SQ</option>
+           <option value="story">STORY</option>
+           <option value="landscape">LAND</option>
+           <option value="compact">COMP</option>
+           {isPdfFriendly && <option value="printable">PRINT</option>}
+         </select>
+
+         <button
+            onClick={handleExportPng}
+            disabled={isExporting || !isImplemented}
+            className="flex-[3] py-3 text-xs font-bold uppercase tracking-wider bg-primary-action text-white hover:bg-opacity-90 rounded transition-colors flex items-center justify-center gap-1 shadow-[0_0_15px_rgba(255,84,81,0.2)] disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+         >
+            <Download className="w-4 h-4" /> {isExporting ? 'Exp...' : 'Exp PNG'}
+         </button>
+
+         {isPdfFriendly && (
+           <button
+              onClick={handleExportPdf}
+              disabled={isExporting || !isImplemented}
+              className="flex-[2] py-3 text-xs font-bold uppercase tracking-wider bg-secondary-lime text-surface-lowest hover:bg-opacity-90 rounded transition-colors flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+           >
+              <FileText className="w-4 h-4" /> PDF
+           </button>
+         )}
       </div>
 
       {toastMessage && (
@@ -285,26 +332,28 @@ function StudioContent() {
         </div>
       )}
 
-
       {/* Main Studio Area */}
-      <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8">
-        {!isImplemented && <ComingSoonPlaceholder activeTab={activeTab} />}
-        {isImplemented && activeTab === "run-receipt" && <RunReceiptGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
-        {isImplemented && activeTab === "race-recap" && <RaceRecapGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
-        {isImplemented && activeTab === "workout-card" && <WorkoutCardGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
-        {isImplemented && activeTab === "race-split" && <RaceSplitGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
-        {isImplemented && activeTab === "pace-band" && <PaceBandGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
-        {isImplemented && activeTab === "damage-report" && <DamageReportGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
-        {isImplemented && activeTab === "race-bib" && <RaceBibGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
-        {isImplemented && activeTab === "race-checklist" && <RaceChecklistGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
-        {isImplemented && activeTab === "sports-certificate" && <SportsCertificateGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
-        {isImplemented && activeTab === "personal-best" && <PersonalBestGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
-        {isImplemented && activeTab === "training-week" && <TrainingWeekGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
-        {isImplemented && activeTab === "goal-card" && <GoalCardGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
-        {isImplemented && activeTab === "challenge-card" && <ChallengeCardGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
-        {isImplemented && activeTab === "fueling-plan" && <FuelingPlanGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
-        {isImplemented && activeTab === "shoe-rotation" && <ShoeRotationGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
-      </div>
+      <ClientRender fallback={<div className="p-8 text-center text-text-muted uppercase font-mono max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8 h-[60vh] flex items-center justify-center">Loading Generator...</div>}>
+        <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8">
+          {!isImplemented && <ComingSoonPlaceholder activeTab={activeTab} />}
+          {isImplemented && activeTab === "run-receipt" && <RunReceiptGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
+          {isImplemented && activeTab === "race-recap" && <RaceRecapGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
+          {isImplemented && activeTab === "workout-card" && <WorkoutCardGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
+          {isImplemented && activeTab === "race-split" && <RaceSplitGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
+          {isImplemented && activeTab === "pace-band" && <PaceBandGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
+          {isImplemented && activeTab === "damage-report" && <DamageReportGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
+          {isImplemented && activeTab === "race-bib" && <RaceBibGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
+          {isImplemented && activeTab === "race-checklist" && <RaceChecklistGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
+          {isImplemented && activeTab === "sports-certificate" && <SportsCertificateGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
+          {isImplemented && activeTab === "personal-best" && <PersonalBestGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
+          {isImplemented && activeTab === "training-week" && <TrainingWeekGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
+          {isImplemented && activeTab === "goal-card" && <GoalCardGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
+          {isImplemented && activeTab === "challenge-card" && <ChallengeCardGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
+          {isImplemented && activeTab === "fueling-plan" && <FuelingPlanGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
+          {isImplemented && activeTab === "shoe-rotation" && <ShoeRotationGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
+          {isImplemented && activeTab === "route-poster" && <RoutePosterGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
+        </div>
+      </ClientRender>
     </div>
   );
 }

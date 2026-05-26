@@ -1,5 +1,5 @@
 import { useState, MutableRefObject, useRef, useEffect } from "react";
-import { Copy } from "lucide-react";
+import { Copy, Save } from "lucide-react";
 
 interface SportsCertificateProps {
   previewRef: MutableRefObject<HTMLDivElement | null>;
@@ -66,25 +66,132 @@ export default function SportsCertificateGenerator({ previewRef, showToast }: Sp
       default: return "CERTIFICATE";
     }
   };
-
   const handleCopy = () => {
-    const lines = [
-      getHeader(),
-      `This certifies that ${formData.athleteName}`,
-      `${getToneText()} ${formData.achievement}`,
-      `(${formData.detailText})`,
-      `Date: ${formData.date}`,
-      "Made with RunCard Studio."
-    ];
+    const lines = [];
+    if (formData.athleteName !== undefined && formData.athleteName !== null && (formData.athleteName as any) !== false && (formData.athleteName as any) !== "—" && (formData.athleteName as any) !== "Input required" && String(formData.athleteName).trim() !== "") {
+      const val = typeof formData.athleteName === 'boolean' ? 'Yes' : formData.athleteName;
+      lines.push("Athlete Name: " + val);
+    }
+    if (formData.achievement !== undefined && formData.achievement !== null && (formData.achievement as any) !== false && (formData.achievement as any) !== "—" && (formData.achievement as any) !== "Input required" && String(formData.achievement).trim() !== "") {
+      const val = typeof formData.achievement === 'boolean' ? 'Yes' : formData.achievement;
+      lines.push("Achievement: " + val);
+    }
+    if (formData.detailText !== undefined && formData.detailText !== null && (formData.detailText as any) !== false && (formData.detailText as any) !== "—" && (formData.detailText as any) !== "Input required" && String(formData.detailText).trim() !== "") {
+      const val = typeof formData.detailText === 'boolean' ? 'Yes' : formData.detailText;
+      lines.push("Detail Text: " + val);
+    }
+    if (formData.date !== undefined && formData.date !== null && (formData.date as any) !== false && (formData.date as any) !== "—" && (formData.date as any) !== "Input required" && String(formData.date).trim() !== "") {
+      const val = typeof formData.date === 'boolean' ? 'Yes' : formData.date;
+      lines.push("Date: " + val);
+    }
+    if (formData.tone !== undefined && formData.tone !== null && (formData.tone as any) !== false && (formData.tone as any) !== "—" && (formData.tone as any) !== "Input required" && String(formData.tone).trim() !== "") {
+      const val = typeof formData.tone === 'boolean' ? 'Yes' : formData.tone;
+      lines.push("Tone: " + val);
+    }
+    if (formData.signatureTitle !== undefined && formData.signatureTitle !== null && (formData.signatureTitle as any) !== false && (formData.signatureTitle as any) !== "—" && (formData.signatureTitle as any) !== "Input required" && String(formData.signatureTitle).trim() !== "") {
+      const val = typeof formData.signatureTitle === 'boolean' ? 'Yes' : formData.signatureTitle;
+      lines.push("Signature Title: " + val);
+    }
+    lines.push("");
+    lines.push("Made with RunCard Studio");
+    const textToCopy = lines.join("\n");
+    
+    const fallbackCopy = (text: string) => {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        showToast("Copied to clipboard!");
+      } catch (err) {
+        showToast("Failed to copy.");
+      }
+      textArea.remove();
+    };
 
-    navigator.clipboard.writeText(lines.join("\n"));
-    showToast("Certificate text copied to clipboard");
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textToCopy)
+        .then(() => showToast("Copied to clipboard!"))
+        .catch((err) => {
+          fallbackCopy(textToCopy);
+        });
+    } else {
+      fallbackCopy(textToCopy);
+    }
   };
+
+
+  const getPlainFormDataForCurrentCard = () => {
+    return { ...formData };
+  };
+
+  const saveCurrentDraft = () => {
+    const plainData = getPlainFormDataForCurrentCard();
+    for (const key in plainData) {
+      const val = (plainData as any)[key];
+      if (typeof HTMLElement !== "undefined" && val instanceof HTMLElement) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Node !== "undefined" && val instanceof Node) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Event !== "undefined" && val instanceof Event) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof File !== "undefined" && val instanceof File) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Blob !== "undefined" && val instanceof Blob) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof val === "function") { showToast("Draft contains unsafe data and was not saved."); return; }
+    }
+
+    const pd = plainData as any;
+    const title = pd.name || pd.title || pd.athleteName || pd.sessionName || pd.runnerName || pd.raceName || pd.sessionType || pd.distanceChoice || "Untitled Draft";
+
+    const draft = {
+      id: "draft_" + Date.now() + "_" + Math.random().toString(36).substring(2, 9),
+      cardType: "sports-certificate",
+      title: String(title),
+      template: typeof template !== 'undefined' ? template : "default",
+      exportSize: typeof window !== 'undefined' ? localStorage.getItem('runcard-default-export-size') || "square" : "square",
+      formData: plainData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      version: "1.0"
+    };
+
+    try {
+      const existingStr = localStorage.getItem('runcard-drafts');
+      let drafts = [];
+      if (existingStr) {
+        drafts = JSON.parse(existingStr);
+      }
+      drafts.push(draft);
+      localStorage.setItem('runcard-drafts', JSON.stringify(drafts));
+      showToast("Draft saved!");
+    } catch(err) {
+      showToast("Failed to save draft.");
+    }
+  };
+
+  useEffect(() => {
+    try {
+       if (typeof window !== 'undefined') {
+          const loadStr = localStorage.getItem('runcard-draft-load');
+          if (loadStr) {
+             const draft = JSON.parse(loadStr);
+             if (draft && draft.cardType === "sports-certificate") {
+                if (draft.formData) setFormData(draft.formData);
+                if (draft.template && typeof setTemplate === "function") setTemplate(draft.template);
+                // Template is loaded if the form has a template state.
+                // We'll just check if setTemplate exists in this code.
+             }
+          }
+       }
+    } catch {}
+  }, []);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
       {/* LEFT: FORM (4 cols) */}
-      <div className="lg:col-span-4 flex flex-col gap-6">
+      <div className="lg:col-span-4 flex flex-col gap-6 w-full">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Certificate Configuration</h2>
         </div>
@@ -96,7 +203,7 @@ export default function SportsCertificateGenerator({ previewRef, showToast }: Sp
                type="text" 
                value={formData.athleteName}
                onChange={e => handleChange("athleteName", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                placeholder="Athlete Name"
              />
           </div>
@@ -107,7 +214,7 @@ export default function SportsCertificateGenerator({ previewRef, showToast }: Sp
                type="text" 
                value={formData.achievement}
                onChange={e => handleChange("achievement", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                placeholder="e.g. The 100km Ultra Challenge"
              />
           </div>
@@ -117,7 +224,7 @@ export default function SportsCertificateGenerator({ previewRef, showToast }: Sp
              <textarea 
                value={formData.detailText}
                onChange={e => handleChange("detailText", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none resize-none h-16 transition-colors"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none resize-none h-16 transition-colors"
                placeholder="e.g. with unyielding determination..."
              ></textarea>
           </div>
@@ -129,7 +236,7 @@ export default function SportsCertificateGenerator({ previewRef, showToast }: Sp
                  type="text" 
                  value={formData.date}
                  onChange={e => handleChange("date", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all uppercase"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all uppercase"
                  placeholder="OCTOBER 24, 2026"
                />
             </div>
@@ -138,7 +245,7 @@ export default function SportsCertificateGenerator({ previewRef, showToast }: Sp
                <select 
                  value={formData.tone}
                  onChange={e => handleChange("tone", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none cursor-pointer"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none cursor-pointer"
                >
                  <option value="Serious">Serious</option>
                  <option value="Funny">Funny</option>
@@ -154,22 +261,22 @@ export default function SportsCertificateGenerator({ previewRef, showToast }: Sp
                type="text" 
                value={formData.signatureTitle}
                onChange={e => handleChange("signatureTitle", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                placeholder="Race Director"
              />
           </div>
 
-          <button onClick={handleCopy} className="w-full mt-2 py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]">
-            <Copy className="w-4 h-4 text-secondary-lime" /> Copy Text
-          </button>
+          <button onClick={() => saveCurrentDraft()} className="w-full mt-2 lg:mt-4 py-2 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-4 h-4 text-primary-action" /> SAVE DRAFT</button>
+          <button onClick={handleCopy} className="w-full mt-2 py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY CERTIFICATE
+</button>
         </div>
       </div>
 
       {/* RIGHT: PREVIEW (8 cols) */}
       <div className="lg:col-span-8 flex flex-col gap-6 pb-20">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Live Preview</h2>
-                    <div className="flex overflow-x-auto no-scrollbar gap-2 pb-2">
+                    <div className="flex overflow-x-auto no-scrollbar gap-2 w-full md:w-auto pb-4 md:pb-2 border-b border-brand-border md:border-none">
             {[
               { id: 'classic', label: 'Certificate Classic' },
               { id: 'survival', label: 'Survival Certificate' },
@@ -283,7 +390,7 @@ export default function SportsCertificateGenerator({ previewRef, showToast }: Sp
                     <p className="text-sm text-gray-500 max-w-sm mx-auto">{formData.detailText}</p>
 
                     <div className="absolute bottom-0 left-0 right-0 flex justify-between items-end border-t border-gray-100 pt-6">
-                      <div className="text-[10px] font-mono uppercase tracking-[0.2em] opacity-30">RunCard Studio</div>
+                      <div className="text-[10px] font-mono uppercase tracking-[0.2em] opacity-30">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'RunCard Studio'}</div>
                       <div className="text-[10px] font-mono uppercase tracking-widest font-bold opacity-70">{formData.signatureTitle}</div>
                     </div>
                  </div>

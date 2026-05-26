@@ -21,7 +21,23 @@ export const metadata: Metadata = {
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                var theme = localStorage.getItem('runcard-theme') || 'dark';
+                if (theme === 'light' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: light)').matches)) {
+                  document.documentElement.classList.add('light');
+                } else {
+                  document.documentElement.classList.remove('light');
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
       <body className="min-h-screen flex flex-col font-sans" suppressHydrationWarning>
         <header className="border-b border-brand-border bg-brand-bg sticky top-0 z-50">
           <div className="max-w-[1280px] mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
@@ -34,6 +50,9 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
               <Link href="/studio" className="text-sm font-semibold uppercase tracking-wider text-text-muted hover:text-text-primary transition-colors hover:border-b-2 border-primary-action py-1">
                 Studio
               </Link>
+              <Link href="/drafts" className="text-sm font-semibold uppercase tracking-wider text-text-muted hover:text-text-primary transition-colors hover:border-b-2 border-transparent py-1">
+                Drafts
+              </Link>
               <Link href="/settings" className="text-sm font-semibold uppercase tracking-wider text-text-muted hover:text-text-primary transition-colors hover:border-b-2 border-transparent py-1">
                 Settings
               </Link>
@@ -43,13 +62,14 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
               <div className="hidden sm:flex border border-brand-border px-2 py-1 rounded text-xs font-mono text-secondary-lime uppercase bg-surface">
                 Local-First
               </div>
-              <button 
-                title="Toggle Theme"
+              <Link 
+                href="/settings"
+                title="Settings"
                 className="w-8 h-8 flex items-center justify-center border border-brand-border rounded hover:bg-surface transition-colors"
-                aria-label="Toggle dark mode"
+                aria-label="Settings"
               >
-                <Moon className="w-4 h-4 text-text-muted" />
-              </button>
+                <Activity className="w-4 h-4 text-text-muted" />
+              </Link>
             </div>
           </div>
         </header>

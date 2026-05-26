@@ -1,5 +1,5 @@
 import { useState, MutableRefObject, useRef, useEffect } from "react";
-import { Copy, AlertCircle } from "lucide-react";
+import { Copy, Save, AlertCircle } from "lucide-react";
 
 interface PaceBandProps {
   previewRef: MutableRefObject<HTMLDivElement | null>;
@@ -14,6 +14,8 @@ const DISTANCES = {
   "Custom": 0,
 };
 
+const getUnit = () => typeof window !== 'undefined' && window.localStorage.getItem('runcard-unit') === 'imperial' ? 'mi' : 'km';
+
 export default function PaceBandGenerator({ previewRef, showToast }: PaceBandProps) {
   const [formData, setFormData] = useState({
     distanceChoice: "Marathon",
@@ -24,6 +26,7 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
     interval: "5"
   });
 
+  const unit = getUnit();
   const [template, setTemplate] = useState("wristband");
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
@@ -47,7 +50,65 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
       }
     });
     observer.observe(containerRef.current);
-    return () => observer.disconnect();
+  const handleCopy = () => {
+    const lines = [];
+    if (formData.distanceChoice !== undefined && formData.distanceChoice !== null && (formData.distanceChoice as any) !== false && (formData.distanceChoice as any) !== "—" && (formData.distanceChoice as any) !== "Input required" && String(formData.distanceChoice).trim() !== "") {
+      const val = typeof formData.distanceChoice === 'boolean' ? 'Yes' : formData.distanceChoice;
+      lines.push("Distance Choice: " + val);
+    }
+    if (formData.customDistance !== undefined && formData.customDistance !== null && (formData.customDistance as any) !== false && (formData.customDistance as any) !== "—" && (formData.customDistance as any) !== "Input required" && String(formData.customDistance).trim() !== "") {
+      const val = typeof formData.customDistance === 'boolean' ? 'Yes' : formData.customDistance;
+      lines.push("Custom Distance: " + val);
+    }
+    if (formData.hr !== undefined && formData.hr !== null && (formData.hr as any) !== false && (formData.hr as any) !== "—" && (formData.hr as any) !== "Input required" && String(formData.hr).trim() !== "") {
+      const val = typeof formData.hr === 'boolean' ? 'Yes' : formData.hr;
+      lines.push("Hr: " + val);
+    }
+    if (formData.min !== undefined && formData.min !== null && (formData.min as any) !== false && (formData.min as any) !== "—" && (formData.min as any) !== "Input required" && String(formData.min).trim() !== "") {
+      const val = typeof formData.min === 'boolean' ? 'Yes' : formData.min;
+      lines.push("Min: " + val);
+    }
+    if (formData.sec !== undefined && formData.sec !== null && (formData.sec as any) !== false && (formData.sec as any) !== "—" && (formData.sec as any) !== "Input required" && String(formData.sec).trim() !== "") {
+      const val = typeof formData.sec === 'boolean' ? 'Yes' : formData.sec;
+      lines.push("Sec: " + val);
+    }
+    if (formData.interval !== undefined && formData.interval !== null && (formData.interval as any) !== false && (formData.interval as any) !== "—" && (formData.interval as any) !== "Input required" && String(formData.interval).trim() !== "") {
+      const val = typeof formData.interval === 'boolean' ? 'Yes' : formData.interval;
+      lines.push("Interval: " + val);
+    }
+    lines.push("");
+    lines.push("Made with RunCard Studio");
+    const textToCopy = lines.join("\n");
+    
+    const fallbackCopy = (text: string) => {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        showToast("Copied to clipboard!");
+      } catch (err) {
+        showToast("Failed to copy.");
+      }
+      textArea.remove();
+    };
+
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textToCopy)
+        .then(() => showToast("Copied to clipboard!"))
+        .catch((err) => {
+          fallbackCopy(textToCopy);
+        });
+    } else {
+      fallbackCopy(textToCopy);
+    }
+  };
+  return () => observer.disconnect();
   }, [template]);
 
   const handleChange = (field: string, value: string) => {
@@ -122,10 +183,132 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
   const rawSecs = (isNaN(hrVal) ? 0 : hrVal) * 3600 + (isNaN(minVal) ? 0 : minVal) * 60 + (isNaN(secVal) ? 0 : secVal);
   const avgPaceSecs = dist > 0 ? rawSecs / dist : 0;
 
+  const handleCopy = () => {
+    const lines = [];
+    if (formData.distanceChoice !== undefined && formData.distanceChoice !== null && (formData.distanceChoice as any) !== false && (formData.distanceChoice as any) !== "—" && (formData.distanceChoice as any) !== "Input required" && String(formData.distanceChoice).trim() !== "") {
+      const val = typeof formData.distanceChoice === 'boolean' ? 'Yes' : formData.distanceChoice;
+      lines.push("Distance Choice: " + val);
+    }
+    if (formData.customDistance !== undefined && formData.customDistance !== null && (formData.customDistance as any) !== false && (formData.customDistance as any) !== "—" && (formData.customDistance as any) !== "Input required" && String(formData.customDistance).trim() !== "") {
+      const val = typeof formData.customDistance === 'boolean' ? 'Yes' : formData.customDistance;
+      lines.push("Custom Distance: " + val);
+    }
+    if (formData.hr !== undefined && formData.hr !== null && (formData.hr as any) !== false && (formData.hr as any) !== "—" && (formData.hr as any) !== "Input required" && String(formData.hr).trim() !== "") {
+      const val = typeof formData.hr === 'boolean' ? 'Yes' : formData.hr;
+      lines.push("Hr: " + val);
+    }
+    if (formData.min !== undefined && formData.min !== null && (formData.min as any) !== false && (formData.min as any) !== "—" && (formData.min as any) !== "Input required" && String(formData.min).trim() !== "") {
+      const val = typeof formData.min === 'boolean' ? 'Yes' : formData.min;
+      lines.push("Min: " + val);
+    }
+    if (formData.sec !== undefined && formData.sec !== null && (formData.sec as any) !== false && (formData.sec as any) !== "—" && (formData.sec as any) !== "Input required" && String(formData.sec).trim() !== "") {
+      const val = typeof formData.sec === 'boolean' ? 'Yes' : formData.sec;
+      lines.push("Sec: " + val);
+    }
+    if (formData.interval !== undefined && formData.interval !== null && (formData.interval as any) !== false && (formData.interval as any) !== "—" && (formData.interval as any) !== "Input required" && String(formData.interval).trim() !== "") {
+      const val = typeof formData.interval === 'boolean' ? 'Yes' : formData.interval;
+      lines.push("Interval: " + val);
+    }
+    lines.push("");
+    lines.push("Made with RunCard Studio");
+    const textToCopy = lines.join("\n");
+    
+    const fallbackCopy = (text: string) => {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        showToast("Copied to clipboard!");
+      } catch (err) {
+        showToast("Failed to copy.");
+      }
+      textArea.remove();
+    };
+
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textToCopy)
+        .then(() => showToast("Copied to clipboard!"))
+        .catch((err) => {
+          fallbackCopy(textToCopy);
+        });
+    } else {
+      fallbackCopy(textToCopy);
+    }
+  };
+
+
+  const getPlainFormDataForCurrentCard = () => {
+    return { ...formData };
+  };
+
+  const saveCurrentDraft = () => {
+    const plainData = getPlainFormDataForCurrentCard();
+    for (const key in plainData) {
+      const val = (plainData as any)[key];
+      if (typeof HTMLElement !== "undefined" && val instanceof HTMLElement) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Node !== "undefined" && val instanceof Node) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Event !== "undefined" && val instanceof Event) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof File !== "undefined" && val instanceof File) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Blob !== "undefined" && val instanceof Blob) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof val === "function") { showToast("Draft contains unsafe data and was not saved."); return; }
+    }
+
+    const pd = plainData as any;
+    const title = pd.name || pd.title || pd.athleteName || pd.sessionName || pd.runnerName || pd.raceName || pd.sessionType || pd.distanceChoice || "Untitled Draft";
+
+    const draft = {
+      id: "draft_" + Date.now() + "_" + Math.random().toString(36).substring(2, 9),
+      cardType: "pace-band",
+      title: String(title),
+      template: typeof template !== 'undefined' ? template : "default",
+      exportSize: typeof window !== 'undefined' ? localStorage.getItem('runcard-default-export-size') || "square" : "square",
+      formData: plainData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      version: "1.0"
+    };
+
+    try {
+      const existingStr = localStorage.getItem('runcard-drafts');
+      let drafts = [];
+      if (existingStr) {
+        drafts = JSON.parse(existingStr);
+      }
+      drafts.push(draft);
+      localStorage.setItem('runcard-drafts', JSON.stringify(drafts));
+      showToast("Draft saved!");
+    } catch(err) {
+      showToast("Failed to save draft.");
+    }
+  };
+
+  useEffect(() => {
+    try {
+       if (typeof window !== 'undefined') {
+          const loadStr = localStorage.getItem('runcard-draft-load');
+          if (loadStr) {
+             const draft = JSON.parse(loadStr);
+             if (draft && draft.cardType === "pace-band") {
+                if (draft.formData) setFormData(draft.formData);
+                if (draft.template && typeof setTemplate === "function") setTemplate(draft.template);
+                // Template is loaded if the form has a template state.
+                // We'll just check if setTemplate exists in this code.
+             }
+          }
+       }
+    } catch {}
+  }, []);
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
       {/* LEFT: FORM (4 cols) */}
-      <div className="lg:col-span-4 flex flex-col gap-6">
+      <div className="lg:col-span-4 flex flex-col gap-6 w-full">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Pace Band Configuration</h2>
         </div>
@@ -136,7 +319,7 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
             <select 
               value={formData.distanceChoice}
               onChange={e => handleChange("distanceChoice", e.target.value)}
-              className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary font-mono focus:border-secondary-lime outline-none cursor-pointer"
+              className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary font-mono focus:border-secondary-lime outline-none cursor-pointer"
             >
               <option value="5K">5K (5.0k)</option>
               <option value="10K">10K (10.0k)</option>
@@ -148,7 +331,7 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
 
           {formData.distanceChoice === "Custom" && (
             <div>
-              <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-1">Custom Distance (km)</label>
+              <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-1">Custom Distance ({unit})</label>
               <input 
                 type="number" 
                 step="0.1"
@@ -206,7 +389,7 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
 
           <div className="flex justify-between items-center py-2.5 border-b border-[#22252a] mb-2 font-mono text-sm uppercase">
             <span className="text-text-muted text-xs">Required Pace:</span>
-            <span className="font-black text-secondary-lime">{formatPace(avgPaceSecs)}/km</span>
+            <span className="font-black text-secondary-lime">{formatPace(avgPaceSecs)}/{unit}</span>
           </div>
 
           <div>
@@ -216,32 +399,20 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
                  onClick={() => handleChange("interval", "1")}
                  className={`py-2 rounded font-mono font-bold uppercase transition-all border text-xs cursor-pointer ${formData.interval === "1" ? 'bg-secondary-lime text-surface-lowest border-secondary-lime font-black' : 'bg-surface-lowest text-text-muted border-brand-border hover:border-text-muted'}`}
                >
-                 1 km
+                 1 {unit}
                </button>
                <button 
                  onClick={() => handleChange("interval", "5")}
                  className={`py-2 rounded font-mono font-bold uppercase transition-all border text-xs cursor-pointer ${formData.interval === "5" ? 'bg-secondary-lime text-surface-lowest border-secondary-lime font-black' : 'bg-surface-lowest text-text-muted border-brand-border hover:border-text-muted'}`}
                >
-                 5 km
+                 5 {unit}
                </button>
              </div>
           </div>
           
-          <button onClick={() => {
-            const lines = [
-              `PACE BAND // ${formData.distanceChoice === 'Custom' ? formData.customDistance + ' km' : formData.distanceChoice}`,
-              `Target Time: ${(hrVal || 0).toString().padStart(2, '0')}:${(minVal || 0).toString().padStart(2, '0')}:${(secVal || 0).toString().padStart(2, '0')}`,
-              `Required Pace: ${formatPace(avgPaceSecs)}/km`,
-              ``,
-              `--- SPLITS ---`
-            ];
-            splits.forEach(s => {
-              lines.push(`${s.marker === dist ? (Number.isInteger(dist) ? dist : dist.toFixed(1)) : s.marker} km \t ${formatTime(s.cumTime)}`);
-            });
-            navigator.clipboard.writeText(lines.join('\n')).then(() => showToast("Copied text to clipboard"));
-          }} className="w-full mt-2 py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]">
-            <Copy className="w-4 h-4 text-secondary-lime" /> Copy Text Pattern
-          </button>
+          <button onClick={() => saveCurrentDraft()} className="w-full mt-2 lg:mt-4 py-2 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-4 h-4 text-primary-action" /> SAVE DRAFT</button>
+          <button onClick={handleCopy} className="w-full mt-2 py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY PACE BAND
+</button>
         </div>
       </div>
 
@@ -286,7 +457,7 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
                      <div className="text-[8px] text-secondary-lime font-black">PACE {formatPace(avgPaceSecs)}</div>
                    </div>
                    <div className="flex border-b border-black text-center font-bold bg-gray-100 font-mono text-[9px] py-1">
-                     <div className="w-1/3 border-r border-black">KM</div>
+                     <div className="w-1/3 border-r border-black">{unit.toUpperCase()}</div>
                      <div className="w-2/3">CUM TIME</div>
                    </div>
                    <div className="flex flex-col">
@@ -303,7 +474,7 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
                    </div>
                    <div className="py-2.5 text-center text-[7px] opacity-40 uppercase tracking-widest bg-gray-50 flex flex-col items-center justify-center pt-5 pb-3">
                      <span>Wristband</span>
-                     <span className="font-extrabold">RunCard Studio</span>
+                     <span className="font-extrabold">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'RunCard Studio'}</span>
                    </div>
                  </div>
               )}
@@ -320,7 +491,7 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
 
                     <div className="flex-1 flex flex-col pt-4">
                        <div className="mb-6">
-                         <h1 className="text-secondary-lime font-mono text-[10px] uppercase tracking-[0.2em] mb-1 font-bold">Planned Target: {formatPace(avgPaceSecs)}/KM</h1>
+                         <h1 className="text-secondary-lime font-mono text-[10px] uppercase tracking-[0.2em] mb-1 font-bold">Planned Target: {formatPace(avgPaceSecs)}/{unit.toUpperCase()}</h1>
                          <div className="text-3xl font-black font-mono text-white mb-0.5 leading-none shadow-sm pb-1 border-b border-white/10 flex justify-between items-baseline">
                            <span>{(formData.hr.padStart(2, '0'))}:{(formData.min.padStart(2, '0'))}:{(formData.sec.padStart(2, '0'))}</span>
                            <span className="text-sm uppercase text-primary-coral tracking-[0.1em] font-sans font-bold">{formData.distanceChoice === 'Custom' ? (formData.customDistance || '21.1') + 'KM' : formData.distanceChoice}</span>
@@ -337,7 +508,7 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
                              <div key={i} className="flex justify-between items-center py-2.5 text-white font-mono border-b border-white/5 last:border-0">
                                 <span className="font-extrabold text-[#f3f4f6] text-sm">
                                   {s.marker === dist ? (Number.isInteger(dist) ? dist : dist.toFixed(1)) : s.marker} 
-                                  <span className="text-[10px] opacity-40 font-normal ml-0.5">km</span>
+                                  <span className="text-[10px] opacity-40 font-normal ml-0.5">{unit}</span>
                                 </span>
                                 <span className={`text-base font-black text-white ${s.marker === dist ? 'text-secondary-lime' : ''}`}>{formatTime(s.cumTime)}</span>
                              </div>
@@ -347,7 +518,7 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
                     </div>
 
                     <div className="mt-4 text-center text-[7px] font-mono uppercase tracking-[0.25em] opacity-30 pb-1">
-                       RunCard Studio // lockscreen scale
+                       {typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'RunCard Studio'}
                     </div>
                  </div>
               )}
@@ -356,19 +527,19 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
                  <div className="w-full flex flex-col font-sans text-black">
                    <div className="flex justify-between items-end border-b-4 border-black pb-4 mb-8">
                      <div>
-                       <h1 className="text-4xl font-extrabold uppercase tracking-tighter leading-none">{formData.distanceChoice === 'Custom' ? (formData.customDistance || '21.1') + ' km' : formData.distanceChoice}</h1>
+                       <h1 className="text-4xl font-extrabold uppercase tracking-tighter leading-none">{formData.distanceChoice === 'Custom' ? (formData.customDistance || '21.1') + ' ' + unit : formData.distanceChoice}</h1>
                        <p className="text-base uppercase opacity-70 tracking-widest mt-1.5 font-semibold">Pace Band Chart // Target Goal</p>
                      </div>
                      <div className="text-right">
                        <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Target Pace</p>
-                       <p className="font-mono text-2xl font-black bg-black text-white px-3 py-1.5 inline-block mt-1">{formatPace(avgPaceSecs)}/km</p>
+                       <p className="font-mono text-2xl font-black bg-black text-white px-3 py-1.5 inline-block mt-1">{formatPace(avgPaceSecs)}/{unit}</p>
                      </div>
                    </div>
 
                    <div className="grid grid-cols-2 gap-8">
                      <div className="w-full font-mono text-xs">
                         <div className="flex bg-black text-white font-black mb-2 py-2 px-3 text-[10px] tracking-wider">
-                          <div className="w-1/2">DISTANCE (KM)</div>
+                          <div className="w-1/2">DISTANCE ({unit.toUpperCase()})</div>
                           <div className="w-1/2 text-right font-black">TARGET TIME</div>
                         </div>
                         
@@ -383,7 +554,7 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
                      {splits.length > 0 && (
                        <div className="w-full font-mono text-xs">
                           <div className="flex bg-black text-white font-black mb-2 py-2 px-3 text-[10px] tracking-wider font-mono">
-                            <div className="w-1/2">DISTANCE (KM)</div>
+                            <div className="w-1/2">DISTANCE ({unit.toUpperCase()})</div>
                             <div className="w-1/2 text-right">TARGET TIME</div>
                           </div>
                           
@@ -398,7 +569,7 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
                    </div>
 
                    <div className="mt-16 text-center text-[10px] font-mono uppercase tracking-[0.2em] opacity-40 pt-6 border-t border-dashed border-gray-300">
-                     Generated by RunCard Studio - runcard.studio // stable-mvp
+                     {typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'Generated by RunCard Studio - runcard.studio'}
                    </div>
                  </div>
               )}

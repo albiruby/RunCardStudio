@@ -1,5 +1,5 @@
 import { useState, MutableRefObject, useRef, useEffect } from "react";
-import { Copy } from "lucide-react";
+import { Copy, Save } from "lucide-react";
 
 interface RaceBibProps {
   previewRef: MutableRefObject<HTMLDivElement | null>;
@@ -43,20 +43,71 @@ export default function RaceBibGenerator({ previewRef, showToast }: RaceBibProps
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
-
   const handleCopy = () => {
-    const lines = [
-      "Race Bib",
-      `Name: ${formData.runnerName || "-"}`,
-      `Bib: ${formData.bibNumber || "-"}`,
-      `Event: ${formData.eventName || "-"}`,
-      `Distance: ${formData.distance || "-"}`,
-      `Target: ${formData.targetTime || "-"}`,
-      "Made with RunCard Studio."
-    ];
+    const lines = [];
+    if (formData.runnerName !== undefined && formData.runnerName !== null && (formData.runnerName as any) !== false && (formData.runnerName as any) !== "—" && (formData.runnerName as any) !== "Input required" && String(formData.runnerName).trim() !== "") {
+      const val = typeof formData.runnerName === 'boolean' ? 'Yes' : formData.runnerName;
+      lines.push("Runner Name: " + val);
+    }
+    if (formData.bibNumber !== undefined && formData.bibNumber !== null && (formData.bibNumber as any) !== false && (formData.bibNumber as any) !== "—" && (formData.bibNumber as any) !== "Input required" && String(formData.bibNumber).trim() !== "") {
+      const val = typeof formData.bibNumber === 'boolean' ? 'Yes' : formData.bibNumber;
+      lines.push("Bib Number: " + val);
+    }
+    if (formData.eventName !== undefined && formData.eventName !== null && (formData.eventName as any) !== false && (formData.eventName as any) !== "—" && (formData.eventName as any) !== "Input required" && String(formData.eventName).trim() !== "") {
+      const val = typeof formData.eventName === 'boolean' ? 'Yes' : formData.eventName;
+      lines.push("Event Name: " + val);
+    }
+    if (formData.distance !== undefined && formData.distance !== null && (formData.distance as any) !== false && (formData.distance as any) !== "—" && (formData.distance as any) !== "Input required" && String(formData.distance).trim() !== "") {
+      const val = typeof formData.distance === 'boolean' ? 'Yes' : formData.distance;
+      lines.push("Distance: " + val);
+    }
+    if (formData.targetTime !== undefined && formData.targetTime !== null && (formData.targetTime as any) !== false && (formData.targetTime as any) !== "—" && (formData.targetTime as any) !== "Input required" && String(formData.targetTime).trim() !== "") {
+      const val = typeof formData.targetTime === 'boolean' ? 'Yes' : formData.targetTime;
+      lines.push("Target Time: " + val);
+    }
+    if (formData.teamCountry !== undefined && formData.teamCountry !== null && (formData.teamCountry as any) !== false && (formData.teamCountry as any) !== "—" && (formData.teamCountry as any) !== "Input required" && String(formData.teamCountry).trim() !== "") {
+      const val = typeof formData.teamCountry === 'boolean' ? 'Yes' : formData.teamCountry;
+      lines.push("Team Country: " + val);
+    }
+    if (formData.date !== undefined && formData.date !== null && (formData.date as any) !== false && (formData.date as any) !== "—" && (formData.date as any) !== "Input required" && String(formData.date).trim() !== "") {
+      const val = typeof formData.date === 'boolean' ? 'Yes' : formData.date;
+      lines.push("Date: " + val);
+    }
+    if (formData.themeColor !== undefined && formData.themeColor !== null && (formData.themeColor as any) !== false && (formData.themeColor as any) !== "—" && (formData.themeColor as any) !== "Input required" && String(formData.themeColor).trim() !== "") {
+      const val = typeof formData.themeColor === 'boolean' ? 'Yes' : formData.themeColor;
+      lines.push("Theme Color: " + val);
+    }
+    lines.push("");
+    lines.push("Made with RunCard Studio");
+    const textToCopy = lines.join("\n");
+    
+    const fallbackCopy = (text: string) => {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        showToast("Copied to clipboard!");
+      } catch (err) {
+        showToast("Failed to copy.");
+      }
+      textArea.remove();
+    };
 
-    navigator.clipboard.writeText(lines.join("\n"));
-    showToast("Race Bib text copied to clipboard");
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textToCopy)
+        .then(() => showToast("Copied to clipboard!"))
+        .catch((err) => {
+          fallbackCopy(textToCopy);
+        });
+    } else {
+      fallbackCopy(textToCopy);
+    }
   };
 
   const colorMap: Record<string, string> = {
@@ -86,10 +137,73 @@ export default function RaceBibGenerator({ previewRef, showToast }: RaceBibProps
     lime: "text-[#a0cc00]"
   };
 
+
+  const getPlainFormDataForCurrentCard = () => {
+    return { ...formData };
+  };
+
+  const saveCurrentDraft = () => {
+    const plainData = getPlainFormDataForCurrentCard();
+    for (const key in plainData) {
+      const val = (plainData as any)[key];
+      if (typeof HTMLElement !== "undefined" && val instanceof HTMLElement) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Node !== "undefined" && val instanceof Node) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Event !== "undefined" && val instanceof Event) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof File !== "undefined" && val instanceof File) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Blob !== "undefined" && val instanceof Blob) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof val === "function") { showToast("Draft contains unsafe data and was not saved."); return; }
+    }
+
+    const pd = plainData as any;
+    const title = pd.name || pd.title || pd.athleteName || pd.sessionName || pd.runnerName || pd.raceName || pd.sessionType || pd.distanceChoice || "Untitled Draft";
+
+    const draft = {
+      id: "draft_" + Date.now() + "_" + Math.random().toString(36).substring(2, 9),
+      cardType: "race-bib",
+      title: String(title),
+      template: typeof template !== 'undefined' ? template : "default",
+      exportSize: typeof window !== 'undefined' ? localStorage.getItem('runcard-default-export-size') || "square" : "square",
+      formData: plainData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      version: "1.0"
+    };
+
+    try {
+      const existingStr = localStorage.getItem('runcard-drafts');
+      let drafts = [];
+      if (existingStr) {
+        drafts = JSON.parse(existingStr);
+      }
+      drafts.push(draft);
+      localStorage.setItem('runcard-drafts', JSON.stringify(drafts));
+      showToast("Draft saved!");
+    } catch(err) {
+      showToast("Failed to save draft.");
+    }
+  };
+
+  useEffect(() => {
+    try {
+       if (typeof window !== 'undefined') {
+          const loadStr = localStorage.getItem('runcard-draft-load');
+          if (loadStr) {
+             const draft = JSON.parse(loadStr);
+             if (draft && draft.cardType === "race-bib") {
+                if (draft.formData) setFormData(draft.formData);
+                if (draft.template && typeof setTemplate === "function") setTemplate(draft.template);
+                // Template is loaded if the form has a template state.
+                // We'll just check if setTemplate exists in this code.
+             }
+          }
+       }
+    } catch {}
+  }, []);
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
       {/* LEFT: FORM (4 cols) */}
-      <div className="lg:col-span-4 flex flex-col gap-6">
+      <div className="lg:col-span-4 flex flex-col gap-6 w-full">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Bib Data</h2>
         </div>
@@ -101,7 +215,7 @@ export default function RaceBibGenerator({ previewRef, showToast }: RaceBibProps
                type="text" 
                value={formData.runnerName}
                onChange={e => handleChange("runnerName", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                placeholder="ALEX SMITH"
              />
           </div>
@@ -112,7 +226,7 @@ export default function RaceBibGenerator({ previewRef, showToast }: RaceBibProps
                type="text" 
                value={formData.bibNumber}
                onChange={e => handleChange("bibNumber", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-2xl font-black font-mono text-text-primary outline-none focus:border-secondary-lime transition-all"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-2xl font-black font-mono text-text-primary outline-none focus:border-secondary-lime transition-all"
                placeholder="1337"
              />
           </div>
@@ -123,7 +237,7 @@ export default function RaceBibGenerator({ previewRef, showToast }: RaceBibProps
                type="text" 
                value={formData.eventName}
                onChange={e => handleChange("eventName", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                placeholder="CITY MARATHON"
              />
           </div>
@@ -135,7 +249,7 @@ export default function RaceBibGenerator({ previewRef, showToast }: RaceBibProps
                  type="text" 
                  value={formData.distance}
                  onChange={e => handleChange("distance", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                  placeholder="42.2K"
                />
             </div>
@@ -145,7 +259,7 @@ export default function RaceBibGenerator({ previewRef, showToast }: RaceBibProps
                  type="text" 
                  value={formData.targetTime}
                  onChange={e => handleChange("targetTime", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary font-mono outline-none focus:border-secondary-lime transition-all"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary font-mono outline-none focus:border-secondary-lime transition-all"
                  placeholder="2:59:59"
                />
             </div>
@@ -155,7 +269,7 @@ export default function RaceBibGenerator({ previewRef, showToast }: RaceBibProps
                  type="text" 
                  value={formData.teamCountry}
                  onChange={e => handleChange("teamCountry", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                  placeholder="USA"
                />
             </div>
@@ -165,7 +279,7 @@ export default function RaceBibGenerator({ previewRef, showToast }: RaceBibProps
                  type="text" 
                  value={formData.date}
                  onChange={e => handleChange("date", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                  placeholder="2026"
                />
             </div>
@@ -184,17 +298,17 @@ export default function RaceBibGenerator({ previewRef, showToast }: RaceBibProps
             </div>
           </div>
 
-          <button onClick={handleCopy} className="w-full mt-4 py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]">
-            <Copy className="w-4 h-4 text-secondary-lime" /> Copy Text
-          </button>
+          <button onClick={() => saveCurrentDraft()} className="w-full mt-2 lg:mt-4 py-2 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-4 h-4 text-primary-action" /> SAVE DRAFT</button>
+          <button onClick={handleCopy} className="w-full mt-4 py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY BIB
+</button>
         </div>
       </div>
 
       {/* RIGHT: PREVIEW (8 cols) */}
       <div className="lg:col-span-8 flex flex-col gap-6 pb-20">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Live Preview</h2>
-                    <div className="flex overflow-x-auto no-scrollbar gap-2 pb-2">
+                    <div className="flex overflow-x-auto no-scrollbar gap-2 w-full md:w-auto pb-4 md:pb-2 border-b border-brand-border md:border-none">
             {[
               { id: 'classic', label: 'Classic Bib' },
               { id: 'elite', label: 'Elite Bib' },
@@ -342,7 +456,7 @@ export default function RaceBibGenerator({ previewRef, showToast }: RaceBibProps
                        <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${colorMap[formData.themeColor] || 'bg-white'} text-black`}>{formData.teamCountry}</span>
                      </p>
                    </div>
-                   <div className="absolute bottom-2 left-0 right-0 text-center text-[7px] font-mono opacity-20 uppercase tracking-widest">RunCard Studio</div>
+                   <div className="absolute bottom-2 left-0 right-0 text-center text-[7px] font-mono opacity-20 uppercase tracking-widest">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'RunCard Studio'}</div>
                  </>
                )}
 

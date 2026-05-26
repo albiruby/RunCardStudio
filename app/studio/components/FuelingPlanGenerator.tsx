@@ -1,5 +1,5 @@
 import { useState, MutableRefObject, useRef, useEffect } from "react";
-import { Copy } from "lucide-react";
+import { Copy, Save } from "lucide-react";
 
 interface FuelingPlanProps {
   previewRef: MutableRefObject<HTMLDivElement | null>;
@@ -43,29 +43,143 @@ export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingP
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
-
   const handleCopy = () => {
-    const lines = [
-      "Fueling Plan",
-      `Session: ${formData.sessionName || "-"}`,
-      `Duration: ${formData.duration || "-"}`,
-      `Carbs/hour: ${formData.carbs || "-"}`,
-      `Fluid/hour: ${formData.fluid || "-"}`,
-      `Sodium/hour: ${formData.sodium || "-"}`,
-      `Gel Plan: ${formData.gelPlan || "-"}`,
-      `Bottle Plan: ${formData.bottlePlan || "-"}`,
-      "",
-      "Manual plan only. Not medical or nutrition advice.",
-      "Made with RunCard Studio."
-    ];
+    const lines = [];
+    if (formData.sessionName !== undefined && formData.sessionName !== null && (formData.sessionName as any) !== false && (formData.sessionName as any) !== "—" && (formData.sessionName as any) !== "Input required" && String(formData.sessionName).trim() !== "") {
+      const val = typeof formData.sessionName === 'boolean' ? 'Yes' : formData.sessionName;
+      lines.push("Session Name: " + val);
+    }
+    if (formData.duration !== undefined && formData.duration !== null && (formData.duration as any) !== false && (formData.duration as any) !== "—" && (formData.duration as any) !== "Input required" && String(formData.duration).trim() !== "") {
+      const val = typeof formData.duration === 'boolean' ? 'Yes' : formData.duration;
+      lines.push("Duration: " + val);
+    }
+    if (formData.carbs !== undefined && formData.carbs !== null && (formData.carbs as any) !== false && (formData.carbs as any) !== "—" && (formData.carbs as any) !== "Input required" && String(formData.carbs).trim() !== "") {
+      const val = typeof formData.carbs === 'boolean' ? 'Yes' : formData.carbs;
+      lines.push("Carbs: " + val);
+    }
+    if (formData.fluid !== undefined && formData.fluid !== null && (formData.fluid as any) !== false && (formData.fluid as any) !== "—" && (formData.fluid as any) !== "Input required" && String(formData.fluid).trim() !== "") {
+      const val = typeof formData.fluid === 'boolean' ? 'Yes' : formData.fluid;
+      lines.push("Fluid: " + val);
+    }
+    if (formData.sodium !== undefined && formData.sodium !== null && (formData.sodium as any) !== false && (formData.sodium as any) !== "—" && (formData.sodium as any) !== "Input required" && String(formData.sodium).trim() !== "") {
+      const val = typeof formData.sodium === 'boolean' ? 'Yes' : formData.sodium;
+      lines.push("Sodium: " + val);
+    }
+    if (formData.gelPlan !== undefined && formData.gelPlan !== null && (formData.gelPlan as any) !== false && (formData.gelPlan as any) !== "—" && (formData.gelPlan as any) !== "Input required" && String(formData.gelPlan).trim() !== "") {
+      const val = typeof formData.gelPlan === 'boolean' ? 'Yes' : formData.gelPlan;
+      lines.push("Gel Plan: " + val);
+    }
+    if (formData.bottlePlan !== undefined && formData.bottlePlan !== null && (formData.bottlePlan as any) !== false && (formData.bottlePlan as any) !== "—" && (formData.bottlePlan as any) !== "Input required" && String(formData.bottlePlan).trim() !== "") {
+      const val = typeof formData.bottlePlan === 'boolean' ? 'Yes' : formData.bottlePlan;
+      lines.push("Bottle Plan: " + val);
+    }
+    if (formData.preRace !== undefined && formData.preRace !== null && (formData.preRace as any) !== false && (formData.preRace as any) !== "—" && (formData.preRace as any) !== "Input required" && String(formData.preRace).trim() !== "") {
+      const val = typeof formData.preRace === 'boolean' ? 'Yes' : formData.preRace;
+      lines.push("Pre Race: " + val);
+    }
+    if (formData.note !== undefined && formData.note !== null && (formData.note as any) !== false && (formData.note as any) !== "—" && (formData.note as any) !== "Input required" && String(formData.note).trim() !== "") {
+      const val = typeof formData.note === 'boolean' ? 'Yes' : formData.note;
+      lines.push("Note: " + val);
+    }
+    lines.push("");
+    lines.push("Made with RunCard Studio");
+    const textToCopy = lines.join("\n");
+    
+    const fallbackCopy = (text: string) => {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        showToast("Copied to clipboard!");
+      } catch (err) {
+        showToast("Failed to copy.");
+      }
+      textArea.remove();
+    };
 
-    navigator.clipboard.writeText(lines.join("\n"));
-    showToast("Fueling Plan copied to clipboard");
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textToCopy)
+        .then(() => showToast("Copied to clipboard!"))
+        .catch((err) => {
+          fallbackCopy(textToCopy);
+        });
+    } else {
+      fallbackCopy(textToCopy);
+    }
   };
+
+
+  const getPlainFormDataForCurrentCard = () => {
+    return { ...formData };
+  };
+
+  const saveCurrentDraft = () => {
+    const plainData = getPlainFormDataForCurrentCard();
+    for (const key in plainData) {
+      const val = (plainData as any)[key];
+      if (typeof HTMLElement !== "undefined" && val instanceof HTMLElement) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Node !== "undefined" && val instanceof Node) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Event !== "undefined" && val instanceof Event) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof File !== "undefined" && val instanceof File) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Blob !== "undefined" && val instanceof Blob) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof val === "function") { showToast("Draft contains unsafe data and was not saved."); return; }
+    }
+
+    const pd = plainData as any;
+    const title = pd.name || pd.title || pd.athleteName || pd.sessionName || pd.runnerName || pd.raceName || pd.sessionType || pd.distanceChoice || "Untitled Draft";
+
+    const draft = {
+      id: "draft_" + Date.now() + "_" + Math.random().toString(36).substring(2, 9),
+      cardType: "fueling-plan",
+      title: String(title),
+      template: typeof template !== 'undefined' ? template : "default",
+      exportSize: typeof window !== 'undefined' ? localStorage.getItem('runcard-default-export-size') || "square" : "square",
+      formData: plainData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      version: "1.0"
+    };
+
+    try {
+      const existingStr = localStorage.getItem('runcard-drafts');
+      let drafts = [];
+      if (existingStr) {
+        drafts = JSON.parse(existingStr);
+      }
+      drafts.push(draft);
+      localStorage.setItem('runcard-drafts', JSON.stringify(drafts));
+      showToast("Draft saved!");
+    } catch(err) {
+      showToast("Failed to save draft.");
+    }
+  };
+
+  useEffect(() => {
+    try {
+       if (typeof window !== 'undefined') {
+          const loadStr = localStorage.getItem('runcard-draft-load');
+          if (loadStr) {
+             const draft = JSON.parse(loadStr);
+             if (draft && draft.cardType === "fueling-plan") {
+                if (draft.formData) setFormData(draft.formData);
+                if (draft.template && typeof setTemplate === "function") setTemplate(draft.template);
+                // Template is loaded if the form has a template state.
+                // We'll just check if setTemplate exists in this code.
+             }
+          }
+       }
+    } catch {}
+  }, []);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
-      <div className="lg:col-span-4 flex flex-col gap-6">
+      <div className="lg:col-span-4 flex flex-col gap-6 w-full">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Nutrition Data</h2>
         </div>
@@ -82,7 +196,7 @@ export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingP
                  type="text" 
                  value={formData.sessionName}
                  onChange={e => handleChange("sessionName", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                  placeholder="City Marathon"
                />
              </div>
@@ -92,7 +206,7 @@ export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingP
                  type="text" 
                  value={formData.duration}
                  onChange={e => handleChange("duration", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                  placeholder="3h 15m"
                />
              </div>
@@ -105,7 +219,7 @@ export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingP
                  type="text" 
                  value={formData.carbs}
                  onChange={e => handleChange("carbs", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm font-bold text-text-primary outline-none focus:border-secondary-lime transition-all text-center"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm font-bold text-text-primary outline-none focus:border-secondary-lime transition-all text-center"
                  placeholder="60g"
                />
              </div>
@@ -115,7 +229,7 @@ export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingP
                  type="text" 
                  value={formData.fluid}
                  onChange={e => handleChange("fluid", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm font-bold text-text-primary outline-none focus:border-secondary-lime transition-all text-center"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm font-bold text-text-primary outline-none focus:border-secondary-lime transition-all text-center"
                  placeholder="500ml"
                />
              </div>
@@ -125,7 +239,7 @@ export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingP
                  type="text" 
                  value={formData.sodium}
                  onChange={e => handleChange("sodium", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm font-bold text-text-primary outline-none focus:border-secondary-lime transition-all text-center"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm font-bold text-text-primary outline-none focus:border-secondary-lime transition-all text-center"
                  placeholder="400mg"
                />
              </div>
@@ -137,7 +251,7 @@ export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingP
                type="text" 
                value={formData.gelPlan}
                onChange={e => handleChange("gelPlan", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all mb-3"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all mb-3"
                placeholder="1 gel every 30 mins"
              />
 
@@ -146,7 +260,7 @@ export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingP
                type="text" 
                value={formData.bottlePlan}
                onChange={e => handleChange("bottlePlan", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                placeholder="Sip every 15 mins"
              />
           </div>
@@ -157,7 +271,7 @@ export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingP
                type="text" 
                value={formData.preRace}
                onChange={e => handleChange("preRace", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all mb-3"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all mb-3"
                placeholder="Oatmeal 3 hours before"
              />
              
@@ -165,21 +279,21 @@ export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingP
              <textarea 
                value={formData.note}
                onChange={e => handleChange("note", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none resize-none h-16 transition-colors"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none resize-none h-16 transition-colors"
                placeholder="Caffeine at 30km mark."
              ></textarea>
           </div>
 
-          <button onClick={handleCopy} className="w-full py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]">
-            <Copy className="w-4 h-4 text-secondary-lime" /> Copy Plan Text
-          </button>
+          <button onClick={() => saveCurrentDraft()} className="w-full mt-2 lg:mt-4 py-2 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-4 h-4 text-primary-action" /> SAVE DRAFT</button>
+          <button onClick={handleCopy} className="w-full py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY FUEL PLAN
+</button>
         </div>
       </div>
 
       <div className="lg:col-span-8 flex flex-col gap-6 pb-20">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Live Preview</h2>
-                    <div className="flex overflow-x-auto no-scrollbar gap-2 pb-2">
+                    <div className="flex overflow-x-auto no-scrollbar gap-2 w-full md:w-auto pb-4 md:pb-2 border-b border-brand-border md:border-none">
             {[
               { id: 'race fuel plan', label: 'Race Fuel Plan' },
               { id: 'bottle strategy', label: 'Bottle Strategy' },
@@ -257,7 +371,7 @@ export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingP
 
                    <div className="mt-8 text-center opacity-40 flex flex-col justify-center items-center">
                      <span className="text-[7px] uppercase tracking-widest font-mono mb-1">Manual plan only. Not medical advice.</span>
-                     <span className="text-[9px] uppercase tracking-[0.2em] font-sans font-bold">RunCard Studio</span>
+                     <span className="text-[9px] uppercase tracking-[0.2em] font-sans font-bold">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'RunCard Studio'}</span>
                    </div>
                  </>
                )}
@@ -353,8 +467,7 @@ export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingP
 
                    <div className="mt-auto border-t border-gray-200 pt-6">
                      <p className="text-[8px] uppercase tracking-widest text-center text-gray-400 font-bold leading-tight">
-                       Manual plan only. Not medical or nutrition advice.<br/>RunCard Studio
-                     </p>
+                       Manual plan only. Not medical or nutrition advice.<br/>{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'RunCard Studio'}</p>
                    </div>
                  </>
                )}

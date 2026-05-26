@@ -1,5 +1,5 @@
 import { useState, MutableRefObject, useRef, useEffect } from "react";
-import { Copy } from "lucide-react";
+import { Copy, Save } from "lucide-react";
 
 interface ChallengeCardProps {
   previewRef: MutableRefObject<HTMLDivElement | null>;
@@ -43,25 +43,143 @@ export default function ChallengeCardGenerator({ previewRef, showToast }: Challe
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
-
   const handleCopy = () => {
-    const lines = [
-      `Challenge: ${formData.name || "-"}`,
-      `Type: ${formData.type || "-"}`,
-      `Target: ${formData.target || "-"}`,
-      `Dates: ${formData.startDate || "-"} to ${formData.endDate || "-"}`,
-      `Rules: ${formData.rules || "-"}`,
-      `Difficulty: ${formData.difficulty || "-"}`,
-      "Made with RunCard Studio."
-    ];
+    const lines = [];
+    if (formData.name !== undefined && formData.name !== null && (formData.name as any) !== false && (formData.name as any) !== "—" && (formData.name as any) !== "Input required" && String(formData.name).trim() !== "") {
+      const val = typeof formData.name === 'boolean' ? 'Yes' : formData.name;
+      lines.push("Name: " + val);
+    }
+    if (formData.type !== undefined && formData.type !== null && (formData.type as any) !== false && (formData.type as any) !== "—" && (formData.type as any) !== "Input required" && String(formData.type).trim() !== "") {
+      const val = typeof formData.type === 'boolean' ? 'Yes' : formData.type;
+      lines.push("Type: " + val);
+    }
+    if (formData.target !== undefined && formData.target !== null && (formData.target as any) !== false && (formData.target as any) !== "—" && (formData.target as any) !== "Input required" && String(formData.target).trim() !== "") {
+      const val = typeof formData.target === 'boolean' ? 'Yes' : formData.target;
+      lines.push("Target: " + val);
+    }
+    if (formData.startDate !== undefined && formData.startDate !== null && (formData.startDate as any) !== false && (formData.startDate as any) !== "—" && (formData.startDate as any) !== "Input required" && String(formData.startDate).trim() !== "") {
+      const val = typeof formData.startDate === 'boolean' ? 'Yes' : formData.startDate;
+      lines.push("Start Date: " + val);
+    }
+    if (formData.endDate !== undefined && formData.endDate !== null && (formData.endDate as any) !== false && (formData.endDate as any) !== "—" && (formData.endDate as any) !== "Input required" && String(formData.endDate).trim() !== "") {
+      const val = typeof formData.endDate === 'boolean' ? 'Yes' : formData.endDate;
+      lines.push("End Date: " + val);
+    }
+    if (formData.rules !== undefined && formData.rules !== null && (formData.rules as any) !== false && (formData.rules as any) !== "—" && (formData.rules as any) !== "Input required" && String(formData.rules).trim() !== "") {
+      const val = typeof formData.rules === 'boolean' ? 'Yes' : formData.rules;
+      lines.push("Rules: " + val);
+    }
+    if (formData.reward !== undefined && formData.reward !== null && (formData.reward as any) !== false && (formData.reward as any) !== "—" && (formData.reward as any) !== "Input required" && String(formData.reward).trim() !== "") {
+      const val = typeof formData.reward === 'boolean' ? 'Yes' : formData.reward;
+      lines.push("Reward: " + val);
+    }
+    if (formData.community !== undefined && formData.community !== null && (formData.community as any) !== false && (formData.community as any) !== "—" && (formData.community as any) !== "Input required" && String(formData.community).trim() !== "") {
+      const val = typeof formData.community === 'boolean' ? 'Yes' : formData.community;
+      lines.push("Community: " + val);
+    }
+    if (formData.difficulty !== undefined && formData.difficulty !== null && (formData.difficulty as any) !== false && (formData.difficulty as any) !== "—" && (formData.difficulty as any) !== "Input required" && String(formData.difficulty).trim() !== "") {
+      const val = typeof formData.difficulty === 'boolean' ? 'Yes' : formData.difficulty;
+      lines.push("Difficulty: " + val);
+    }
+    lines.push("");
+    lines.push("Made with RunCard Studio");
+    const textToCopy = lines.join("\n");
+    
+    const fallbackCopy = (text: string) => {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        showToast("Copied to clipboard!");
+      } catch (err) {
+        showToast("Failed to copy.");
+      }
+      textArea.remove();
+    };
 
-    navigator.clipboard.writeText(lines.join("\n"));
-    showToast("Challenge Card copied to clipboard");
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textToCopy)
+        .then(() => showToast("Copied to clipboard!"))
+        .catch((err) => {
+          fallbackCopy(textToCopy);
+        });
+    } else {
+      fallbackCopy(textToCopy);
+    }
   };
+
+
+  const getPlainFormDataForCurrentCard = () => {
+    return { ...formData };
+  };
+
+  const saveCurrentDraft = () => {
+    const plainData = getPlainFormDataForCurrentCard();
+    for (const key in plainData) {
+      const val = (plainData as any)[key];
+      if (typeof HTMLElement !== "undefined" && val instanceof HTMLElement) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Node !== "undefined" && val instanceof Node) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Event !== "undefined" && val instanceof Event) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof File !== "undefined" && val instanceof File) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Blob !== "undefined" && val instanceof Blob) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof val === "function") { showToast("Draft contains unsafe data and was not saved."); return; }
+    }
+
+    const pd = plainData as any;
+    const title = pd.name || pd.title || pd.athleteName || pd.sessionName || pd.runnerName || pd.raceName || pd.sessionType || pd.distanceChoice || "Untitled Draft";
+
+    const draft = {
+      id: "draft_" + Date.now() + "_" + Math.random().toString(36).substring(2, 9),
+      cardType: "challenge-card",
+      title: String(title),
+      template: typeof template !== 'undefined' ? template : "default",
+      exportSize: typeof window !== 'undefined' ? localStorage.getItem('runcard-default-export-size') || "square" : "square",
+      formData: plainData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      version: "1.0"
+    };
+
+    try {
+      const existingStr = localStorage.getItem('runcard-drafts');
+      let drafts = [];
+      if (existingStr) {
+        drafts = JSON.parse(existingStr);
+      }
+      drafts.push(draft);
+      localStorage.setItem('runcard-drafts', JSON.stringify(drafts));
+      showToast("Draft saved!");
+    } catch(err) {
+      showToast("Failed to save draft.");
+    }
+  };
+
+  useEffect(() => {
+    try {
+       if (typeof window !== 'undefined') {
+          const loadStr = localStorage.getItem('runcard-draft-load');
+          if (loadStr) {
+             const draft = JSON.parse(loadStr);
+             if (draft && draft.cardType === "challenge-card") {
+                if (draft.formData) setFormData(draft.formData);
+                if (draft.template && typeof setTemplate === "function") setTemplate(draft.template);
+                // Template is loaded if the form has a template state.
+                // We'll just check if setTemplate exists in this code.
+             }
+          }
+       }
+    } catch {}
+  }, []);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
-      <div className="lg:col-span-4 flex flex-col gap-6">
+      <div className="lg:col-span-4 flex flex-col gap-6 w-full">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Challenge Data</h2>
         </div>
@@ -73,7 +191,7 @@ export default function ChallengeCardGenerator({ previewRef, showToast }: Challe
                type="text" 
                value={formData.name}
                onChange={e => handleChange("name", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                placeholder="100 Days of Running"
              />
           </div>
@@ -84,7 +202,7 @@ export default function ChallengeCardGenerator({ previewRef, showToast }: Challe
                <select 
                  value={formData.type}
                  onChange={e => handleChange("type", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none cursor-pointer"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none cursor-pointer"
                >
                  <option value="Distance">Distance</option>
                  <option value="Time">Time</option>
@@ -99,7 +217,7 @@ export default function ChallengeCardGenerator({ previewRef, showToast }: Challe
                <select 
                  value={formData.difficulty}
                  onChange={e => handleChange("difficulty", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none cursor-pointer"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none cursor-pointer"
                >
                  <option value="Easy">Easy</option>
                  <option value="Moderate">Moderate</option>
@@ -115,7 +233,7 @@ export default function ChallengeCardGenerator({ previewRef, showToast }: Challe
                type="text" 
                value={formData.target}
                onChange={e => handleChange("target", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-primary-coral transition-all font-bold"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-primary-coral transition-all font-bold"
                placeholder="Run 500km total"
              />
           </div>
@@ -127,7 +245,7 @@ export default function ChallengeCardGenerator({ previewRef, showToast }: Challe
                  type="text" 
                  value={formData.startDate}
                  onChange={e => handleChange("startDate", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                  placeholder="Jan 1"
                />
              </div>
@@ -137,7 +255,7 @@ export default function ChallengeCardGenerator({ previewRef, showToast }: Challe
                  type="text" 
                  value={formData.endDate}
                  onChange={e => handleChange("endDate", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                  placeholder="Apr 10"
                />
              </div>
@@ -148,7 +266,7 @@ export default function ChallengeCardGenerator({ previewRef, showToast }: Challe
              <textarea 
                value={formData.rules}
                onChange={e => handleChange("rules", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none resize-none h-16 transition-colors"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none resize-none h-16 transition-colors"
                placeholder="Run every single day."
              ></textarea>
           </div>
@@ -159,7 +277,7 @@ export default function ChallengeCardGenerator({ previewRef, showToast }: Challe
                type="text" 
                value={formData.reward}
                onChange={e => handleChange("reward", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                placeholder="New shoes"
              />
           </div>
@@ -170,21 +288,21 @@ export default function ChallengeCardGenerator({ previewRef, showToast }: Challe
                type="text" 
                value={formData.community}
                onChange={e => handleChange("community", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                placeholder="Track Club"
              />
           </div>
 
-          <button onClick={handleCopy} className="w-full py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]">
-            <Copy className="w-4 h-4 text-secondary-lime" /> Copy Text
-          </button>
+          <button onClick={() => saveCurrentDraft()} className="w-full mt-2 lg:mt-4 py-2 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-4 h-4 text-primary-action" /> SAVE DRAFT</button>
+          <button onClick={handleCopy} className="w-full py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY CHALLENGE
+</button>
         </div>
       </div>
 
       <div className="lg:col-span-8 flex flex-col gap-6 pb-20">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Live Preview</h2>
-                    <div className="flex overflow-x-auto no-scrollbar gap-2 pb-2">
+                    <div className="flex overflow-x-auto no-scrollbar gap-2 w-full md:w-auto pb-4 md:pb-2 border-b border-brand-border md:border-none">
             {[
               { id: 'community challenge', label: 'Community Challenge' },
               { id: 'solo mission', label: 'Solo Mission' },
@@ -304,7 +422,7 @@ export default function ChallengeCardGenerator({ previewRef, showToast }: Challe
                        <div className="text-[9px] uppercase tracking-widest text-gray-600 mb-1">Type</div>
                        <div className="text-xs font-bold text-gray-400">{formData.type}</div>
                      </div>
-                     <div className="text-[9px] uppercase tracking-[0.2em] text-[#22252a] font-bold">RunCard Studio</div>
+                     <div className="text-[9px] uppercase tracking-[0.2em] text-[#22252a] font-bold">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'RunCard Studio'}</div>
                    </div>
                  </>
                )}

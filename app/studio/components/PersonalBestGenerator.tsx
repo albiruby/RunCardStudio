@@ -1,5 +1,5 @@
 import { useState, MutableRefObject, useRef, useEffect } from "react";
-import { Copy } from "lucide-react";
+import { Copy, Save } from "lucide-react";
 
 interface PersonalBestProps {
   previewRef: MutableRefObject<HTMLDivElement | null>;
@@ -82,26 +82,140 @@ export default function PersonalBestGenerator({ previewRef, showToast }: Persona
   };
 
   const improvement = calculateImprovement();
-
   const handleCopy = () => {
-    const lines = [
-      "New PB unlocked.",
-      `Event: ${formData.eventDistance}`,
-      `Time: ${formData.newPb}`,
-      `Previous: ${formData.prevPb || "—"}`,
-      `Improvement: ${improvement}`,
-      formData.nextTarget ? `Next: ${formData.nextTarget}` : "",
-      "Made with RunCard Studio."
-    ].filter(Boolean);
+    const lines = [];
+    if (formData.athleteName !== undefined && formData.athleteName !== null && (formData.athleteName as any) !== false && (formData.athleteName as any) !== "—" && (formData.athleteName as any) !== "Input required" && String(formData.athleteName).trim() !== "") {
+      const val = typeof formData.athleteName === 'boolean' ? 'Yes' : formData.athleteName;
+      lines.push("Athlete Name: " + val);
+    }
+    if (formData.eventDistance !== undefined && formData.eventDistance !== null && (formData.eventDistance as any) !== false && (formData.eventDistance as any) !== "—" && (formData.eventDistance as any) !== "Input required" && String(formData.eventDistance).trim() !== "") {
+      const val = typeof formData.eventDistance === 'boolean' ? 'Yes' : formData.eventDistance;
+      lines.push("Event Distance: " + val);
+    }
+    if (formData.newPb !== undefined && formData.newPb !== null && (formData.newPb as any) !== false && (formData.newPb as any) !== "—" && (formData.newPb as any) !== "Input required" && String(formData.newPb).trim() !== "") {
+      const val = typeof formData.newPb === 'boolean' ? 'Yes' : formData.newPb;
+      lines.push("New Pb: " + val);
+    }
+    if (formData.prevPb !== undefined && formData.prevPb !== null && (formData.prevPb as any) !== false && (formData.prevPb as any) !== "—" && (formData.prevPb as any) !== "Input required" && String(formData.prevPb).trim() !== "") {
+      const val = typeof formData.prevPb === 'boolean' ? 'Yes' : formData.prevPb;
+      lines.push("Prev Pb: " + val);
+    }
+    if (formData.date !== undefined && formData.date !== null && (formData.date as any) !== false && (formData.date as any) !== "—" && (formData.date as any) !== "Input required" && String(formData.date).trim() !== "") {
+      const val = typeof formData.date === 'boolean' ? 'Yes' : formData.date;
+      lines.push("Date: " + val);
+    }
+    if (formData.location !== undefined && formData.location !== null && (formData.location as any) !== false && (formData.location as any) !== "—" && (formData.location as any) !== "Input required" && String(formData.location).trim() !== "") {
+      const val = typeof formData.location === 'boolean' ? 'Yes' : formData.location;
+      lines.push("Location: " + val);
+    }
+    if (formData.feeling !== undefined && formData.feeling !== null && (formData.feeling as any) !== false && (formData.feeling as any) !== "—" && (formData.feeling as any) !== "Input required" && String(formData.feeling).trim() !== "") {
+      const val = typeof formData.feeling === 'boolean' ? 'Yes' : formData.feeling;
+      lines.push("Feeling: " + val);
+    }
+    if (formData.nextTarget !== undefined && formData.nextTarget !== null && (formData.nextTarget as any) !== false && (formData.nextTarget as any) !== "—" && (formData.nextTarget as any) !== "Input required" && String(formData.nextTarget).trim() !== "") {
+      const val = typeof formData.nextTarget === 'boolean' ? 'Yes' : formData.nextTarget;
+      lines.push("Next Target: " + val);
+    }
+    lines.push("");
+    lines.push("Made with RunCard Studio");
+    const textToCopy = lines.join("\n");
+    
+    const fallbackCopy = (text: string) => {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        showToast("Copied to clipboard!");
+      } catch (err) {
+        showToast("Failed to copy.");
+      }
+      textArea.remove();
+    };
 
-    navigator.clipboard.writeText(lines.join("\n"));
-    showToast("PB text copied to clipboard");
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textToCopy)
+        .then(() => showToast("Copied to clipboard!"))
+        .catch((err) => {
+          fallbackCopy(textToCopy);
+        });
+    } else {
+      fallbackCopy(textToCopy);
+    }
   };
+
+
+  const getPlainFormDataForCurrentCard = () => {
+    return { ...formData };
+  };
+
+  const saveCurrentDraft = () => {
+    const plainData = getPlainFormDataForCurrentCard();
+    for (const key in plainData) {
+      const val = (plainData as any)[key];
+      if (typeof HTMLElement !== "undefined" && val instanceof HTMLElement) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Node !== "undefined" && val instanceof Node) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Event !== "undefined" && val instanceof Event) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof File !== "undefined" && val instanceof File) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Blob !== "undefined" && val instanceof Blob) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof val === "function") { showToast("Draft contains unsafe data and was not saved."); return; }
+    }
+
+    const pd = plainData as any;
+    const title = pd.name || pd.title || pd.athleteName || pd.sessionName || pd.runnerName || pd.raceName || pd.sessionType || pd.distanceChoice || "Untitled Draft";
+
+    const draft = {
+      id: "draft_" + Date.now() + "_" + Math.random().toString(36).substring(2, 9),
+      cardType: "personal-best",
+      title: String(title),
+      template: typeof template !== 'undefined' ? template : "default",
+      exportSize: typeof window !== 'undefined' ? localStorage.getItem('runcard-default-export-size') || "square" : "square",
+      formData: plainData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      version: "1.0"
+    };
+
+    try {
+      const existingStr = localStorage.getItem('runcard-drafts');
+      let drafts = [];
+      if (existingStr) {
+        drafts = JSON.parse(existingStr);
+      }
+      drafts.push(draft);
+      localStorage.setItem('runcard-drafts', JSON.stringify(drafts));
+      showToast("Draft saved!");
+    } catch(err) {
+      showToast("Failed to save draft.");
+    }
+  };
+
+  useEffect(() => {
+    try {
+       if (typeof window !== 'undefined') {
+          const loadStr = localStorage.getItem('runcard-draft-load');
+          if (loadStr) {
+             const draft = JSON.parse(loadStr);
+             if (draft && draft.cardType === "personal-best") {
+                if (draft.formData) setFormData(draft.formData);
+                if (draft.template && typeof setTemplate === "function") setTemplate(draft.template);
+                // Template is loaded if the form has a template state.
+                // We'll just check if setTemplate exists in this code.
+             }
+          }
+       }
+    } catch {}
+  }, []);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
       {/* LEFT: FORM (4 cols) */}
-      <div className="lg:col-span-4 flex flex-col gap-6">
+      <div className="lg:col-span-4 flex flex-col gap-6 w-full">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">PB Data</h2>
         </div>
@@ -113,7 +227,7 @@ export default function PersonalBestGenerator({ previewRef, showToast }: Persona
                type="text" 
                value={formData.athleteName}
                onChange={e => handleChange("athleteName", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                placeholder="Alex"
              />
           </div>
@@ -124,7 +238,7 @@ export default function PersonalBestGenerator({ previewRef, showToast }: Persona
                type="text" 
                value={formData.eventDistance}
                onChange={e => handleChange("eventDistance", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                placeholder="Half Marathon"
              />
           </div>
@@ -136,7 +250,7 @@ export default function PersonalBestGenerator({ previewRef, showToast }: Persona
                  type="text" 
                  value={formData.newPb}
                  onChange={e => handleChange("newPb", e.target.value)}
-                 className="w-full bg-surface-lowest border border-primary-coral border-opacity-50 p-2 rounded text-sm font-mono text-text-primary outline-none focus:border-primary-coral transition-all"
+                 className="w-full bg-surface-lowest border border-primary-coral border-opacity-50 px-3 py-3 min-h-[44px] rounded text-sm font-mono text-text-primary outline-none focus:border-primary-coral transition-all"
                  placeholder="01:29:45"
                />
             </div>
@@ -146,7 +260,7 @@ export default function PersonalBestGenerator({ previewRef, showToast }: Persona
                  type="text" 
                  value={formData.prevPb}
                  onChange={e => handleChange("prevPb", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm font-mono text-text-primary outline-none focus:border-secondary-lime transition-all"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm font-mono text-text-primary outline-none focus:border-secondary-lime transition-all"
                  placeholder="01:34:10"
                />
             </div>
@@ -159,7 +273,7 @@ export default function PersonalBestGenerator({ previewRef, showToast }: Persona
                  type="text" 
                  value={formData.date}
                  onChange={e => handleChange("date", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                  placeholder="OCT 2026"
                />
             </div>
@@ -169,7 +283,7 @@ export default function PersonalBestGenerator({ previewRef, showToast }: Persona
                  type="text" 
                  value={formData.location}
                  onChange={e => handleChange("location", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                  placeholder="CITY RUN"
                />
             </div>
@@ -181,7 +295,7 @@ export default function PersonalBestGenerator({ previewRef, showToast }: Persona
                type="text" 
                value={formData.feeling}
                onChange={e => handleChange("feeling", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                placeholder="Unreal."
              />
           </div>
@@ -192,22 +306,22 @@ export default function PersonalBestGenerator({ previewRef, showToast }: Persona
                type="text" 
                value={formData.nextTarget}
                onChange={e => handleChange("nextTarget", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                placeholder="Sub 1:25"
              />
           </div>
 
-          <button onClick={handleCopy} className="w-full mt-2 py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]">
-            <Copy className="w-4 h-4 text-secondary-lime" /> Copy Caption
-          </button>
+          <button onClick={() => saveCurrentDraft()} className="w-full mt-2 lg:mt-4 py-2 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-4 h-4 text-primary-action" /> SAVE DRAFT</button>
+          <button onClick={handleCopy} className="w-full mt-2 py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY PB
+</button>
         </div>
       </div>
 
       {/* RIGHT: PREVIEW (8 cols) */}
       <div className="lg:col-span-8 flex flex-col gap-6 pb-20">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Live Preview</h2>
-                    <div className="flex overflow-x-auto no-scrollbar gap-2 pb-2">
+                    <div className="flex overflow-x-auto no-scrollbar gap-2 w-full md:w-auto pb-4 md:pb-2 border-b border-brand-border md:border-none">
             {[
               { id: 'dark carbon', label: 'PB Dark Carbon' },
               { id: 'record board', label: 'Record Board' },
@@ -322,7 +436,7 @@ export default function PersonalBestGenerator({ previewRef, showToast }: Persona
                    </div>
 
                    <div className="mt-auto text-center pt-8 border-t border-gray-800">
-                     <span className="text-[9px] uppercase tracking-[0.2em] text-gray-600">Generated by RunCard Studio</span>
+                     <span className="text-[9px] uppercase tracking-[0.2em] text-gray-600">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'Generated by RunCard Studio'}</span>
                    </div>
                  </>
                )}
@@ -357,7 +471,7 @@ export default function PersonalBestGenerator({ previewRef, showToast }: Persona
                      </div>
                    )}
                    
-                   <div className="mt-6 text-left text-[9px] font-mono tracking-widest text-gray-400 uppercase">RunCard Studio</div>
+                   <div className="mt-6 text-left text-[9px] font-mono tracking-widest text-gray-400 uppercase">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'RunCard Studio'}</div>
                  </div>
                )}
 

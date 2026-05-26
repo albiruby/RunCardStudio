@@ -1,5 +1,5 @@
 import { useState, MutableRefObject, useRef, useEffect } from "react";
-import { Copy } from "lucide-react";
+import { Copy, Save } from "lucide-react";
 
 interface ShoeRotationProps {
   previewRef: MutableRefObject<HTMLDivElement | null>;
@@ -54,26 +54,139 @@ export default function ShoeRotationGenerator({ previewRef, showToast }: ShoeRot
   };
 
   const usagePercent = calculateUsage();
-
   const handleCopy = () => {
-    const lines = [
-      "Shoe Rotation",
-      `Shoe: ${formData.name || "-"} ${formData.brandModel ? `(${formData.brandModel})` : ""}`,
-      `Use: ${formData.primaryUse || "-"}`,
-      `Current Distance: ${formData.currentDistance || "-"}`,
-      `Target Max: ${formData.maxDistance || "-"}`,
-      `Usage: ${usagePercent}`,
-      `Feeling: ${formData.feeling || "-"}`,
-      "Made with RunCard Studio."
-    ];
+    const lines = [];
+    if (formData.name !== undefined && formData.name !== null && (formData.name as any) !== false && (formData.name as any) !== "—" && (formData.name as any) !== "Input required" && String(formData.name).trim() !== "") {
+      const val = typeof formData.name === 'boolean' ? 'Yes' : formData.name;
+      lines.push("Name: " + val);
+    }
+    if (formData.brandModel !== undefined && formData.brandModel !== null && (formData.brandModel as any) !== false && (formData.brandModel as any) !== "—" && (formData.brandModel as any) !== "Input required" && String(formData.brandModel).trim() !== "") {
+      const val = typeof formData.brandModel === 'boolean' ? 'Yes' : formData.brandModel;
+      lines.push("Brand Model: " + val);
+    }
+    if (formData.currentDistance !== undefined && formData.currentDistance !== null && (formData.currentDistance as any) !== false && (formData.currentDistance as any) !== "—" && (formData.currentDistance as any) !== "Input required" && String(formData.currentDistance).trim() !== "") {
+      const val = typeof formData.currentDistance === 'boolean' ? 'Yes' : formData.currentDistance;
+      lines.push("Current Distance: " + val);
+    }
+    if (formData.maxDistance !== undefined && formData.maxDistance !== null && (formData.maxDistance as any) !== false && (formData.maxDistance as any) !== "—" && (formData.maxDistance as any) !== "Input required" && String(formData.maxDistance).trim() !== "") {
+      const val = typeof formData.maxDistance === 'boolean' ? 'Yes' : formData.maxDistance;
+      lines.push("Max Distance: " + val);
+    }
+    if (formData.primaryUse !== undefined && formData.primaryUse !== null && (formData.primaryUse as any) !== false && (formData.primaryUse as any) !== "—" && (formData.primaryUse as any) !== "Input required" && String(formData.primaryUse).trim() !== "") {
+      const val = typeof formData.primaryUse === 'boolean' ? 'Yes' : formData.primaryUse;
+      lines.push("Primary Use: " + val);
+    }
+    if (formData.feeling !== undefined && formData.feeling !== null && (formData.feeling as any) !== false && (formData.feeling as any) !== "—" && (formData.feeling as any) !== "Input required" && String(formData.feeling).trim() !== "") {
+      const val = typeof formData.feeling === 'boolean' ? 'Yes' : formData.feeling;
+      lines.push("Feeling: " + val);
+    }
+    if (formData.lastNote !== undefined && formData.lastNote !== null && (formData.lastNote as any) !== false && (formData.lastNote as any) !== "—" && (formData.lastNote as any) !== "Input required" && String(formData.lastNote).trim() !== "") {
+      const val = typeof formData.lastNote === 'boolean' ? 'Yes' : formData.lastNote;
+      lines.push("Last Note: " + val);
+    }
+    if (formData.nextUse !== undefined && formData.nextUse !== null && (formData.nextUse as any) !== false && (formData.nextUse as any) !== "—" && (formData.nextUse as any) !== "Input required" && String(formData.nextUse).trim() !== "") {
+      const val = typeof formData.nextUse === 'boolean' ? 'Yes' : formData.nextUse;
+      lines.push("Next Use: " + val);
+    }
+    lines.push("");
+    lines.push("Made with RunCard Studio");
+    const textToCopy = lines.join("\n");
+    
+    const fallbackCopy = (text: string) => {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        showToast("Copied to clipboard!");
+      } catch (err) {
+        showToast("Failed to copy.");
+      }
+      textArea.remove();
+    };
 
-    navigator.clipboard.writeText(lines.join("\n"));
-    showToast("Shoe Rotation copied to clipboard");
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textToCopy)
+        .then(() => showToast("Copied to clipboard!"))
+        .catch((err) => {
+          fallbackCopy(textToCopy);
+        });
+    } else {
+      fallbackCopy(textToCopy);
+    }
   };
+
+
+  const getPlainFormDataForCurrentCard = () => {
+    return { ...formData };
+  };
+
+  const saveCurrentDraft = () => {
+    const plainData = getPlainFormDataForCurrentCard();
+    for (const key in plainData) {
+      const val = (plainData as any)[key];
+      if (typeof HTMLElement !== "undefined" && val instanceof HTMLElement) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Node !== "undefined" && val instanceof Node) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Event !== "undefined" && val instanceof Event) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof File !== "undefined" && val instanceof File) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Blob !== "undefined" && val instanceof Blob) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof val === "function") { showToast("Draft contains unsafe data and was not saved."); return; }
+    }
+
+    const pd = plainData as any;
+    const title = pd.name || pd.title || pd.athleteName || pd.sessionName || pd.runnerName || pd.raceName || pd.sessionType || pd.distanceChoice || "Untitled Draft";
+
+    const draft = {
+      id: "draft_" + Date.now() + "_" + Math.random().toString(36).substring(2, 9),
+      cardType: "shoe-rotation",
+      title: String(title),
+      template: typeof template !== 'undefined' ? template : "default",
+      exportSize: typeof window !== 'undefined' ? localStorage.getItem('runcard-default-export-size') || "square" : "square",
+      formData: plainData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      version: "1.0"
+    };
+
+    try {
+      const existingStr = localStorage.getItem('runcard-drafts');
+      let drafts = [];
+      if (existingStr) {
+        drafts = JSON.parse(existingStr);
+      }
+      drafts.push(draft);
+      localStorage.setItem('runcard-drafts', JSON.stringify(drafts));
+      showToast("Draft saved!");
+    } catch(err) {
+      showToast("Failed to save draft.");
+    }
+  };
+
+  useEffect(() => {
+    try {
+       if (typeof window !== 'undefined') {
+          const loadStr = localStorage.getItem('runcard-draft-load');
+          if (loadStr) {
+             const draft = JSON.parse(loadStr);
+             if (draft && draft.cardType === "shoe-rotation") {
+                if (draft.formData) setFormData(draft.formData);
+                if (draft.template && typeof setTemplate === "function") setTemplate(draft.template);
+                // Template is loaded if the form has a template state.
+                // We'll just check if setTemplate exists in this code.
+             }
+          }
+       }
+    } catch {}
+  }, []);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
-      <div className="lg:col-span-4 flex flex-col gap-6">
+      <div className="lg:col-span-4 flex flex-col gap-6 w-full">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Shoe Data</h2>
         </div>
@@ -85,7 +198,7 @@ export default function ShoeRotationGenerator({ previewRef, showToast }: ShoeRot
                type="text" 
                value={formData.name}
                onChange={e => handleChange("name", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                placeholder="Tempo Trainer"
              />
           </div>
@@ -95,7 +208,7 @@ export default function ShoeRotationGenerator({ previewRef, showToast }: ShoeRot
                type="text" 
                value={formData.brandModel}
                onChange={e => handleChange("brandModel", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                placeholder="ZoomX Pro 2"
              />
           </div>
@@ -107,7 +220,7 @@ export default function ShoeRotationGenerator({ previewRef, showToast }: ShoeRot
                  type="text" 
                  value={formData.currentDistance}
                  onChange={e => handleChange("currentDistance", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-primary-coral transition-all"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-primary-coral transition-all"
                  placeholder="350"
                />
              </div>
@@ -117,7 +230,7 @@ export default function ShoeRotationGenerator({ previewRef, showToast }: ShoeRot
                  type="text" 
                  value={formData.maxDistance}
                  onChange={e => handleChange("maxDistance", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                  placeholder="600"
                />
              </div>
@@ -129,7 +242,7 @@ export default function ShoeRotationGenerator({ previewRef, showToast }: ShoeRot
                <select 
                  value={formData.primaryUse}
                  onChange={e => handleChange("primaryUse", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none cursor-pointer"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none cursor-pointer"
                >
                  <option value="Easy run">Easy run</option>
                  <option value="Long run">Long run</option>
@@ -144,7 +257,7 @@ export default function ShoeRotationGenerator({ previewRef, showToast }: ShoeRot
                <select 
                  value={formData.feeling}
                  onChange={e => handleChange("feeling", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none cursor-pointer"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none cursor-pointer"
                >
                  <option value="Fresh">Fresh</option>
                  <option value="Good">Good</option>
@@ -161,7 +274,7 @@ export default function ShoeRotationGenerator({ previewRef, showToast }: ShoeRot
                type="text" 
                value={formData.nextUse}
                onChange={e => handleChange("nextUse", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                placeholder="Sunday long run"
              />
           </div>
@@ -172,21 +285,21 @@ export default function ShoeRotationGenerator({ previewRef, showToast }: ShoeRot
                type="text" 
                value={formData.lastNote}
                onChange={e => handleChange("lastNote", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                placeholder="Foam feels flat."
              />
           </div>
 
-          <button onClick={handleCopy} className="w-full mt-2 py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]">
-            <Copy className="w-4 h-4 text-secondary-lime" /> Copy Stats
-          </button>
+          <button onClick={() => saveCurrentDraft()} className="w-full mt-2 lg:mt-4 py-2 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-4 h-4 text-primary-action" /> SAVE DRAFT</button>
+          <button onClick={handleCopy} className="w-full mt-2 py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY SHOE LOG
+</button>
         </div>
       </div>
 
       <div className="lg:col-span-8 flex flex-col gap-6 pb-20">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Live Preview</h2>
-                    <div className="flex overflow-x-auto no-scrollbar gap-2 pb-2">
+                    <div className="flex overflow-x-auto no-scrollbar gap-2 w-full md:w-auto pb-4 md:pb-2 border-b border-brand-border md:border-none">
             {[
               { id: 'rotation board', label: 'Shoe Log' },
               { id: 'shoe log', label: 'Rotation Board' },
@@ -268,7 +381,7 @@ export default function ShoeRotationGenerator({ previewRef, showToast }: ShoeRot
                      </div>
                    )}
 
-                   <div className="mt-auto text-[8px] font-mono tracking-widest text-[#22252a] uppercase text-right">RunCard Studio</div>
+                   <div className="mt-auto text-[8px] font-mono tracking-widest text-[#22252a] uppercase text-right">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'RunCard Studio'}</div>
                  </>
                )}
 

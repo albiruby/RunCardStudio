@@ -1,5 +1,5 @@
 import { useState, MutableRefObject, useRef, useEffect } from "react";
-import { Copy } from "lucide-react";
+import { Copy, Save } from "lucide-react";
 
 interface TrainingWeekProps {
   previewRef: MutableRefObject<HTMLDivElement | null>;
@@ -44,27 +44,147 @@ export default function TrainingWeekGenerator({ previewRef, showToast }: Trainin
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
-
   const handleCopy = () => {
-    const lines = [
-      "Training Week",
-      `Date: ${formData.dateRange || "-"}`,
-      `Distance: ${formData.totalDistance || "-"}`,
-      `Duration: ${formData.totalDuration || "-"}`,
-      `Sessions: ${formData.sessions || "-"}`,
-      `Key Session: ${formData.keySession || "-"}`,
-      `Long Run: ${formData.longRun || "-"}`,
-      `Verdict: ${formData.verdict || "-"}`,
-      "Made with RunCard Studio."
-    ];
+    const lines = [];
+    if (formData.title !== undefined && formData.title !== null && (formData.title as any) !== false && (formData.title as any) !== "—" && (formData.title as any) !== "Input required" && String(formData.title).trim() !== "") {
+      const val = typeof formData.title === 'boolean' ? 'Yes' : formData.title;
+      lines.push("Title: " + val);
+    }
+    if (formData.dateRange !== undefined && formData.dateRange !== null && (formData.dateRange as any) !== false && (formData.dateRange as any) !== "—" && (formData.dateRange as any) !== "Input required" && String(formData.dateRange).trim() !== "") {
+      const val = typeof formData.dateRange === 'boolean' ? 'Yes' : formData.dateRange;
+      lines.push("Date Range: " + val);
+    }
+    if (formData.totalDistance !== undefined && formData.totalDistance !== null && (formData.totalDistance as any) !== false && (formData.totalDistance as any) !== "—" && (formData.totalDistance as any) !== "Input required" && String(formData.totalDistance).trim() !== "") {
+      const val = typeof formData.totalDistance === 'boolean' ? 'Yes' : formData.totalDistance;
+      lines.push("Total Distance: " + val);
+    }
+    if (formData.totalDuration !== undefined && formData.totalDuration !== null && (formData.totalDuration as any) !== false && (formData.totalDuration as any) !== "—" && (formData.totalDuration as any) !== "Input required" && String(formData.totalDuration).trim() !== "") {
+      const val = typeof formData.totalDuration === 'boolean' ? 'Yes' : formData.totalDuration;
+      lines.push("Total Duration: " + val);
+    }
+    if (formData.sessions !== undefined && formData.sessions !== null && (formData.sessions as any) !== false && (formData.sessions as any) !== "—" && (formData.sessions as any) !== "Input required" && String(formData.sessions).trim() !== "") {
+      const val = typeof formData.sessions === 'boolean' ? 'Yes' : formData.sessions;
+      lines.push("Sessions: " + val);
+    }
+    if (formData.keySession !== undefined && formData.keySession !== null && (formData.keySession as any) !== false && (formData.keySession as any) !== "—" && (formData.keySession as any) !== "Input required" && String(formData.keySession).trim() !== "") {
+      const val = typeof formData.keySession === 'boolean' ? 'Yes' : formData.keySession;
+      lines.push("Key Session: " + val);
+    }
+    if (formData.longRun !== undefined && formData.longRun !== null && (formData.longRun as any) !== false && (formData.longRun as any) !== "—" && (formData.longRun as any) !== "Input required" && String(formData.longRun).trim() !== "") {
+      const val = typeof formData.longRun === 'boolean' ? 'Yes' : formData.longRun;
+      lines.push("Long Run: " + val);
+    }
+    if (formData.strength !== undefined && formData.strength !== null && (formData.strength as any) !== false && (formData.strength as any) !== "—" && (formData.strength as any) !== "Input required" && String(formData.strength).trim() !== "") {
+      const val = typeof formData.strength === 'boolean' ? 'Yes' : formData.strength;
+      lines.push("Strength: " + val);
+    }
+    if (formData.verdict !== undefined && formData.verdict !== null && (formData.verdict as any) !== false && (formData.verdict as any) !== "—" && (formData.verdict as any) !== "Input required" && String(formData.verdict).trim() !== "") {
+      const val = typeof formData.verdict === 'boolean' ? 'Yes' : formData.verdict;
+      lines.push("Verdict: " + val);
+    }
+    if (formData.note !== undefined && formData.note !== null && (formData.note as any) !== false && (formData.note as any) !== "—" && (formData.note as any) !== "Input required" && String(formData.note).trim() !== "") {
+      const val = typeof formData.note === 'boolean' ? 'Yes' : formData.note;
+      lines.push("Note: " + val);
+    }
+    lines.push("");
+    lines.push("Made with RunCard Studio");
+    const textToCopy = lines.join("\n");
+    
+    const fallbackCopy = (text: string) => {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        showToast("Copied to clipboard!");
+      } catch (err) {
+        showToast("Failed to copy.");
+      }
+      textArea.remove();
+    };
 
-    navigator.clipboard.writeText(lines.join("\n"));
-    showToast("Training Week copied to clipboard");
+    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textToCopy)
+        .then(() => showToast("Copied to clipboard!"))
+        .catch((err) => {
+          fallbackCopy(textToCopy);
+        });
+    } else {
+      fallbackCopy(textToCopy);
+    }
   };
+
+
+  const getPlainFormDataForCurrentCard = () => {
+    return { ...formData };
+  };
+
+  const saveCurrentDraft = () => {
+    const plainData = getPlainFormDataForCurrentCard();
+    for (const key in plainData) {
+      const val = (plainData as any)[key];
+      if (typeof HTMLElement !== "undefined" && val instanceof HTMLElement) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Node !== "undefined" && val instanceof Node) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Event !== "undefined" && val instanceof Event) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof File !== "undefined" && val instanceof File) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof Blob !== "undefined" && val instanceof Blob) { showToast("Draft contains unsafe data and was not saved."); return; }
+      if (typeof val === "function") { showToast("Draft contains unsafe data and was not saved."); return; }
+    }
+
+    const pd = plainData as any;
+    const title = pd.name || pd.title || pd.athleteName || pd.sessionName || pd.runnerName || pd.raceName || pd.sessionType || pd.distanceChoice || "Untitled Draft";
+
+    const draft = {
+      id: "draft_" + Date.now() + "_" + Math.random().toString(36).substring(2, 9),
+      cardType: "training-week",
+      title: String(title),
+      template: typeof template !== 'undefined' ? template : "default",
+      exportSize: typeof window !== 'undefined' ? localStorage.getItem('runcard-default-export-size') || "square" : "square",
+      formData: plainData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      version: "1.0"
+    };
+
+    try {
+      const existingStr = localStorage.getItem('runcard-drafts');
+      let drafts = [];
+      if (existingStr) {
+        drafts = JSON.parse(existingStr);
+      }
+      drafts.push(draft);
+      localStorage.setItem('runcard-drafts', JSON.stringify(drafts));
+      showToast("Draft saved!");
+    } catch(err) {
+      showToast("Failed to save draft.");
+    }
+  };
+
+  useEffect(() => {
+    try {
+       if (typeof window !== 'undefined') {
+          const loadStr = localStorage.getItem('runcard-draft-load');
+          if (loadStr) {
+             const draft = JSON.parse(loadStr);
+             if (draft && draft.cardType === "training-week") {
+                if (draft.formData) setFormData(draft.formData);
+                if (draft.template && typeof setTemplate === "function") setTemplate(draft.template);
+                // Template is loaded if the form has a template state.
+                // We'll just check if setTemplate exists in this code.
+             }
+          }
+       }
+    } catch {}
+  }, []);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
-      <div className="lg:col-span-4 flex flex-col gap-6">
+      <div className="lg:col-span-4 flex flex-col gap-6 w-full">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Week Data</h2>
         </div>
@@ -76,7 +196,7 @@ export default function TrainingWeekGenerator({ previewRef, showToast }: Trainin
                type="text" 
                value={formData.title}
                onChange={e => handleChange("title", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                placeholder="Week 5"
              />
           </div>
@@ -86,7 +206,7 @@ export default function TrainingWeekGenerator({ previewRef, showToast }: Trainin
                type="text" 
                value={formData.dateRange}
                onChange={e => handleChange("dateRange", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                placeholder="Oct 12 - Oct 18"
              />
           </div>
@@ -98,7 +218,7 @@ export default function TrainingWeekGenerator({ previewRef, showToast }: Trainin
                  type="text" 
                  value={formData.totalDistance}
                  onChange={e => handleChange("totalDistance", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                  placeholder="70 km"
                />
              </div>
@@ -108,7 +228,7 @@ export default function TrainingWeekGenerator({ previewRef, showToast }: Trainin
                  type="text" 
                  value={formData.totalDuration}
                  onChange={e => handleChange("totalDuration", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                  placeholder="6h 30m"
                />
              </div>
@@ -121,7 +241,7 @@ export default function TrainingWeekGenerator({ previewRef, showToast }: Trainin
                  type="text" 
                  value={formData.sessions}
                  onChange={e => handleChange("sessions", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all font-mono"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all font-mono"
                  placeholder="6"
                />
              </div>
@@ -130,7 +250,7 @@ export default function TrainingWeekGenerator({ previewRef, showToast }: Trainin
                <select 
                  value={formData.verdict}
                  onChange={e => handleChange("verdict", e.target.value)}
-                 className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none cursor-pointer"
+                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none cursor-pointer"
                >
                  <option value="Solid">Solid</option>
                  <option value="Tired">Tired</option>
@@ -148,7 +268,7 @@ export default function TrainingWeekGenerator({ previewRef, showToast }: Trainin
                type="text" 
                value={formData.keySession}
                onChange={e => handleChange("keySession", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                placeholder="6x1km @ 3:45"
              />
           </div>
@@ -158,7 +278,7 @@ export default function TrainingWeekGenerator({ previewRef, showToast }: Trainin
                type="text" 
                value={formData.longRun}
                onChange={e => handleChange("longRun", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                placeholder="25km progression"
              />
           </div>
@@ -168,7 +288,7 @@ export default function TrainingWeekGenerator({ previewRef, showToast }: Trainin
                type="text" 
                value={formData.strength}
                onChange={e => handleChange("strength", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
                placeholder="2x gym"
              />
           </div>
@@ -178,21 +298,21 @@ export default function TrainingWeekGenerator({ previewRef, showToast }: Trainin
              <textarea 
                value={formData.note}
                onChange={e => handleChange("note", e.target.value)}
-               className="w-full bg-surface-lowest border border-brand-border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none resize-none h-16 transition-colors"
+               className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none resize-none h-16 transition-colors"
                placeholder="Felt strong but need more sleep."
              ></textarea>
           </div>
 
-          <button onClick={handleCopy} className="w-full py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]">
-            <Copy className="w-4 h-4 text-secondary-lime" /> Copy Caption
-          </button>
+          <button onClick={() => saveCurrentDraft()} className="w-full mt-2 lg:mt-4 py-2 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-4 h-4 text-primary-action" /> SAVE DRAFT</button>
+          <button onClick={handleCopy} className="w-full py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY WEEK
+</button>
         </div>
       </div>
 
       <div className="lg:col-span-8 flex flex-col gap-6 pb-20">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Live Preview</h2>
-                    <div className="flex overflow-x-auto no-scrollbar gap-2 pb-2">
+                    <div className="flex overflow-x-auto no-scrollbar gap-2 w-full md:w-auto pb-4 md:pb-2 border-b border-brand-border md:border-none">
             {[
               { id: 'weekly board', label: 'Weekly Board' },
               { id: 'training log', label: 'Training Log' },
@@ -276,7 +396,7 @@ export default function TrainingWeekGenerator({ previewRef, showToast }: Trainin
                         &quot;{formData.note}&quot;
                      </div>
                    )}
-                   <div className="mt-4 text-left text-[9px] font-black tracking-widest text-gray-400 uppercase border-t-2 border-black pt-2">RunCard Studio</div>
+                   <div className="mt-4 text-left text-[9px] font-black tracking-widest text-gray-400 uppercase border-t-2 border-black pt-2">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'RunCard Studio'}</div>
                  </>
                )}
 
@@ -325,7 +445,7 @@ export default function TrainingWeekGenerator({ previewRef, showToast }: Trainin
                         &quot;{formData.note}&quot;
                      </div>
                    )}
-                   <div className="mt-6 text-center text-[9px] uppercase tracking-[0.2em] text-[#3f3f46]">RunCard Studio</div>
+                   <div className="mt-6 text-center text-[9px] uppercase tracking-[0.2em] text-[#3f3f46]">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'RunCard Studio'}</div>
                  </>
                )}
 
