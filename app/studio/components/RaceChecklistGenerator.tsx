@@ -1,9 +1,8 @@
-import StudioPageShell from './StudioPageShell';
 /* eslint-disable react-hooks/set-state-in-effect */
 import SharedTemplates, { useExportSize, getExportSizeClasses } from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
-import TemplateSelector from './TemplateSelector';
-import { Copy, Save } from "lucide-react";
+import TemplateSelector, { useTemplateAccent, ACCENTS } from './TemplateSelector';
+import { Copy, Save, Eye } from "lucide-react";
 
 interface RaceChecklistProps {
   previewRef: MutableRefObject<HTMLDivElement | null>;
@@ -33,13 +32,14 @@ export default function RaceChecklistGenerator({ previewRef, showToast }: RaceCh
     custom3: ""
   });
 
-  const [template, setTemplate] = useState("original");
+  const [template, setTemplate] = useState("race day");
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
   const exportSize = useExportSize();
+  const activeAccentId = useTemplateAccent();
+  const activeAccent = ACCENTS.find(a => a.id === activeAccentId) || ACCENTS[0];
 
-
-      useEffect(() => {
+  useEffect(() => {
     if (!containerRef.current) return;
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
@@ -92,6 +92,7 @@ export default function RaceChecklistGenerator({ previewRef, showToast }: RaceCh
     if (formData.custom3) items.push(formData.custom3);
     return items;
   };
+
   const handleCopy = () => {
     const lines = [];
     if (formData.title !== undefined && formData.title !== null && (formData.title as any) !== false && (formData.title as any) !== "—" && (formData.title as any) !== "Input required" && String(formData.title).trim() !== "") {
@@ -203,12 +204,9 @@ export default function RaceChecklistGenerator({ previewRef, showToast }: RaceCh
   };
 
   const itemsList = getChecklistItems();
-  
-  // Split items into roughly two columns for rendering if there are many
   const half = Math.ceil(itemsList.length / 2);
   const leftItems = itemsList.slice(0, half);
   const rightItems = itemsList.slice(half);
-
 
   const getPlainFormDataForCurrentCard = () => {
     return { ...formData };
@@ -264,8 +262,6 @@ export default function RaceChecklistGenerator({ previewRef, showToast }: RaceCh
              if (draft && draft.cardType === "race-checklist") {
                 if (draft.formData) setFormData(draft.formData);
                 if (draft.template && typeof setTemplate === "function") setTemplate(draft.template);
-                // Template is loaded if the form has a template state.
-                // We'll just check if setTemplate exists in this code.
              }
           }
        }
@@ -273,10 +269,16 @@ export default function RaceChecklistGenerator({ previewRef, showToast }: RaceCh
   }, []);
 
   return (
-    <StudioPageShell
-      inputTitle="CHECKLIST CONFIGURATION"
-      inputSubtitle="Log details"
-      inputContent={
+    <div className="grid grid-cols-1 xl:grid-cols-[minmax(320px,380px)_1fr_minmax(280px,340px)] gap-6 w-full font-sans">
+      {/* COLUMN 1: CONFIGURATION */}
+      <div className="flex flex-col gap-4 w-full">
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-xl font-bold uppercase tracking-tight text-[#f2f4f7]">CHECKLIST CONFIGURATION</h2>
+            <p className="text-xs text-text-muted font-mono uppercase tracking-wider">Log details</p>
+          </div>
+        </div>
+
         <div className="bg-surface border border-brand-border p-5 rounded-lg flex flex-col gap-4 shadow-xl">
           <div>
              <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-1">Checklist Title</label>
@@ -293,18 +295,22 @@ export default function RaceChecklistGenerator({ previewRef, showToast }: RaceCh
              <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-3">Standard Items</label>
              <div className="grid grid-cols-2 gap-y-3 gap-x-2">
                {(Object.keys(formData) as Array<keyof typeof formData>).filter(k => typeof formData[k] === 'boolean').map(key => (
-                  <label key={key} className="flex items-center gap-2 cursor-pointer select-none group">
+                  <label 
+                    key={key} 
+                    onClick={() => handleToggle(key)}
+                    className="flex items-center gap-2 cursor-pointer select-none group"
+                  >
                     <div className={`w-4 h-4 rounded-sm border flex items-center justify-center transition-colors ${formData[key] ? 'bg-secondary-lime border-secondary-lime' : 'bg-surface-lowest border-brand-border group-hover:border-text-muted'}`}>
                        {formData[key] && <div className="w-1.5 h-1.5 bg-[#0f1012] rounded-full"></div>}
-</div>
+                    </div>
                     <span className="text-[11px] font-mono text-text-primary uppercase tracking-wider">{key.replace('idcard', 'ID Card')}</span>
                   </label>
                ))}
-        </div>
+             </div>
           </div>
 
           <div className="border-t border-brand-border pt-4">
-             <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-2">Custom Items</label>
+             <label className="block text-[11px] font-mono text-[#a1a1aa] uppercase tracking-wider mb-2">Custom Items</label>
              <div className="space-y-2">
                <input 
                  type="text" 
@@ -330,98 +336,193 @@ export default function RaceChecklistGenerator({ previewRef, showToast }: RaceCh
              </div>
           </div>
 
-          <button onClick={() => saveCurrentDraft()} className="w-full mt-2 lg:mt-4 py-2 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-4 h-4 text-primary-action" /> SAVE DRAFT</button>
-          <button onClick={handleCopy} className="w-full mt-2 py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY CHECKLIST
-</button>
+          <button onClick={() => saveCurrentDraft()} className="w-full mt-2 lg:mt-4 py-2.5 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-4 h-4 text-primary-action" /> SAVE DRAFT</button>
+          <button onClick={handleCopy} className="w-full py-2.5 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY CHECKLIST</button>
         </div>
-      }
-      containerRef={containerRef}
-      scale={scale}
-      exportSize={exportSize}
-      previewContent={
-        <div
-          ref={previewRef}
-            className={`${getExportSizeClasses(exportSize, template)}`}
-          >
-             {/* Header */}
-             <div className={`mb-6 flex flex-col
-                ${template === 'race day' ? 'border-b-4 border-black pb-4' : ''}
-                ${template === 'minimal' ? 'border-b border-gray-200 pb-6 mb-8 text-center' : ''}
-                ${template === 'dark utility' ? 'border-b-2 border-primary-coral pb-4 border-dashed' : ''}
-             `}>
-               <h1 className={`text-3xl font-black uppercase tracking-tighter leading-tight
-                  ${template === 'dark utility' ? 'text-secondary-lime' : ''}
-                  ${template === 'minimal' ? 'font-serif tracking-normal' : ''}
-               `}>
-                 {formData.title.trim() || 'CHECKLIST'}
-               </h1>
-               {template === 'dark utility' && <p className="text-[10px] uppercase tracking-widest opacity-50 mt-1">Status: Pending Verification</p>}
-             </div>
+      </div>
 
-             {/* Checklist Items Area */}
-             <div className={`flex-1 ${template === 'race day' ? 'grid grid-cols-2 gap-x-6 gap-y-1' : 'flex flex-col gap-4'}`}>
-                {template === 'race day' ? (
-                   <>
-                      <div className="flex flex-col gap-3">
-                         {leftItems.map((item, i) => (
-                           <div key={`l-${i}`} className="flex items-start gap-3">
-                             <div className="w-5 h-5 shrink-0 border-2 border-black rounded-sm mt-0.5"></div>
-                             <span className="font-bold uppercase text-sm leading-tight pt-0.5">{item}</span>
-                           </div>
-                         ))}
-        </div>
-                      <div className="flex flex-col gap-3">
-                         {rightItems.map((item, i) => (
-                           <div key={`r-${i}`} className="flex items-start gap-3">
-                             <div className="w-5 h-5 shrink-0 border-2 border-black rounded-sm mt-0.5"></div>
-                             <span className="font-bold uppercase text-sm leading-tight pt-0.5">{item}</span>
-                           </div>
-                         ))}
-        </div>
-                   </>
-                ) : template === 'minimal' ? (
-                   <div className="flex flex-col gap-4 px-2">
-                      {itemsList.map((item, i) => (
-                        <div key={i} className="flex items-center gap-4">
-                          <div className="w-3 h-3 shrink-0 rounded-full border border-gray-400"></div>
-                          <span className="text-sm border-b border-gray-200 border-dotted flex-1 pb-1">{item}</span>
-                        </div>
-                      ))}
-        </div>
-                ) : (
-                   // Dark Utility
-                   <div className="flex flex-col gap-2">
-                      {itemsList.map((item, i) => (
-                        <div key={i} className="flex items-center gap-3 bg-[#111316] p-2.5 rounded border border-[#22252a]">
-                          <div className="w-4 h-4 shrink-0 bg-[#0b0c0e] border border-[#22252a] flex items-center justify-center">
-                            {/* Empty box */}
-                          </div>
-                          <span className="text-xs uppercase tracking-wider text-gray-300 truncate">{item}</span>
-                        </div>
-                      ))}
-        </div>
-)}
-             </div>
-
-             {/* Footer */}
-             <div className={`mt-8 pt-4 flex justify-between items-end
-                 ${template === 'race day' ? 'border-t-4 border-black' : ''}
-                 ${template === 'minimal' ? 'border-t border-gray-200 opacity-50' : ''}
-                 ${template === 'dark utility' ? 'border-t border-[#22252a] opacity-40' : ''}
-             `}>
-               <span className={`text-[9px] uppercase tracking-widest ${template === 'minimal' ? 'font-sans' : 'font-mono uppercase'}`}>
-                 Packing Protocol
-               </span>
-             </div>
+      {/* COLUMN 2: LIVE PREVIEW */}
+      <div className="flex flex-col gap-4 xl:sticky xl:top-[128px] xl:self-start">
+        <div className="flex flex-col gap-1 px-1">
+          <div className="flex items-center gap-1.5 animate-pulse">
+            <Eye className="w-3.5 h-3.5 text-secondary-lime" />
+            <h2 className="text-[11px] font-bold uppercase tracking-widest text-[#f2f4f7] font-mono">LIVE PREVIEW</h2>
           </div>
-      }
-      templateSelector={
+          <p className="text-[10px] text-text-muted font-mono uppercase tracking-wider">REPRESENTS COMPLETED CANVAS</p>
+        </div>
+
+        {/* Scalable Container for preview */}
+        <div ref={containerRef} className="w-full bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:16px_16px] bg-[#07080a] border border-brand-border rounded-xl p-4 md:p-8 flex items-center justify-center min-h-[500px] xl:min-h-[550px] overflow-hidden relative shadow-inner">
+          <div 
+            style={{ 
+              transform: `scale(${scale})`, 
+              transformOrigin: "center",
+              transition: "transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)" 
+            }}
+            className="shrink-0"
+          >
+            <div
+              ref={previewRef}
+              className={`${getExportSizeClasses(exportSize, template)}` + ` relative flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] transition-all duration-300 select-none overflow-hidden
+                ${template === 'race day' ? ' bg-white text-black rounded px-8 py-6 border border-gray-200' : ''}
+                ${template === 'minimal' ? ' bg-[#faf9f6] text-black p-8 rounded-none border border-stone-200/60' : ''}
+                ${template === 'dark utility' ? ' bg-[#121316] text-[#f2f4f7] rounded-xl border border-[#22252a] p-8' : ''}
+              `}
+            >
+              {['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(template) ? (
+                <SharedTemplates template={template} formData={formData} componentName="RaceChecklistGenerator" />
+              ) : (
+                <>
+                  {/* Header */}
+                  <div className={`mb-6 flex flex-col
+                     ${template === 'race day' ? 'border-b-4 border-black pb-4' : ''}
+                     ${template === 'minimal' ? 'border-b border-gray-200 pb-6 mb-8 text-center' : ''}
+                     ${template === 'dark utility' ? 'pb-4 border-dashed border-b-2' : ''}
+                  `}
+                  style={template === 'dark utility' ? { borderColor: `${activeAccent.hex}4d` } : undefined}
+                  >
+                    <h1 
+                      className={`text-3xl font-black uppercase tracking-tighter leading-tight
+                         ${template === 'minimal' ? 'font-serif tracking-normal' : ''}
+                      `}
+                      style={template === 'dark utility' ? { color: activeAccent.hex } : undefined}
+                    >
+                      {formData.title.trim() || 'CHECKLIST'}
+                    </h1>
+                    {template === 'dark utility' && <p className="text-[10px] uppercase tracking-widest opacity-50 mt-1">Status: Pending Verification</p>}
+                  </div>
+
+                  {/* Checklist Items Area */}
+                  <div className={`flex-1 ${template === 'race day' ? 'grid grid-cols-2 gap-x-6 gap-y-1' : 'flex flex-col gap-4'}`}>
+                     {template === 'race day' ? (
+                        <>
+                           <div className="flex flex-col gap-3">
+                              {leftItems.map((item, i) => (
+                                <div key={`l-${i}`} className="flex items-start gap-3">
+                                  <div className="w-5 h-5 shrink-0 border-2 border-black rounded-sm mt-0.5"></div>
+                                  <span className="font-bold uppercase text-sm leading-tight pt-0.5">{item}</span>
+                                </div>
+                              ))}
+                           </div>
+                           <div className="flex flex-col gap-3">
+                              {rightItems.map((item, i) => (
+                                <div key={`r-${i}`} className="flex items-start gap-3">
+                                  <div className="w-5 h-5 shrink-0 border-2 border-black rounded-sm mt-0.5"></div>
+                                  <span className="font-bold uppercase text-sm leading-tight pt-0.5">{item}</span>
+                                </div>
+                              ))}
+                           </div>
+                        </>
+                     ) : template === 'minimal' ? (
+                        <div className="flex flex-col gap-4 px-2">
+                           {itemsList.map((item, i) => (
+                             <div key={i} className="flex items-center gap-4">
+                               <div className="w-3 h-3 shrink-0 rounded-full border border-gray-400"></div>
+                               <span className="text-sm border-b border-gray-200 border-dotted flex-1 pb-1">{item}</span>
+                             </div>
+                           ))}
+                        </div>
+                     ) : (
+                        // Dark Utility
+                        <div className="flex flex-col gap-2">
+                           {itemsList.map((item, i) => (
+                             <div key={i} className="flex items-center gap-3 bg-[#111316] p-2.5 rounded border border-[#22252a]" style={{ borderColor: `${activeAccent.hex}22` }}>
+                               <div className="w-4 h-4 shrink-0 bg-[#0b0c0e] border border-[#22252a] flex items-center justify-center" style={{ borderColor: `${activeAccent.hex}33` }}>
+                                 {/* Empty box */}
+                               </div>
+                               <span className="text-xs uppercase tracking-wider text-gray-300 truncate">{item}</span>
+                             </div>
+                           ))}
+                        </div>
+                     )}
+                  </div>
+
+                  {/* Footer */}
+                  <div className={`mt-8 pt-4 flex justify-between items-end
+                      ${template === 'race day' ? 'border-t-4 border-black' : ''}
+                      ${template === 'minimal' ? 'border-t border-gray-200 opacity-50' : ''}
+                      ${template === 'dark utility' ? 'border-t opacity-40' : ''}
+                  `}
+                  style={template === 'dark utility' ? { borderColor: `${activeAccent.hex}4d` } : undefined}
+                  >
+                    <span 
+                      className={`text-[9px] uppercase tracking-widest ${template === 'minimal' ? 'font-sans' : 'font-mono'}`}
+                      style={template === 'dark utility' ? { color: activeAccent.hex } : undefined}
+                    >
+                      Packing Protocol
+                    </span>
+                  </div>
+
+                  <div className={`mt-auto text-center font-mono text-[9px] tracking-[0.25em] uppercase pt-4 border-t ${
+                    ['community challenge', 'weekly board', 'clean white', 'minimal award', 'minimal nutrition', 'minimal gear', 'classic', 'elite', 'receipt', 'white', 'table', 'minimal'].includes(template) 
+                      ? 'border-dashed border-gray-400 text-gray-400' 
+                      : 'border-dashed border-brand-border opacity-40 text-white'
+                  }`}>
+                    {typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'made with RunCard Studio'}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Centered Ratio Dock */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-[#090b0e]/95 backdrop-blur border border-brand-border/85 px-2 py-1.5 rounded-full flex items-center gap-1 shadow-[0_8px_24px_rgba(0,0,0,0.6)] z-10 hover:border-brand-border-strong transition-all">
+            {[
+              { id: "square", label: "1:1 Feed" },
+              { id: "story", label: "9:16 Story" },
+              { id: "landscape", label: "16:9 Classic" },
+              { id: "compact", label: "Fit" },
+              { id: "printable", label: "PDF/A4" }
+            ].map((ratio) => {
+              const isActive = exportSize === ratio.id;
+              return (
+                <button
+                  key={ratio.id}
+                  onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      localStorage.setItem('runcard-default-export-size', ratio.id);
+                      window.dispatchEvent(new CustomEvent('export-size-changed', { detail: ratio.id }));
+                    }
+                  }}
+                  className={`px-2.5 py-1 rounded-full text-[9px] font-mono font-bold uppercase transition-all cursor-pointer outline-none focus:outline-none whitespace-nowrap
+                    ${isActive 
+                      ? 'bg-secondary-lime text-black shadow-[0_0_8px_rgba(160,204,0,0.4)] font-extrabold' 
+                      : 'text-text-muted hover:text-text-primary hover:bg-surface-lowest/50'}`}
+                >
+                  {ratio.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* COLUMN 3: STYLE CONTROLS */}
+      <div className="flex flex-col gap-4 xl:sticky xl:top-[128px]">
+        <div className="flex flex-col gap-0.5 px-1">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-[#f2f4f7] font-mono">STYLE CONTROLS</span>
+          <p className="text-[10px] text-text-muted font-mono uppercase tracking-wider">Tweak appearance</p>
+        </div>
+        
         <TemplateSelector 
-        activeTemplate={template}
-        onSelectTemplate={setTemplate}
-        localTemplates={[]}
-        />
-      }
-    />
+          activeTemplate={template}
+          onSelectTemplate={setTemplate}
+          localTemplates={[
+            {
+              "id": "race day",
+              "label": "Race Day Pack"
+            },
+            {
+              "id": "minimal",
+              "label": "Minimal List"
+            },
+            {
+              "id": "dark utility",
+              "label": "Dark Utility"
+          }
+        ]}
+      />
+    </div>
+  </div>
   );
 }

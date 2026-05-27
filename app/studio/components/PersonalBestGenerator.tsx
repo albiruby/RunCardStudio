@@ -1,9 +1,8 @@
-import StudioPageShell from './StudioPageShell';
 /* eslint-disable react-hooks/set-state-in-effect */
 import SharedTemplates, { useExportSize, getExportSizeClasses } from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
-import TemplateSelector from './TemplateSelector';
-import { Copy, Save } from "lucide-react";
+import TemplateSelector, { useTemplateAccent, ACCENTS } from './TemplateSelector';
+import { Copy, Save, Eye, Trophy } from "lucide-react";
 
 interface PersonalBestProps {
   previewRef: MutableRefObject<HTMLDivElement | null>;
@@ -26,9 +25,10 @@ export default function PersonalBestGenerator({ previewRef, showToast }: Persona
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
   const exportSize = useExportSize();
+  const activeAccentId = useTemplateAccent();
+  const activeAccent = ACCENTS.find(a => a.id === activeAccentId) || ACCENTS[0];
 
-
-      useEffect(() => {
+  useEffect(() => {
     if (!containerRef.current) return;
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
@@ -158,7 +158,6 @@ export default function PersonalBestGenerator({ previewRef, showToast }: Persona
     }
   };
 
-
   const getPlainFormDataForCurrentCard = () => {
     return { ...formData };
   };
@@ -213,8 +212,6 @@ export default function PersonalBestGenerator({ previewRef, showToast }: Persona
              if (draft && draft.cardType === "personal-best") {
                 if (draft.formData) setFormData(draft.formData);
                 if (draft.template && typeof setTemplate === "function") setTemplate(draft.template);
-                // Template is loaded if the form has a template state.
-                // We'll just check if setTemplate exists in this code.
              }
           }
        }
@@ -222,11 +219,15 @@ export default function PersonalBestGenerator({ previewRef, showToast }: Persona
   }, []);
 
   return (
-    <StudioPageShell
-      inputTitle="PB DATA"
-      inputSubtitle="Log details"
-      inputContent={
-        <div className="bg-surface border border-brand-border p-5 rounded-lg flex flex-col gap-4 shadow-xl">
+    <div className="grid grid-cols-1 xl:grid-cols-[minmax(320px,380px)_1fr_minmax(280px,340px)] gap-6 w-full font-sans">
+      {/* COLUMN 1: PB DATA */}
+      <div className="flex flex-col gap-4 w-full">
+        <div className="flex items-center gap-2 px-1">
+          <Trophy className="w-3.5 h-3.5 text-secondary-lime" />
+          <h2 className="text-[11px] font-bold uppercase tracking-widest text-[#f2f4f7] font-mono">PB DATA CONFIGURATION</h2>
+        </div>
+
+        <div className="bg-surface border border-brand-border p-5 rounded-xl flex flex-col gap-4 shadow-xl">
           <div>
              <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-1">Athlete Name (Opt)</label>
              <input 
@@ -317,173 +318,227 @@ export default function PersonalBestGenerator({ previewRef, showToast }: Persona
              />
           </div>
 
-          <button onClick={() => saveCurrentDraft()} className="w-full mt-2 lg:mt-4 py-2 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-4 h-4 text-primary-action" /> SAVE DRAFT</button>
-          <button onClick={handleCopy} className="w-full mt-2 py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY PB
-</button>
+          <button onClick={() => saveCurrentDraft()} className="w-full mt-2 lg:mt-4 py-2.5 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-3.5 h-3.5 text-primary-action" /> SAVE DRAFT</button>
+          <button onClick={handleCopy} className="w-full py-2.5 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-3.5 h-3.5 text-secondary-lime" /> COPY PB</button>
         </div>
-      }
-      containerRef={containerRef}
-      scale={scale}
-      exportSize={exportSize}
-      previewContent={
-        <div
-          ref={previewRef}
-            className={`${getExportSizeClasses(exportSize, template)}` + `  flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none overflow-hidden
-              ${template === 'dark carbon' ? 'bg-[#121316] border border-[#22252a] text-[#f2f4f7] p-8 rounded-lg' : ''}
-              ${template === 'record board' ? 'bg-[#0f1012] border-t-[8px] border-secondary-lime text-white p-8 rounded font-mono' : ''}
-              ${template === 'clean white' ? 'bg-[#fafafa] text-[#09090b] p-8 border border-[#e4e4e7] rounded-xl font-sans' : ''}
-            `}
-            style={{ minHeight: '440px' }}
+      </div>
+
+      {/* COLUMN 2: LIVE PREVIEW */}
+      <div className="flex flex-col gap-4 xl:sticky xl:top-[128px] xl:self-start">
+        <div className="flex flex-col gap-1 px-1">
+          <div className="flex items-center gap-1.5 animate-pulse">
+            <Eye className="w-3.5 h-3.5 text-secondary-lime" />
+            <h2 className="text-[11px] font-bold uppercase tracking-widest text-[#f2f4f7] font-mono">LIVE PREVIEW</h2>
+          </div>
+          <p className="text-[10px] text-text-muted font-mono uppercase tracking-wider">REPRESENTS COMPLETED CANVAS</p>
+        </div>
+
+        {/* Scalable Container for preview */}
+        <div ref={containerRef} className="w-full bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:16px_16px] bg-[#07080a] border border-brand-border rounded-xl p-4 md:p-8 flex items-center justify-center min-h-[500px] xl:min-h-[550px] overflow-hidden relative shadow-inner">
+          <div 
+            style={{ 
+              transform: `scale(${scale})`, 
+              transformOrigin: "center",
+              transition: "transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)" 
+            }}
+            className="shrink-0"
           >
-             
-             {template === 'dark carbon' && (
-               <>
-                 <div className="absolute top-0 right-0 py-2 px-3 bg-primary-coral text-white font-black uppercase text-[10px] tracking-widest rounded-bl-lg">PB Unlocked</div>
-                 
-                 <div className="mb-8">
-                   {formData.athleteName && <p className="text-secondary-lime font-mono text-[10px] uppercase tracking-widest mb-1">{formData.athleteName}</p>}
-                   <h1 className="text-4xl font-black uppercase tracking-tighter leading-none mb-2">{formData.eventDistance || 'EVENT'}</h1>
-                   <p className="font-mono text-xs uppercase opacity-50 flex gap-2">
-                     <span>{formData.date}</span>
-                     {formData.location && <span>{`// ${formData.location}`}</span>}
-                   </p>
-                 </div>
+            <div
+              ref={previewRef}
+              className={`${getExportSizeClasses(exportSize, template)}` + ` relative flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] transition-all duration-300 select-none overflow-hidden
+                ${template === 'dark carbon' ? ' bg-[#121316] border border-[#22252a] text-[#f2f4f7] p-8 rounded-lg' : ''}
+                ${template === 'record board' ? ' bg-[#0f1012] border-t-[8px] border-secondary-lime text-white p-8 rounded font-mono' : ''}
+                ${template === 'clean white' ? ' bg-[#fafafa] text-[#09090b] p-8 border border-[#e4e4e7] rounded-xl font-sans' : ''}
+              `}
+              style={template === 'record board' ? { borderTopColor: activeAccent.hex, minHeight: '440px' } : { minHeight: '440px' }}
+            >
+              {['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(template) ? (
+                <SharedTemplates template={template} formData={formData} componentName="PersonalBestGenerator" />
+              ) : (
+                <>
+                  {template === 'dark carbon' && (
+                    <>
+                      <div className="absolute top-0 right-0 py-2 px-3 bg-primary-coral text-white font-black uppercase text-[10px] tracking-widest rounded-bl-lg">PB Unlocked</div>
+                      
+                      <div className="mb-8">
+                        {formData.athleteName && <p className="font-mono text-[10px] uppercase tracking-widest mb-1" style={{ color: activeAccent.hex }}>{formData.athleteName}</p>}
+                        <h1 className="text-4xl font-black uppercase tracking-tighter leading-none mb-2">{formData.eventDistance || 'EVENT'}</h1>
+                        <p className="font-mono text-xs uppercase opacity-50 flex gap-2">
+                          <span>{formData.date}</span>
+                          {formData.location && <span>{`// ${formData.location}`}</span>}
+                        </p>
+                      </div>
 
-                 <div className="flex-1 flex flex-col items-center justify-center bg-[#181a1f] border border-[#22252a] rounded-xl p-6 relative overflow-hidden mb-8">
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary-action/10 to-transparent pointer-events-none"></div>
-                    <div className="font-mono text-[10px] uppercase opacity-70 tracking-widest mb-2 relative z-10">Official Time</div>
-                    <div className="text-6xl font-black font-mono tracking-tighter text-white drop-shadow-sm relative z-10">{formData.newPb || '-'}</div>
-                 </div>
+                      <div className="flex-1 flex flex-col items-center justify-center bg-[#181a1f] border border-[#22252a] rounded-xl p-6 relative overflow-hidden mb-8" style={{ borderColor: `${activeAccent.hex}22` }}>
+                         <div className="absolute inset-0 bg-gradient-to-br from-primary-action/10 to-transparent pointer-events-none"></div>
+                         <div className="font-mono text-[10px] uppercase opacity-70 tracking-widest mb-2 relative z-10">Official Time</div>
+                         <div className="text-6xl font-black font-mono tracking-tighter text-white drop-shadow-sm relative z-10">{formData.newPb || '-'}</div>
+                      </div>
 
-                 <div className="grid grid-cols-2 gap-4">
-                   <div>
-                     <div className="font-mono text-[10px] uppercase opacity-50 mb-1">Previous Best</div>
-                     <div className="font-mono text-lg font-bold">{formData.prevPb || '—'}</div>
-                   </div>
-                   <div className="text-right">
-                     <div className="font-mono text-[10px] uppercase opacity-50 mb-1">Improvement</div>
-                     <div className="font-mono text-lg font-black text-secondary-lime">{improvement}</div>
-                   </div>
-                 </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <div className="font-mono text-[10px] uppercase opacity-50 mb-1">Previous Best</div>
+                          <div className="font-mono text-lg font-bold">{formData.prevPb || '—'}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-mono text-[10px] uppercase opacity-50 mb-1">Improvement</div>
+                          <div className="font-mono text-lg font-black" style={{ color: activeAccent.hex }}>{improvement}</div>
+                        </div>
+                      </div>
 
-                {(formData.feeling || formData.nextTarget) && (
-                  <div className="mt-6 pt-4 border-t border-[#22252a] flex justify-between items-end border-dashed">
-                    {formData.feeling && <div className="italic text-sm text-gray-400 font-serif w-2/3">&quot;{formData.feeling}&quot;</div>}
-                    {formData.nextTarget && (
-                      <div className="text-right">
-                        <div className="font-mono text-[8px] uppercase tracking-widest opacity-50">Next Target</div>
-                        <div className="font-bold text-xs uppercase">{formData.nextTarget}</div>
+                     {(formData.feeling || formData.nextTarget) && (
+                       <div className="mt-6 pt-4 border-t border-[#22252a] flex justify-between items-end border-dashed">
+                         {formData.feeling && <div className="italic text-sm text-gray-400 font-serif w-2/3">&quot;{formData.feeling}&quot;</div>}
+                         {formData.nextTarget && (
+                           <div className="text-right">
+                             <div className="font-mono text-[8px] uppercase tracking-widest opacity-50">Next Target</div>
+                             <div className="font-bold text-xs uppercase">{formData.nextTarget}</div>
+                            </div>
+                          )}
                        </div>
                      )}
+                    </>
+                  )}
+
+
+                  {template === 'record board' && (
+                    <>
+                      <div className="flex justify-between items-start mb-10 pb-4 border-b border-gray-800">
+                        <div>
+                          <h1 className="text-2xl font-black uppercase tracking-widest mb-1" style={{ color: activeAccent.hex }}>NEW RECORD</h1>
+                          <div className="text-xs uppercase tracking-widest text-gray-500">{formData.eventDistance}</div>
+                        </div>
+                        <div className="text-right bg-[#1c1d22] border border-gray-800 px-3 py-1 rounded">
+                          <div className="text-[10px] uppercase text-gray-500 tracking-wider">Date</div>
+                          <div className="text-sm font-bold uppercase">{formData.date}</div>
+                        </div>
+                      </div>
+
+                      <div className="flex-1 flex flex-col justify-center gap-6">
+                         <div className="bg-black py-6 px-4 text-center border-l-4" style={{ borderLeftColor: activeAccent.hex }}>
+                           <div className="text-[10px] uppercase tracking-widest text-gray-600 mb-2">Recorded Time</div>
+                           <div className="text-5xl font-black text-white">{formData.newPb || '-'}</div>
+                         </div>
+
+                         <div className="grid grid-cols-2 gap-px bg-gray-800">
+                            <div className="bg-[#0f1012] p-4 text-center pb-5 border-r border-[#1c1d22]">
+                               <div className="text-[9px] uppercase tracking-widest text-gray-600 mb-1">Previous</div>
+                               <div className="text-xl font-bold text-gray-300">{formData.prevPb || '—'}</div>
+                            </div>
+                            <div className="bg-[#0f1012] p-4 text-center pb-5">
+                               <div className="text-[9px] uppercase tracking-widest text-gray-600 mb-1">Delta</div>
+                               <div className={`text-xl font-black ${improvement.includes('-') ? '' : 'text-primary-coral'}`} style={improvement.includes('-') ? { color: activeAccent.hex } : undefined}>{improvement}</div>
+                            </div>
+                         </div>
+                      </div>
+
+                      <div className="mt-auto text-center pt-8 border-t border-gray-800">
+                      </div>
+                    </>
+                  )}
+
+                  {template === 'clean white' && (
+                    <div className="h-full flex flex-col">
+                      <div className="flex justify-between items-end mb-6">
+                        <h1 className="text-3xl font-extrabold uppercase tracking-tight">{formData.eventDistance}</h1>
+                        <span className="font-mono text-xs uppercase px-2 py-1 bg-gray-100 font-bold border border-gray-200" style={{ color: activeAccent.hex }}>Personal Best</span>
+                      </div>
+
+                      <div className="flex items-baseline gap-4 mb-8 pb-8 border-b border-gray-200">
+                        <span className="text-7xl font-black tracking-tighter text-black">{formData.newPb || '-'}</span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-8 mb-auto">
+                         <div>
+                           <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">History</p>
+                           <p className="text-sm font-semibold text-gray-600">Prev: <span className="font-mono text-black">{formData.prevPb || '—'}</span></p>
+                           <p className="text-sm font-semibold text-gray-600">Imp: <span className="font-mono text-black">{improvement}</span></p>
+                         </div>
+                         <div>
+                           <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">Log Data</p>
+                           <p className="text-sm font-medium">{formData.date}</p>
+                           <p className="text-sm font-medium">{formData.location}</p>
+                         </div>
+                      </div>
+
+                      {formData.feeling && (
+                        <div className="mt-8 bg-gray-50 p-4 border-l-4 border-black text-sm font-serif italic text-gray-800" style={{ borderLeftColor: activeAccent.hex }}>
+                           &quot;{formData.feeling}&quot;
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className={`mt-auto text-center font-mono text-[9px] tracking-[0.25em] uppercase pt-4 border-t ${
+                    ['community challenge', 'weekly board', 'clean white', 'minimal award', 'minimal nutrition', 'minimal gear', 'classic', 'elite', 'receipt', 'white', 'table', 'minimal'].includes(template) 
+                      ? 'border-dashed border-gray-400 text-gray-400' 
+                      : 'border-dashed border-brand-border opacity-40 text-white'
+                  }`}>
+                    {typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'made with RunCard Studio'}
                   </div>
-                )}
-               </>
-             )}
+                </>
+              )}
+            </div>
+          </div>
 
+          {/* Centered Ratio Dock */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-[#090b0e]/95 backdrop-blur border border-brand-border/85 px-2 py-1.5 rounded-full flex items-center gap-1 shadow-[0_8px_24px_rgba(0,0,0,0.6)] z-10 hover:border-brand-border-strong transition-all">
+            {[
+              { id: "square", label: "1:1 Feed" },
+              { id: "story", label: "9:16 Story" },
+              { id: "landscape", label: "16:9 Classic" },
+              { id: "compact", label: "Fit" },
+              { id: "printable", label: "PDF/A4" }
+            ].map((ratio) => {
+              const isActive = exportSize === ratio.id;
+              return (
+                <button
+                  key={ratio.id}
+                  onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      localStorage.setItem('runcard-default-export-size', ratio.id);
+                      window.dispatchEvent(new CustomEvent('export-size-changed', { detail: ratio.id }));
+                    }
+                  }}
+                  className={`px-2.5 py-1 rounded-full text-[9px] font-mono font-bold uppercase transition-all cursor-pointer outline-none focus:outline-none whitespace-nowrap
+                    ${isActive 
+                      ? 'bg-secondary-lime text-black shadow-[0_0_8px_rgba(160,204,0,0.4)] font-extrabold' 
+                      : 'text-text-muted hover:text-text-primary hover:bg-surface-lowest/50'}`}
+                >
+                  {ratio.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
 
-             {template === 'record board' && (
-               <>
-                 <div className="flex justify-between items-start mb-10 pb-4 border-b border-gray-800">
-                   <div>
-                     <h1 className="text-2xl font-black uppercase tracking-widest text-secondary-lime mb-1">NEW RECORD</h1>
-                     <div className="text-xs uppercase tracking-widest text-gray-500">{formData.eventDistance}</div>
-                   </div>
-                   <div className="text-right bg-[#1c1d22] border border-gray-800 px-3 py-1 rounded">
-                     <div className="text-[10px] uppercase text-gray-500 tracking-wider">Date</div>
-                     <div className="text-sm font-bold uppercase">{formData.date}</div>
-                   </div>
-                 </div>
-
-                 <div className="flex-1 flex flex-col justify-center gap-6">
-                    <div className="bg-black py-6 px-4 text-center border-l-4 border-secondary-lime">
-                      <div className="text-[10px] uppercase tracking-widest text-gray-600 mb-2">Recorded Time</div>
-                      <div className="text-5xl font-black text-white">{formData.newPb || '-'}</div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-px bg-gray-800">
-                       <div className="bg-[#0f1012] p-4 text-center pb-5 border-r border-[#1c1d22]">
-                          <div className="text-[9px] uppercase tracking-widest text-gray-600 mb-1">Previous</div>
-                          <div className="text-xl font-bold text-gray-300">{formData.prevPb || '—'}</div>
-                       </div>
-                       <div className="bg-[#0f1012] p-4 text-center pb-5">
-                          <div className="text-[9px] uppercase tracking-widest text-gray-600 mb-1">Delta</div>
-                          <div className={`text-xl font-black ${improvement.includes('-') ? 'text-secondary-lime' : 'text-primary-coral'}`}>{improvement}</div>
-                       </div>
-                    </div>
-                 </div>
-
-                 <div className="mt-auto text-center pt-8 border-t border-gray-800">
-                 </div>
-               </>
-             )}
-
-             {template === 'clean white' && (
-               <div className="h-full flex flex-col">
-                 <div className="flex justify-between items-end mb-6">
-                   <h1 className="text-3xl font-extrabold uppercase tracking-tight">{formData.eventDistance}</h1>
-                   <span className="font-mono text-xs uppercase px-2 py-1 bg-gray-100 font-bold border border-gray-200">Personal Best</span>
-                 </div>
-
-                 <div className="flex items-baseline gap-4 mb-8 pb-8 border-b border-gray-200">
-                   <span className="text-7xl font-black tracking-tighter text-black">{formData.newPb || '-'}</span>
-                 </div>
-
-                 <div className="grid grid-cols-2 gap-8 mb-auto">
-                    <div>
-                      <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">History</p>
-                      <p className="text-sm font-semibold text-gray-600">Prev: <span className="font-mono text-black">{formData.prevPb || '—'}</span></p>
-                      <p className="text-sm font-semibold text-gray-600">Imp: <span className="font-mono text-black">{improvement}</span></p>
-                    </div>
-                    <div>
-                      <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1">Log Data</p>
-                      <p className="text-sm font-medium">{formData.date}</p>
-                      <p className="text-sm font-medium">{formData.location}</p>
-                    </div>
-                 </div>
-
-                 {formData.feeling && (
-                   <div className="mt-8 bg-gray-50 p-4 border-l-4 border-black text-sm font-serif italic text-gray-800">
-                      &quot;{formData.feeling}&quot;
-                   </div>
-                 )}
-               </div>
-             )}
-
-         {!['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(template) && (
-  <div className={`mt-auto text-center font-mono text-[9px] tracking-[0.25em] uppercase pt-4 border-t ${
-    ['community challenge', 'weekly board', 'clean white', 'minimal award', 'minimal nutrition', 'minimal gear', 'classic', 'elite', 'receipt', 'white', 'table', 'minimal'].includes(template) 
-      ? 'border-dashed border-gray-400 text-gray-400' 
-      : 'border-dashed border-brand-border opacity-40 text-white'
-  }`}>
-    {typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'made with RunCard Studio'}
-  </div>
-)}
-
-{['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(template) && (
-           <SharedTemplates template={template} formData={formData} componentName="PersonalBestGenerator"  />
-         )}
-</div>
-      }
-      templateSelector={
+      {/* COLUMN 3: STYLE CONTROLS */}
+      <div className="flex flex-col gap-4 xl:sticky xl:top-[128px]">
+        <div className="flex flex-col gap-0.5 px-1">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-[#f2f4f7] font-mono">STYLE CONTROLS</span>
+          <p className="text-[10px] text-text-muted font-mono uppercase tracking-wider">Tweak appearance</p>
+        </div>
+        
         <TemplateSelector 
-        activeTemplate={template}
-        onSelectTemplate={setTemplate}
-        localTemplates={[
-          {
-            "id": "dark carbon",
-            "label": "PB Dark Carbon"
-          },
-          {
-            "id": "record board",
-            "label": "Record Board"
-          },
-          {
-            "id": "clean white",
-            "label": "Clean White"
-          }
-        ]}
+          activeTemplate={template}
+          onSelectTemplate={setTemplate}
+          localTemplates={[
+            {
+              "id": "dark carbon",
+              "label": "PB Dark Carbon"
+            },
+            {
+              "id": "record board",
+              "label": "Record Board"
+            },
+            {
+              "id": "clean white",
+              "label": "Clean White"
+            }
+          ]}
         />
-      }
-    />
+      </div>
+    </div>
   );
 }
