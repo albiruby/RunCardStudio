@@ -1,5 +1,7 @@
-import SharedTemplates from './SharedTemplates';
+/* eslint-disable react-hooks/set-state-in-effect */
+import SharedTemplates, { useExportSize, getExportSizeClasses } from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
+import TemplateSelector from './TemplateSelector';
 import { Copy, Save, AlertCircle } from "lucide-react";
 
 interface PaceBandProps {
@@ -31,6 +33,7 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
   const [template, setTemplate] = useState("wristband");
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
+  const exportSize = useExportSize();
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -51,66 +54,8 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
       }
     });
     observer.observe(containerRef.current);
-  const handleCopy = () => {
-    const lines = [];
-    if (formData.distanceChoice !== undefined && formData.distanceChoice !== null && (formData.distanceChoice as any) !== false && (formData.distanceChoice as any) !== "—" && (formData.distanceChoice as any) !== "Input required" && String(formData.distanceChoice).trim() !== "") {
-      const val = typeof formData.distanceChoice === 'boolean' ? 'Yes' : formData.distanceChoice;
-      lines.push("Distance Choice: " + val);
-    }
-    if (formData.customDistance !== undefined && formData.customDistance !== null && (formData.customDistance as any) !== false && (formData.customDistance as any) !== "—" && (formData.customDistance as any) !== "Input required" && String(formData.customDistance).trim() !== "") {
-      const val = typeof formData.customDistance === 'boolean' ? 'Yes' : formData.customDistance;
-      lines.push("Custom Distance: " + val);
-    }
-    if (formData.hr !== undefined && formData.hr !== null && (formData.hr as any) !== false && (formData.hr as any) !== "—" && (formData.hr as any) !== "Input required" && String(formData.hr).trim() !== "") {
-      const val = typeof formData.hr === 'boolean' ? 'Yes' : formData.hr;
-      lines.push("Hr: " + val);
-    }
-    if (formData.min !== undefined && formData.min !== null && (formData.min as any) !== false && (formData.min as any) !== "—" && (formData.min as any) !== "Input required" && String(formData.min).trim() !== "") {
-      const val = typeof formData.min === 'boolean' ? 'Yes' : formData.min;
-      lines.push("Min: " + val);
-    }
-    if (formData.sec !== undefined && formData.sec !== null && (formData.sec as any) !== false && (formData.sec as any) !== "—" && (formData.sec as any) !== "Input required" && String(formData.sec).trim() !== "") {
-      const val = typeof formData.sec === 'boolean' ? 'Yes' : formData.sec;
-      lines.push("Sec: " + val);
-    }
-    if (formData.interval !== undefined && formData.interval !== null && (formData.interval as any) !== false && (formData.interval as any) !== "—" && (formData.interval as any) !== "Input required" && String(formData.interval).trim() !== "") {
-      const val = typeof formData.interval === 'boolean' ? 'Yes' : formData.interval;
-      lines.push("Interval: " + val);
-    }
-    lines.push("");
-    lines.push("Made with RunCard Studio");
-    const textToCopy = lines.join("\n");
-    
-    const fallbackCopy = (text: string) => {
-      const textArea = document.createElement("textarea");
-      textArea.value = text;
-      textArea.style.position = "fixed";
-      textArea.style.left = "-999999px";
-      textArea.style.top = "-999999px";
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-      try {
-        document.execCommand('copy');
-        showToast("Copied to clipboard!");
-      } catch (err) {
-        showToast("Failed to copy.");
-      }
-      textArea.remove();
-    };
-
-    if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(textToCopy)
-        .then(() => showToast("Copied to clipboard!"))
-        .catch((err) => {
-          fallbackCopy(textToCopy);
-        });
-    } else {
-      fallbackCopy(textToCopy);
-    }
-  };
-  return () => observer.disconnect();
-  }, [template]);
+    return () => observer.disconnect();
+  }, [exportSize, template]);
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -211,7 +156,6 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
       lines.push("Interval: " + val);
     }
     lines.push("");
-    lines.push("Made with RunCard Studio");
     const textToCopy = lines.join("\n");
     
     const fallbackCopy = (text: string) => {
@@ -417,17 +361,26 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
 
       {/* RIGHT: PREVIEW (8 cols) */}
       <div className="lg:col-span-8 flex flex-col gap-0 pb-20">
-        <div className="flex items-center justify-start border-b border-brand-border mb-4 overflow-x-auto no-scrollbar">
-            {['wristband', 'phone lockscreen', 'printable a4', 'carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].map(t => (
-              <button 
-                key={t}
-                onClick={() => setTemplate(t)}
-                className={`py-3 px-4 text-xs font-bold font-mono uppercase whitespace-nowrap transition-all border-b-2 cursor-pointer
-                  ${template === t ? 'border-primary-coral text-text-primary' : 'border-transparent text-text-muted hover:text-text-primary hover:bg-surface-lowest'}`}
-              >
-                {t}
-              </button>
-            ))}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full mb-4">
+          <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary shrink-0">Live Preview</h2>
+          <TemplateSelector 
+            activeTemplate={template}
+            onSelectTemplate={setTemplate}
+            localTemplates={[
+  {
+    "id": "wristband",
+    "label": "Wristband"
+  },
+  {
+    "id": "phone lockscreen",
+    "label": "Phone Lockscreen"
+  },
+  {
+    "id": "printable a4",
+    "label": "Printable A4"
+  }
+]}
+          />
         </div>
 
         {/* Scalable Container for preview */}
@@ -473,12 +426,21 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
         </div>
                    <div className="py-2.5 text-center text-[7px] opacity-40 uppercase tracking-widest bg-gray-50 flex flex-col items-center justify-center pt-5 pb-3">
                      <span>Wristband</span>
-                     <span className="font-extrabold">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'RunCard Studio'}</span>
                    </div>
                  </div>
                )}
 
-           {['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
+           {!['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
+  <div className={`mt-auto text-center font-mono text-[9px] tracking-[0.25em] uppercase pt-4 border-t ${
+    ['community challenge', 'weekly board', 'clean white', 'minimal award', 'minimal nutrition', 'minimal gear', 'classic', 'elite', 'receipt', 'white', 'table', 'minimal'].includes(template) 
+      ? 'border-dashed border-gray-400 text-gray-400' 
+      : 'border-dashed border-brand-border opacity-40 text-white'
+  }`}>
+    {typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'made with RunCard Studio'}
+  </div>
+)}
+
+{['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
              <SharedTemplates template={template} formData={formData} componentName="PaceBandGenerator" extraData={{ splits: typeof calculateSplits === "function" ? calculateSplits() : undefined }} />
            )}
 </div>

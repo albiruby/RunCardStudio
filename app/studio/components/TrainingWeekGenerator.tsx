@@ -1,5 +1,7 @@
-import SharedTemplates from './SharedTemplates';
+/* eslint-disable react-hooks/set-state-in-effect */
+import SharedTemplates, { useExportSize, getExportSizeClasses } from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
+import TemplateSelector from './TemplateSelector';
 import { Copy, Save } from "lucide-react";
 
 interface TrainingWeekProps {
@@ -24,13 +26,19 @@ export default function TrainingWeekGenerator({ previewRef, showToast }: Trainin
   const [template, setTemplate] = useState("weekly board");
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
+  const exportSize = useExportSize();
 
-  useEffect(() => {
+
+      useEffect(() => {
     if (!containerRef.current) return;
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const width = entry.contentRect.width;
-        const target = 520; 
+        let target = 480;
+        if (exportSize === "story") target = 400;
+        else if (exportSize === "landscape") target = 640;
+        else if (exportSize === "compact") target = 540;
+        else if (exportSize === "printable") target = 595;
         if (width < target) {
           setScale(width / target);
         } else {
@@ -40,7 +48,7 @@ export default function TrainingWeekGenerator({ previewRef, showToast }: Trainin
     });
     observer.observe(containerRef.current);
     return () => observer.disconnect();
-  }, []);
+  }, [exportSize]);
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -88,7 +96,6 @@ export default function TrainingWeekGenerator({ previewRef, showToast }: Trainin
       lines.push("Note: " + val);
     }
     lines.push("");
-    lines.push("Made with RunCard Studio");
     const textToCopy = lines.join("\n");
     
     const fallbackCopy = (text: string) => {
@@ -311,32 +318,26 @@ export default function TrainingWeekGenerator({ previewRef, showToast }: Trainin
       </div>
 
       <div className="lg:col-span-8 flex flex-col gap-6 pb-20">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Live Preview</h2>
-                    <div className="flex overflow-x-auto no-scrollbar gap-2 w-full md:w-auto pb-4 md:pb-2 border-b border-brand-border md:border-none">
-            {[
-              { id: 'weekly board', label: 'Weekly Board' },
-              { id: 'training log', label: 'Training Log' },
-              { id: 'dark carbon', label: 'Dark Carbon Summary' }
-           ,
-              { id: 'carbon grid', label: 'Carbon Grid' },
-              { id: 'race poster pro', label: 'Race Poster Pro' },
-              { id: 'minimal white', label: 'Minimal White' },
-              { id: 'split panel', label: 'Split Panel' },
-              { id: 'neon edge', label: 'Neon Edge' },
-              { id: 'print utility', label: 'Print Utility' },
-              { id: 'compact story', label: 'Compact Story' }
-           ].map(t => (
-              <button 
-                key={t.id}
-                onClick={() => setTemplate(t.id)}
-                className={`px-3 py-1.5 text-xs font-bold uppercase whitespace-nowrap transition-colors cursor-pointer border rounded-full shrink-0
-                  ${template === t.id ? 'border-secondary-lime text-secondary-lime bg-secondary-lime/10' : 'border-brand-border text-text-muted hover:border-primary-coral hover:text-text-primary'}`}
-              >
-                {t.label}
-              </button>
-            ))}
-        </div>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
+          <h2 className="text-xl font-bold uppercase tracking-tight text-[#f2f4f7] shrink-0">Live Preview</h2>
+          <TemplateSelector 
+            activeTemplate={template}
+            onSelectTemplate={setTemplate}
+            localTemplates={[
+  {
+    "id": "weekly board",
+    "label": "Weekly Board"
+  },
+  {
+    "id": "training log",
+    "label": "Training Log"
+  },
+  {
+    "id": "dark carbon",
+    "label": "Dark Carbon Summary"
+  }
+]}
+          />
         </div>
 
         <div ref={containerRef} className="w-full bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:16px_16px] bg-[#07080a] border border-brand-border rounded-xl p-4 md:p-8 flex items-center justify-center min-h-[600px] overflow-hidden relative">
@@ -350,7 +351,7 @@ export default function TrainingWeekGenerator({ previewRef, showToast }: Trainin
           >
             <div 
               ref={previewRef}
-              className={`w-[480px] flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none
+              className={`${getExportSizeClasses(exportSize, template)}` + `  flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none
                 ${template === 'weekly board' ? 'bg-[#fafafa] border-4 border-black p-8 text-black font-sans rounded-sm' : ''}
                 ${template === 'training log' ? 'bg-[#18181b] text-white border border-[#27272a] p-8 rounded-xl font-mono' : ''}
                 ${template === 'dark carbon' ? 'bg-[#121316] border border-[#22252a] p-8 text-[#f2f4f7] rounded-lg' : ''}
@@ -397,111 +398,120 @@ export default function TrainingWeekGenerator({ previewRef, showToast }: Trainin
                          <span className="block text-[10px] font-bold uppercase opacity-50 mb-1">Strength / Other</span>
                          <span className="font-bold text-gray-700">{formData.strength}</span></div>)}</div>
 
-                   {formData.note && (
-                     <div className="italic text-sm text-gray-600 border-t border-gray-300 pt-4 mt-auto">
+                    {formData.note && (
+                      <div className="italic text-sm text-gray-600 border-t border-gray-300 pt-4 mt-auto">
                         &quot;{formData.note}&quot;
-                                 </div>
-              )}
-<div className="mt-4 text-left text-[9px] font-black tracking-widest text-gray-400 uppercase border-t-2 border-black pt-2">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'RunCard Studio'}</div>
-                 </>
-               )}
+                      </div>
+                    )}
+                  </>
+                )}
 
-               {template === 'training log' && (
-                 <>
-                   <div className="flex justify-between items-start mb-8 pb-4 border-b border-[#3f3f46]">
-                     <div>
-                       <div className="text-xs uppercase text-gray-400 tracking-widest mb-1">{formData.dateRange || 'DATE RANGE'}</div>
-                       <h1 className="text-2xl font-bold uppercase leading-none">{formData.title || 'TRAINING LOG'}</h1>
-                     </div>
-                     <div className="border border-[#3f3f46] px-2 py-1 text-[10px] uppercase tracking-widest text-[#a0cc00]">VERDICT: {formData.verdict}</div>
-                   </div>
+                {template === 'training log' && (
+                  <>
+                    <div className="flex justify-between items-start mb-8 pb-4 border-b border-[#3f3f46]">
+                      <div>
+                        <div className="text-xs uppercase text-gray-400 tracking-widest mb-1">{formData.dateRange || 'DATE RANGE'}</div>
+                        <h1 className="text-2xl font-bold uppercase leading-none">{formData.title || 'TRAINING LOG'}</h1>
+                      </div>
+                      <div className="border border-[#3f3f46] px-2 py-1 text-[10px] uppercase tracking-widest text-[#a0cc00]">VERDICT: {formData.verdict}</div>
+                    </div>
 
-                   <div className="flex gap-4 mb-8">
-                     <div className="bg-black border border-[#3f3f46] flex-1 p-4 flex items-center justify-between">
-                       <span className="text-[10px] text-gray-400 uppercase tracking-widest">DIST</span>
-                       <span className="text-xl font-bold text-white leading-none">{formData.totalDistance || '-'}</span>
-                     </div>
-                     <div className="bg-black border border-[#3f3f46] flex-1 p-4 flex items-center justify-between">
-                       <span className="text-[10px] text-gray-400 uppercase tracking-widest">TIME</span>
-                       <span className="text-xl font-bold text-white leading-none">{formData.totalDuration || '-'}</span>
-                     </div>
-                   </div>
+                    <div className="flex gap-4 mb-8">
+                      <div className="bg-black border border-[#3f3f46] flex-1 p-4 flex items-center justify-between">
+                        <span className="text-[10px] text-gray-400 uppercase tracking-widest">DIST</span>
+                        <span className="text-xl font-bold text-white leading-none">{formData.totalDistance || '-'}</span>
+                      </div>
+                      <div className="bg-black border border-[#3f3f46] flex-1 p-4 flex items-center justify-between">
+                        <span className="text-[10px] text-gray-400 uppercase tracking-widest">TIME</span>
+                        <span className="text-xl font-bold text-white leading-none">{formData.totalDuration || '-'}</span>
+                      </div>
+                    </div>
 
-                   <div className="space-y-4 mb-8 flex-1">
-                      <div className="flex items-center gap-4">
-                        <div className="text-[10px] text-gray-500 uppercase tracking-widest w-24">Key Session</div>
-                        <div className="flex-1 border-b border-[#27272a] pb-1 truncate">{formData.keySession || '-'}</div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-[10px] text-gray-500 uppercase tracking-widest w-24">Long Run</div>
-                        <div className="flex-1 border-b border-[#27272a] pb-1 truncate">{formData.longRun || '-'}</div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-[10px] text-gray-500 uppercase tracking-widest w-24">Strength</div>
-                        <div className="flex-1 border-b border-[#27272a] pb-1 truncate">{formData.strength || '-'}</div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-[10px] text-gray-500 uppercase tracking-widest w-24">Sessions</div>
-                        <div className="flex-1 border-b border-[#27272a] pb-1 truncate">{formData.sessions || '-'}</div>
-                      </div>
-                   </div>
+                    <div className="space-y-4 mb-8 flex-1 font-mono">
+                       <div className="flex items-center gap-4">
+                         <div className="text-[10px] text-gray-500 uppercase tracking-widest w-24">Key Session</div>
+                         <div className="flex-1 border-b border-[#27272a] pb-1 truncate">{formData.keySession || '-'}</div>
+                       </div>
+                       <div className="flex items-center gap-4">
+                         <div className="text-[10px] text-gray-500 uppercase tracking-widest w-24">Long Run</div>
+                         <div className="flex-1 border-b border-[#27272a] pb-1 truncate">{formData.longRun || '-'}</div>
+                       </div>
+                       <div className="flex items-center gap-4">
+                         <div className="text-[10px] text-gray-500 uppercase tracking-widest w-24">Strength</div>
+                         <div className="flex-1 border-b border-[#27272a] pb-1 truncate">{formData.strength || '-'}</div>
+                       </div>
+                       <div className="flex items-center gap-4">
+                         <div className="text-[10px] text-gray-500 uppercase tracking-widest w-24">Sessions</div>
+                         <div className="flex-1 border-b border-[#27272a] pb-1 truncate">{formData.sessions || '-'}</div>
+                       </div>
+                    </div>
 
-                   {formData.note && (
-                     <div className="bg-[#111113] p-4 text-sm text-gray-300 border-l border-gray-500 italic mt-auto">
-                        &quot;{formData.note}&quot;
-                                 </div>
-              )}
-<div className="mt-6 text-center text-[9px] uppercase tracking-[0.2em] text-[#3f3f46]">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'RunCard Studio'}</div>
-                 </>
-               )}
-
-               {template === 'dark carbon' && (
-                 <>
-                   <div className="mb-8 border-l-2 border-primary-coral pl-4">
-                     <p className="font-mono text-[10px] text-secondary-lime uppercase tracking-widest mb-1">{formData.dateRange || 'DATE RANGE'}</p>
-                     <h1 className="text-3xl font-black uppercase tracking-tighter leading-none">{formData.title || 'TRAINING WEEK'}</h1>
-                   </div>
-
-                   <div className="grid grid-cols-2 gap-4 mb-6">
-                      <div className="bg-[#181a1f] border border-[#22252a] p-4 rounded-lg flex flex-col justify-center">
-                        <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1">Volume</span>
-                        <span className="text-2xl font-black font-mono">{formData.totalDistance || '-'}</span>
-                      </div>
-                      <div className="bg-[#181a1f] border border-[#22252a] p-4 rounded-lg flex flex-col justify-center">
-                        <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1">Time</span>
-                        <span className="text-2xl font-black font-mono">{formData.totalDuration || '-'}</span>
-                      </div>
-                   </div>
-
-                   <div className="space-y-3 mb-6 bg-[#16181c] border border-[#22252a] p-4 rounded-lg text-sm flex-1">
-                      <div className="flex justify-between border-b border-[#22252a] pb-2 font-mono">
-                        <span className="text-gray-500 uppercase text-xs">Sessions</span>
-                        <span className="font-bold">{formData.sessions || '-'}</span>
-                      </div>
-                      <div className="flex flex-col border-b border-[#22252a] pb-2 pt-1 font-mono">
-                        <span className="text-gray-500 uppercase text-xs mb-1">Key Session</span>
-                        <span className="font-bold">{formData.keySession || '-'}</span>
-                      </div>
-                      <div className="flex flex-col pb-1 pt-1 font-mono">
-                        <span className="text-gray-500 uppercase text-xs mb-1">Long Run</span>
-                        <span className="font-bold">{formData.longRun || '-'}</span>
-                      </div>
-                   </div>
-
-                   <div className="mt-auto border-t border-[#22252a] pt-4 flex gap-4">
-                     <div className="flex-1">
-                       <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest block mb-1">Verdict</span>
-                       <div className="inline-block bg-[#22252a] px-2 py-1 text-xs font-bold uppercase rounded text-gray-300">{formData.verdict || '-'}</div>
-                     </div>
-                     {formData.note && (
-                       <div className="flex-1 border-l border-[#22252a] pl-4 text-xs italic text-gray-400 font-serif overflow-hidden">
+                    {formData.note && (
+                      <div className="italic text-sm text-gray-400 border-t border-[#27272a] pt-4 mt-auto">
                          &quot;{formData.note}&quot;
-                                   </div>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {template === 'dark carbon' && (
+                  <>
+                    <div className="mb-8 border-l-2 border-primary-coral pl-4">
+                      <p className="font-mono text-[10px] text-secondary-lime uppercase tracking-widest mb-1">{formData.dateRange || 'DATE RANGE'}</p>
+                      <h1 className="text-3xl font-black uppercase tracking-tighter leading-none">{formData.title || 'TRAINING WEEK'}</h1>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mb-6 font-mono">
+                       <div className="bg-[#181a1f] border border-[#22252a] p-4 rounded-lg flex flex-col justify-center">
+                         <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1">Volume</span>
+                         <span className="text-2xl font-black font-mono">{formData.totalDistance || '-'}</span>
+                       </div>
+                       <div className="bg-[#181a1f] border border-[#22252a] p-4 rounded-lg flex flex-col justify-center">
+                         <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1">Time</span>
+                         <span className="text-2xl font-black font-mono">{formData.totalDuration || '-'}</span>
+                       </div>
+                    </div>
+
+                    <div className="space-y-3 mb-6 bg-[#16181c] border border-[#22252a] p-4 rounded-lg text-sm flex-1 font-mono">
+                       <div className="flex justify-between border-b border-[#22252a] pb-2">
+                         <span className="text-gray-500 uppercase text-xs">Sessions</span>
+                         <span className="font-bold">{formData.sessions || '-'}</span>
+                       </div>
+                       <div className="flex flex-col border-b border-[#22252a] pb-2 pt-1">
+                         <span className="text-gray-500 uppercase text-xs mb-1">Key Session</span>
+                         <span className="font-bold">{formData.keySession || '-'}</span>
+                       </div>
+                       <div className="flex flex-col pb-1 pt-1">
+                         <span className="text-gray-500 uppercase text-xs mb-1">Long Run</span>
+                         <span className="font-bold">{formData.longRun || '-'}</span>
+                       </div>
+                    </div>
+
+                    <div className="mt-auto border-t border-[#22252a] pt-4 flex gap-4">
+                      <div className="flex-1">
+                        <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest block mb-1">Verdict</span>
+                        <div className="inline-block bg-[#22252a] px-2 py-1 text-xs font-bold uppercase rounded text-gray-300">{formData.verdict || '-'}</div>
+                      </div>
+                      {formData.note && (
+                        <div className="flex-1 border-l border-[#22252a] pl-4 text-xs italic text-gray-400 font-serif overflow-hidden">
+                          &quot;{formData.note}&quot;
+                        </div>
+                      )}
+                    </div>
+                    
+                  </>
+                )}
+           {!['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
+  <div className={`mt-auto text-center font-mono text-[9px] tracking-[0.25em] uppercase pt-4 border-t ${
+    ['community challenge', 'weekly board', 'clean white', 'minimal award', 'minimal nutrition', 'minimal gear', 'classic', 'elite', 'receipt', 'white', 'table', 'minimal'].includes(template) 
+      ? 'border-dashed border-gray-400 text-gray-400' 
+      : 'border-dashed border-brand-border opacity-40 text-white'
+  }`}>
+    {typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'made with RunCard Studio'}
+  </div>
 )}
-                   
-                   <div className="absolute top-8 right-8 text-[8px] font-mono tracking-widest text-[#22252a] uppercase">RunCard</div>
-                 </>               )}
-           {['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
+
+{['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
              <SharedTemplates template={template} formData={formData} componentName="TrainingWeekGenerator"  />
            )}
             </div>

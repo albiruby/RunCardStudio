@@ -1,5 +1,7 @@
-import SharedTemplates from './SharedTemplates';
+/* eslint-disable react-hooks/set-state-in-effect */
+import SharedTemplates, { useExportSize, getExportSizeClasses } from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
+import TemplateSelector from './TemplateSelector';
 import { Copy, Save, AlertCircle } from "lucide-react";
 
 interface WorkoutCardProps {
@@ -22,15 +24,24 @@ export default function WorkoutCardGenerator({ previewRef, showToast }: WorkoutC
   const [template, setTemplate] = useState("coach");
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
+  const exportSize = useExportSize();
+
 
   useEffect(() => {
     if (!containerRef.current) return;
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const width = entry.contentRect.width;
-        const target = 512; // Card width 480px + boundary allowance
-        if (width < target) {
-          setScale(width / target);
+        let target = 480;
+        if (exportSize === "story") target = 400;
+        else if (exportSize === "landscape") target = 640;
+        else if (exportSize === "compact") target = 540;
+        else if (exportSize === "printable") target = 595;
+
+        // Apply scale with padding bounds
+        const boundsTarget = target + 16;
+        if (width < boundsTarget) {
+          setScale(width / boundsTarget);
         } else {
           setScale(1);
         }
@@ -38,7 +49,7 @@ export default function WorkoutCardGenerator({ previewRef, showToast }: WorkoutC
     });
     observer.observe(containerRef.current);
     return () => observer.disconnect();
-  }, []);
+  }, [exportSize]);
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -78,7 +89,6 @@ export default function WorkoutCardGenerator({ previewRef, showToast }: WorkoutC
       lines.push("Notes: " + val);
     }
     lines.push("");
-    lines.push("Made with RunCard Studio");
     const textToCopy = lines.join("\n");
     
     const fallbackCopy = (text: string) => {
@@ -275,36 +285,28 @@ export default function WorkoutCardGenerator({ previewRef, showToast }: WorkoutC
           <button onClick={handleCopyWorkout} className="w-full py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY WORKOUT
 </button>
         </div>
-      </div>
-
-      {/* RIGHT: PREVIEW (8 cols) */}
+            {/* RIGHT: PREVIEW (8 cols) */}
       <div className="lg:col-span-8 flex flex-col gap-6 lg:sticky lg:top-[128px] lg:self-start mb-24 lg:mb-0">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Live Preview</h2>
-                    <div className="flex overflow-x-auto no-scrollbar gap-2 w-full md:w-auto pb-4 md:pb-2 border-b border-brand-border md:border-none">
-            {[
-              { id: 'coach', label: 'Coach Board' },
-              { id: 'track', label: 'Track Session' },
-              { id: 'minimal', label: 'Minimal Program' }
-           ,
-              { id: 'carbon grid', label: 'Carbon Grid' },
-              { id: 'race poster pro', label: 'Race Poster Pro' },
-              { id: 'minimal white', label: 'Minimal White' },
-              { id: 'split panel', label: 'Split Panel' },
-              { id: 'neon edge', label: 'Neon Edge' },
-              { id: 'print utility', label: 'Print Utility' },
-              { id: 'compact story', label: 'Compact Story' }
-           ].map(t => (
-              <button 
-                key={t.id}
-                onClick={() => setTemplate(t.id)}
-                className={`px-3 py-1.5 text-xs font-bold uppercase whitespace-nowrap transition-colors cursor-pointer border rounded-full shrink-0
-                  ${template === t.id ? 'border-secondary-lime text-secondary-lime bg-secondary-lime/10' : 'border-brand-border text-text-muted hover:border-primary-coral hover:text-text-primary'}`}
-              >
-                {t.label}
-              </button>
-            ))}
-        </div>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
+          <h2 className="text-xl font-bold uppercase tracking-tight text-[#f2f4f7] shrink-0">Live Preview</h2>
+          <TemplateSelector 
+            activeTemplate={template}
+            onSelectTemplate={setTemplate}
+            localTemplates={[
+  {
+    "id": "coach",
+    "label": "Coach Board"
+  },
+  {
+    "id": "track",
+    "label": "Track Session"
+  },
+  {
+    "id": "minimal",
+    "label": "Minimal Program"
+  }
+]}
+          />
         </div>
 
         {/* Scalable Container for preview */}
@@ -320,7 +322,7 @@ export default function WorkoutCardGenerator({ previewRef, showToast }: WorkoutC
           >
             <div 
               ref={previewRef}
-              className={`w-[480px] flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none
+              className={`${getExportSizeClasses(exportSize, template)}` + `  flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none
                 ${template === 'coach' ? 'bg-[#121316] border border-[#22252a] text-[#f2f4f7] p-8 rounded-lg font-mono' : ''}
                 ${template === 'track' ? 'bg-primary-action text-white p-8 rounded-none' : ''}
                 ${template === 'minimal' ? 'bg-[#020203] border border-[#22252a] p-8 text-[#fafafa] rounded-md font-sans' : ''}
@@ -375,10 +377,19 @@ export default function WorkoutCardGenerator({ previewRef, showToast }: WorkoutC
                    <p className="uppercase font-mono text-[9px] opacity-60 tracking-widest mb-1">Special Notes & Stratems</p>
                    <p className="italic text-text-primary text-[11px]">{formData.notes.trim() || 'Postural focus, bicycle stride on final intervals.'}</p></div>)}
 </div>
-<div className="text-center font-mono text-[9px] tracking-[0.25em] uppercase mt-auto opacity-40 pt-4 border-t border-dashed border-brand-border">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'made with RunCard Studio'}
 
 </div>
-           {['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
+           {!['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
+  <div className={`mt-auto text-center font-mono text-[9px] tracking-[0.25em] uppercase pt-4 border-t ${
+    ['community challenge', 'weekly board', 'clean white', 'minimal award', 'minimal nutrition', 'minimal gear', 'classic', 'elite', 'receipt', 'white', 'table', 'minimal'].includes(template) 
+      ? 'border-dashed border-gray-400 text-gray-400' 
+      : 'border-dashed border-brand-border opacity-40 text-white'
+  }`}>
+    {typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'made with RunCard Studio'}
+  </div>
+)}
+
+{['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
              <SharedTemplates template={template} formData={formData} componentName="WorkoutCardGenerator"  />
            )}
        </div>

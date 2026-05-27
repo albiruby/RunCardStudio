@@ -1,5 +1,7 @@
-import SharedTemplates from './SharedTemplates';
+/* eslint-disable react-hooks/set-state-in-effect */
+import SharedTemplates, { useExportSize, getExportSizeClasses } from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
+import TemplateSelector from './TemplateSelector';
 import { Copy, Save } from "lucide-react";
 
 interface DamageReportProps {
@@ -25,13 +27,19 @@ export default function DamageReportGenerator({ previewRef, showToast }: DamageR
   const [template, setTemplate] = useState("brutal");
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
+  const exportSize = useExportSize();
 
-  useEffect(() => {
+
+      useEffect(() => {
     if (!containerRef.current) return;
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const width = entry.contentRect.width;
-        const target = 512;
+        let target = 480;
+        if (exportSize === "story") target = 400;
+        else if (exportSize === "landscape") target = 640;
+        else if (exportSize === "compact") target = 540;
+        else if (exportSize === "printable") target = 595;
         if (width < target) {
           setScale(width / target);
         } else {
@@ -41,7 +49,7 @@ export default function DamageReportGenerator({ previewRef, showToast }: DamageR
     });
     observer.observe(containerRef.current);
     return () => observer.disconnect();
-  }, []);
+  }, [exportSize]);
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -93,7 +101,6 @@ export default function DamageReportGenerator({ previewRef, showToast }: DamageR
       lines.push("Notes: " + val);
     }
     lines.push("");
-    lines.push("Made with RunCard Studio");
     const textToCopy = lines.join("\n");
     
     const fallbackCopy = (text: string) => {
@@ -339,32 +346,26 @@ export default function DamageReportGenerator({ previewRef, showToast }: DamageR
 
       {/* RIGHT: PREVIEW (8 cols) */}
       <div className="lg:col-span-8 flex flex-col gap-6 pb-20">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Live Preview</h2>
-                    <div className="flex overflow-x-auto no-scrollbar gap-2 w-full md:w-auto pb-4 md:pb-2 border-b border-brand-border md:border-none">
-            {[
-              { id: 'brutal', label: 'Brutal Report' },
-              { id: 'receipt', label: 'Dark Receipt' },
-              { id: 'neon', label: 'Neon Damage' }
-           ,
-              { id: 'carbon grid', label: 'Carbon Grid' },
-              { id: 'race poster pro', label: 'Race Poster Pro' },
-              { id: 'minimal white', label: 'Minimal White' },
-              { id: 'split panel', label: 'Split Panel' },
-              { id: 'neon edge', label: 'Neon Edge' },
-              { id: 'print utility', label: 'Print Utility' },
-              { id: 'compact story', label: 'Compact Story' }
-           ].map(t => (
-              <button 
-                key={t.id}
-                onClick={() => setTemplate(t.id)}
-                className={`px-3 py-1.5 text-xs font-bold uppercase whitespace-nowrap transition-colors cursor-pointer border rounded-full shrink-0
-                  ${template === t.id ? 'border-secondary-lime text-secondary-lime bg-secondary-lime/10' : 'border-brand-border text-text-muted hover:border-primary-coral hover:text-text-primary'}`}
-              >
-                {t.label}
-              </button>
-            ))}
-        </div>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
+          <h2 className="text-xl font-bold uppercase tracking-tight text-[#f2f4f7] shrink-0">Live Preview</h2>
+          <TemplateSelector 
+            activeTemplate={template}
+            onSelectTemplate={setTemplate}
+            localTemplates={[
+  {
+    "id": "brutal",
+    "label": "Brutal Report"
+  },
+  {
+    "id": "receipt",
+    "label": "Dark Receipt"
+  },
+  {
+    "id": "neon",
+    "label": "Neon Damage"
+  }
+]}
+          />
         </div>
 
         {/* Scalable Container for preview */}
@@ -380,7 +381,7 @@ export default function DamageReportGenerator({ previewRef, showToast }: DamageR
           >
             <div 
               ref={previewRef}
-              className={`w-[480px] flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none
+              className={`${getExportSizeClasses(exportSize, template)}` + `  flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none
                 ${template === 'brutal' ? 'bg-[#121316] border border-[#22252a] p-8 text-[#f2f4f7] rounded-lg' : ''}
                 ${template === 'receipt' ? 'bg-[#fafafa] text-black border border-[#e4e4e7] p-8 rounded-none' : ''}
                 ${template === 'neon' ? 'bg-[#020203] border border-[#ff0055]/30 p-8 text-[#fafafa] rounded-xl shadow-[0_0_30px_rgba(255,0,85,0.15)]' : ''}
@@ -439,10 +440,19 @@ export default function DamageReportGenerator({ previewRef, showToast }: DamageR
                       <div className={`text-sm italic font-serif ${template === 'receipt' ? 'text-gray-600' : 'text-gray-400'}`}>&quot;{formData.notes}&quot;</div>
                     )}
                   </div>
-                  <div className={`text-center font-mono text-[9px] tracking-[0.25em] uppercase mt-auto pt-4 border-t ${template === 'receipt' ? 'border-dashed border-gray-400 text-gray-400' : (template === 'neon' ? 'border-[#ff0055]/20 text-[#ff0055]/50' : 'border-dashed border-[#22252a] opacity-40')}`}>{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'made with RunCard Studio'}</div>
                  </>
                 )}
-           {['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
+           {!['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
+  <div className={`mt-auto text-center font-mono text-[9px] tracking-[0.25em] uppercase pt-4 border-t ${
+    ['community challenge', 'weekly board', 'clean white', 'minimal award', 'minimal nutrition', 'minimal gear', 'classic', 'elite', 'receipt', 'white', 'table', 'minimal'].includes(template) 
+      ? 'border-dashed border-gray-400 text-gray-400' 
+      : 'border-dashed border-brand-border opacity-40 text-white'
+  }`}>
+    {typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'made with RunCard Studio'}
+  </div>
+)}
+
+{['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
              <SharedTemplates template={template} formData={formData} componentName="DamageReportGenerator"  />
            )}
             </div>

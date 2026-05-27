@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 import { useState, useRef, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
@@ -88,6 +89,7 @@ function StudioContent() {
   const [toastMessage, setToastMessage] = useState("");
   const [exportSize, setExportSize] = useState("square");
   const previewRef = useRef<HTMLDivElement>(null);
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
 
   // Allow resetting child forms by passing a flag or calling a ref? 
   // Easier: use a key on the component to unmount/remount it.
@@ -113,19 +115,89 @@ function StudioContent() {
     return () => clearTimeout(t);
   }, [searchParams]);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('runcard-default-export-size', exportSize);
+      window.dispatchEvent(new CustomEvent('export-size-changed', { detail: exportSize }));
+    }
+  }, [exportSize]);
+
+  useEffect(() => {
+    const container = tabsContainerRef.current;
+    if (!container) return;
+
+    const activeBtn = container.querySelector('[data-active="true"]') as HTMLButtonElement | null;
+    if (activeBtn) {
+      const containerRect = container.getBoundingClientRect();
+      const activeRect = activeBtn.getBoundingClientRect();
+      const scrollLeft = container.scrollLeft + (activeRect.left - containerRect.left) - (containerRect.width / 2) + (activeRect.width / 2);
+      container.scrollTo({
+        left: scrollLeft,
+        behavior: 'smooth'
+      });
+    }
+  }, [activeTab]);
+
   const showToast = (msg: string) => {
+    if (msg === "Failed to save draft." && typeof window !== "undefined" && (window as any)._unsafeDraftBlocking) {
+      return;
+    }
     setToastMessage(msg);
     setTimeout(() => setToastMessage(""), 3000);
   };
+
+  useEffect(() => {
+    const handleUnsafe = () => {
+      showToast("Draft contains unsafe data and was not saved.");
+    };
+    if (typeof window !== "undefined") {
+      window.addEventListener("runcard-unsafe-draft-detected", handleUnsafe);
+    }
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("runcard-unsafe-draft-detected", handleUnsafe);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const loadStr = localStorage.getItem('runcard-draft-load');
+        if (loadStr) {
+          const draft = JSON.parse(loadStr);
+          if (draft) {
+            if (draft.accent) {
+              localStorage.setItem('runcard-template-accent', draft.accent);
+              window.dispatchEvent(new CustomEvent('template-accent-changed', { detail: draft.accent }));
+            }
+            if (draft.exportSize) {
+              setExportSize(draft.exportSize);
+            }
+          }
+        }
+      } catch (e) {}
+
+      const timer = setTimeout(() => {
+        localStorage.removeItem('runcard-draft-load');
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [activeTab]);
 
   const handleExportPng = async () => {
     if (!previewRef.current) return;
     setIsExporting(true);
     try {
-      // Use pixelRatio 4 for maximum crispness
+      // Use pixelRatio 4 and reset inline scale transforms for maximum crispness
       const cardCanvas = await htmlToImage.toCanvas(previewRef.current, {
         pixelRatio: 4,
         backgroundColor: "transparent",
+        style: {
+          transform: "none",
+          transformOrigin: "unset",
+        },
+        cacheBust: true,
       });
 
       let tw = cardCanvas.width;
@@ -144,12 +216,21 @@ function StudioContent() {
       const ctx = finalCanvas.getContext("2d");
       
       if (ctx) {
+         const classListStr = previewRef.current.className;
+         const innerHtmlStr = previewRef.current.innerHTML;
+         const isLightBg = classListStr.includes("bg-[#f4f4f5]") || 
+                           classListStr.includes("bg-white") || 
+                           classListStr.includes("bg-[#fafafa]") ||
+                           innerHtmlStr.includes("bg-[#f4f4f5]") || 
+                           innerHtmlStr.includes("bg-white") || 
+                           innerHtmlStr.includes("bg-[#fafafa]");
+
          // Background
-         ctx.fillStyle = "#0c1322"; 
+         ctx.fillStyle = isLightBg ? "#ffffff" : "#0c1322"; 
          ctx.fillRect(0, 0, tw, th);
          
          // Subtle dot grid background matching the live preview style
-         ctx.fillStyle = "#22252a";
+         ctx.fillStyle = isLightBg ? "#e4e4e7" : "#22252a";
          for (let x = 0; x < tw; x += 32) {
              for (let y = 0; y < th; y += 32) {
                  ctx.beginPath();
@@ -159,8 +240,8 @@ function StudioContent() {
          }
 
          let padding = 100;
-         if (exportSize === "Instagram Story") padding = 150;
-         if (exportSize === "Printable") padding = 200;
+         if (exportSize === "story") padding = 150;
+         if (exportSize === "printable") padding = 200;
          
          const availW = tw - padding * 2;
          const availH = th - padding * 2;
@@ -172,7 +253,7 @@ function StudioContent() {
          const dy = (th - cardH) / 2;
          
          // Card Shadow to separate it from bg
-         ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+         ctx.shadowColor = isLightBg ? "rgba(0, 0, 0, 0.15)" : "rgba(0, 0, 0, 0.8)";
          ctx.shadowBlur = 50;
          ctx.shadowOffsetY = 20;
 
@@ -197,9 +278,23 @@ function StudioContent() {
     if (!previewRef.current) return;
     setIsExporting(true);
     try {
+      const classListStr = previewRef.current.className;
+      const innerHtmlStr = previewRef.current.innerHTML;
+      const isLightBg = classListStr.includes("bg-[#f4f4f5]") || 
+                        classListStr.includes("bg-white") || 
+                        classListStr.includes("bg-[#fafafa]") ||
+                        innerHtmlStr.includes("bg-[#f4f4f5]") || 
+                        innerHtmlStr.includes("bg-white") || 
+                        innerHtmlStr.includes("bg-[#fafafa]");
+
       const dataUrl = await htmlToImage.toPng(previewRef.current, {
-        pixelRatio: 3,
-        backgroundColor: "#0c1322", 
+        pixelRatio: 4,
+        style: {
+          transform: "none",
+          transformOrigin: "unset",
+        },
+        backgroundColor: isLightBg ? "#ffffff" : "#0c1322",
+        cacheBust: true,
       });
       
       const pdf = new jsPDF({
@@ -230,16 +325,17 @@ function StudioContent() {
   return (
     <div className="flex flex-col flex-1 pb-24 lg:pb-16">
       {/* Toolbar Sticky */}
-      <div className="bg-surface-lowest border-b border-brand-border sticky top-16 z-40">
+      <div className="bg-surface-lowest border-b border-brand-border sticky top-16 z-40 max-w-full">
         <div className="max-w-[1280px] mx-auto px-4 md:px-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 py-4">
-          <div className="flex overflow-x-auto w-full lg:w-auto no-scrollbar gap-2 pb-2 lg:pb-0 border-b border-brand-border lg:border-none">
+          <div ref={tabsContainerRef} className="flex overflow-x-auto w-full lg:w-auto subtle-scrollbar gap-2 pb-2 lg:pb-0 border-b border-brand-border lg:border-none pr-4 scroll-smooth">
             {TAB_TYPES.map(tab => (
               <button
                 key={tab.id}
+                data-active={activeTab === tab.id ? "true" : "false"}
                 onClick={() => setActiveTab(tab.id)}
-                className={`whitespace-nowrap px-4 py-2 text-[11px] lg:text-sm font-bold uppercase tracking-wider rounded transition-colors
+                className={`whitespace-nowrap px-4 py-2 text-[11px] lg:text-sm font-bold uppercase tracking-wider rounded transition-colors duration-200 cursor-pointer
                   ${activeTab === tab.id 
-                    ? 'bg-primary-action text-white' 
+                    ? 'bg-primary-coral text-white shadow-[0_0_15px_rgba(255,84,81,0.35)]' 
                     : 'text-text-muted hover:text-text-primary hover:bg-surface'}`}
               >
                 {tab.label}
@@ -294,32 +390,34 @@ function StudioContent() {
       </div>
 
       {/* Mobile Sticky Bottom Export Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-surface-lowest border-t border-brand-border p-3 z-[60] flex gap-2 items-center">
-         <select 
-           value={exportSize}
-           onChange={e => setExportSize(e.target.value)}
-           className="bg-surface-lowest text-text-primary px-2 py-3 rounded text-[10px] font-bold uppercase border border-brand-border outline-none focus:border-secondary-lime shrink-0 flex-[1.5]"
-         >
-           <option value="square">SQ</option>
-           <option value="story">STORY</option>
-           <option value="landscape">LAND</option>
-           <option value="compact">COMP</option>
-           {isPdfFriendly && <option value="printable">PRINT</option>}
-         </select>
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-surface-lowest/95 backdrop-blur-md border-t border-brand-border p-4 z-[45] flex gap-3 items-center shadow-[0_-10px_30px_rgba(0,0,0,0.4)]">
+         <div className="flex-1">
+           <select 
+             value={exportSize}
+             onChange={e => setExportSize(e.target.value)}
+             className="w-full bg-surface-low text-text-primary px-3 py-3 rounded-md text-xs font-bold uppercase border border-brand-border outline-none focus:border-secondary-lime transition-all"
+           >
+             <option value="square">Square 1:1</option>
+             <option value="story">Story 9:16</option>
+             <option value="landscape">Landscape 16:9</option>
+             <option value="compact">Compact card</option>
+             {isPdfFriendly && <option value="printable">Printable A4</option>}
+           </select>
+         </div>
 
          <button
             onClick={handleExportPng}
             disabled={isExporting || !isImplemented}
-            className="flex-[3] py-3 text-xs font-bold uppercase tracking-wider bg-primary-action text-white hover:bg-opacity-90 rounded transition-colors flex items-center justify-center gap-1 shadow-[0_0_15px_rgba(255,84,81,0.2)] disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+            className="flex-1 py-3 px-4 text-xs font-bold uppercase tracking-wider bg-primary-action text-white hover:bg-opacity-90 rounded-md transition-all flex items-center justify-center gap-2 shadow-[0_4px_12px_rgba(255,51,48,0.3)] disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
          >
-            <Download className="w-4 h-4" /> {isExporting ? 'Exp...' : 'Exp PNG'}
+            <Download className="w-4 h-4" /> {isExporting ? '...' : 'PNG'}
          </button>
 
          {isPdfFriendly && (
            <button
               onClick={handleExportPdf}
               disabled={isExporting || !isImplemented}
-              className="flex-[2] py-3 text-xs font-bold uppercase tracking-wider bg-secondary-lime text-surface-lowest hover:bg-opacity-90 rounded transition-colors flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+              className="flex-1 py-3 px-4 text-xs font-bold uppercase tracking-wider bg-secondary-lime text-surface-lowest hover:bg-opacity-90 rounded-md transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
            >
               <FileText className="w-4 h-4" /> PDF
            </button>

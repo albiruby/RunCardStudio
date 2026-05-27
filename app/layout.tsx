@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from 'next/font/google';
 import Link from 'next/link';
 import { Activity, Moon } from 'lucide-react';
 import './globals.css';
+import DraftSafeGuard from './studio/components/DraftSafeGuard';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -39,6 +40,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
         />
       </head>
       <body className="min-h-screen flex flex-col font-sans" suppressHydrationWarning>
+        <DraftSafeGuard />
         <header className="border-b border-brand-border bg-brand-bg sticky top-0 z-50">
           <div className="max-w-[1280px] mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2 text-primary-action hover:opacity-80 transition-opacity">
@@ -60,7 +62,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
 
             <div className="flex items-center gap-4">
               <div className="hidden sm:flex border border-brand-border px-2 py-1 rounded text-xs font-mono text-secondary-lime uppercase bg-surface">
-                Local-First
+                LOCAL-FIRST / OFFLINE READY
               </div>
               <Link 
                 href="/settings"
@@ -80,7 +82,11 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
 
         <footer className="border-t border-brand-border bg-surface-lowest">
           <div className="max-w-[1280px] mx-auto px-4 md:px-8 h-16 flex items-center justify-between text-xs font-mono text-text-muted uppercase">
-            <div>RunCard Studio - Local-First Data</div>
+            <div className="flex gap-4 items-center">
+              <span>RunCard Studio</span>
+              <span>•</span>
+              <Link href="/privacy" className="hover:text-primary-coral transition-colors underline decoration-dotted">Privacy / About</Link>
+            </div>
             <div className="hidden sm:block">Privacy: No Login, No Database, Open Source</div>
           </div>
         </footer>
