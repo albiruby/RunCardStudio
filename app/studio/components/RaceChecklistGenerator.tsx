@@ -32,7 +32,7 @@ export default function RaceChecklistGenerator({ previewRef, showToast }: RaceCh
     custom3: ""
   });
 
-  const [template, setTemplate] = useState("race day");
+  const [template, setTemplate] = useState("original");
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
   const exportSize = useExportSize();
@@ -345,20 +345,7 @@ export default function RaceChecklistGenerator({ previewRef, showToast }: RaceCh
           <TemplateSelector 
             activeTemplate={template}
             onSelectTemplate={setTemplate}
-            localTemplates={[
-  {
-    "id": "race day",
-    "label": "Race Day"
-  },
-  {
-    "id": "minimal",
-    "label": "Minimal Packing"
-  },
-  {
-    "id": "dark utility",
-    "label": "Dark Utility"
-  }
-]}
+            localTemplates={[]}
           />
         </div>
 
@@ -375,12 +362,7 @@ export default function RaceChecklistGenerator({ previewRef, showToast }: RaceCh
           >
             <div 
               ref={previewRef}
-              className={`${getExportSizeClasses(exportSize, template)}` + `  flex shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none overflow-hidden
-                ${template === 'race day' ? 'bg-[#fafafa] flex-col text-black p-8 border-4 border-black font-sans' : ''}
-                ${template === 'minimal' ? 'bg-white flex-col text-[#18181b] p-10 border border-gray-200 shadow-xl font-serif' : ''}
-                ${template === 'dark utility' ? 'bg-[#0b0c0e] flex-col text-[#f2f4f7] border border-[#22252a] rounded-xl p-8 font-mono' : ''}
-              `}
-              style={{ minHeight: '500px' }}
+              className={`${getExportSizeClasses(exportSize, template)}`}
             >
                {/* Header */}
                <div className={`mb-6 flex flex-col

@@ -510,7 +510,7 @@ export default function RaceSplitGenerator({ previewRef, showToast }: RaceSplitP
                     <div className="h-full bg-[#00f0ff] flex-1"></div>
                  </div>
                )}
-           {!['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
+           {!['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(template) && (
   <div className={`mt-auto text-center font-mono text-[9px] tracking-[0.25em] uppercase pt-4 border-t ${
     ['community challenge', 'weekly board', 'clean white', 'minimal award', 'minimal nutrition', 'minimal gear', 'classic', 'elite', 'receipt', 'white', 'table', 'minimal'].includes(template) 
       ? 'border-dashed border-gray-400 text-gray-400' 
@@ -520,7 +520,7 @@ export default function RaceSplitGenerator({ previewRef, showToast }: RaceSplitP
   </div>
 )}
 
-{['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
+{['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(template) && (
              <SharedTemplates template={template} formData={formData} componentName="RaceSplitGenerator"  />
            )}
             </div>

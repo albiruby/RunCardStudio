@@ -76,14 +76,17 @@ const setSessionRecents = (recents: string[]) => {
   (window as any)._sessionRecents = recents;
 };
 
-const SHARED_TEMPLATES: TemplateItem[] = [
-  { id: "carbon grid", label: "Carbon Grid" },
-  { id: "race poster pro", label: "Race Poster Pro" },
-  { id: "minimal white", label: "Minimal White" },
-  { id: "split panel", label: "Split Panel" },
-  { id: "neon edge", label: "Neon Edge" },
-  { id: "print utility", label: "Print Utility" },
-  { id: "compact story", label: "Compact Story" }
+export const EXPORT_TEMPLATES = [
+  { id: "original", name: "Original" },
+  { id: "sport", name: "Sport" },
+  { id: "carbon", name: "Carbon" },
+  { id: "carbon-grid", name: "Carbon Grid" },
+  { id: "race-poster", name: "Race Poster" },
+  { id: "minimal-white", name: "Minimal White" },
+  { id: "split-panel", name: "Split Panel" },
+  { id: "neon-edge", name: "Neon Edge" },
+  { id: "print-utility", name: "Print Utility" },
+  { id: "compact-story", name: "Compact Story" },
 ];
 
 export default function TemplateSelector({
@@ -91,12 +94,15 @@ export default function TemplateSelector({
   onSelectTemplate,
   localTemplates
 }: TemplateSelectorProps) {
-  const combined = [...localTemplates.slice(0, 3), ...SHARED_TEMPLATES];
+  const combined = EXPORT_TEMPLATES.map(t => ({ id: t.id, label: t.name }));
   const containerRef = useRef<HTMLDivElement>(null);
   const activeAccent = useTemplateAccent();
 
   const [favorites, setFavorites] = useState<string[]>(() => getSessionFavorites());
   const [recents, setRecents] = useState<string[]>(() => getSessionRecents());
+
+  // Ensure activeTemplate has a valid fallback
+  const validActiveTemplate = EXPORT_TEMPLATES.some(t => t.id === activeTemplate) ? activeTemplate : "original";
 
   // Map templates with metadata in stable order
   const templatesWithMeta = combined.map((t, index) => {
@@ -127,9 +133,10 @@ export default function TemplateSelector({
          behavior: 'smooth'
        });
     }
-  }, [activeTemplate]);
+  }, [validActiveTemplate]);
 
   const handleSelect = (id: string) => {
+    // If template selected is sport/carbon/etc., or clicked e.g. for any template, use onClick={() => onSelectTemplate(id)}
     onSelectTemplate(id);
     const prevRecents = getSessionRecents();
     const nextRecents = [id, ...prevRecents.filter(x => x !== id)].slice(0, 5);
@@ -157,7 +164,7 @@ export default function TemplateSelector({
         className="flex flex-row items-center gap-2 overflow-x-auto subtle-scrollbar w-full py-1.5 px-0.5 select-none whitespace-nowrap scroll-smooth"
       >
         {sortedTemplates.map((t) => {
-          const isActive = activeTemplate === t.id;
+          const isActive = validActiveTemplate === t.id;
           const isFav = favorites.includes(t.id);
           const fullLabel = `${t.numPrefix} ${t.name}`;
 
@@ -204,7 +211,7 @@ export default function TemplateSelector({
             {recents.map((id) => {
               const tMeta = templatesWithMeta.find(x => x.id === id);
               if (!tMeta) return null;
-              const isActive = activeTemplate === id;
+              const isActive = validActiveTemplate === id;
               return (
                 <button
                   key={id}

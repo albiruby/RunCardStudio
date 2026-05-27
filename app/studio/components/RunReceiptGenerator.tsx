@@ -27,7 +27,7 @@ export default function RunReceiptGenerator({ previewRef, showToast }: RunReceip
   });
 
   const unit = getUnit();
-  const [template, setTemplate] = useState("carbon");
+  const [template, setTemplate] = useState("original");
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
   const exportSize = useExportSize();
@@ -396,20 +396,7 @@ export default function RunReceiptGenerator({ previewRef, showToast }: RunReceip
           <TemplateSelector 
             activeTemplate={template}
             onSelectTemplate={setTemplate}
-            localTemplates={[
-  {
-    "id": "carbon",
-    "label": "Thermal Receipt"
-  },
-  {
-    "id": "thermal",
-    "label": "Neon Sport"
-  },
-  {
-    "id": "neon",
-    "label": "Dark Carbon Receipt"
-  }
-]}
+            localTemplates={[]}
           />
         </div>
 
@@ -426,108 +413,13 @@ export default function RunReceiptGenerator({ previewRef, showToast }: RunReceip
           >
             <div 
               ref={previewRef}
-              className={`${getExportSizeClasses(exportSize, template)}` + `  flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none
-                ${template === 'carbon' ? 'bg-[#121316] border border-[#22252a] text-[#f2f4f7] p-6 rounded-lg' : ''}
-                ${template === 'thermal' ? 'bg-[#f4f4f5] text-[#18181b] p-8 border-t-8 border-[#18181b] shadow-none rounded-none' : ''}
-                ${template === 'neon' ? 'bg-[#020203] text-[#fafafa] p-6 border-2 border-secondary-lime shadow-[0_0_40px_rgba(204,255,0,0.15)] rounded-md' : ''}
-              `}
+              className={`${getExportSizeClasses(exportSize, template)}`}
             >
-              {/* Header */}
-              <div className={`mb-6 pb-4 border-b ${template === 'carbon' ? 'border-[#22252a]' : template === 'thermal' ? 'border-[#d4d4d8]' : 'border-secondary-lime/30'}`}>
-                 <div className="flex justify-between items-start mb-2">
-                   <h3 className={`font-mono font-bold text-xl uppercase ${template === 'neon' ? 'text-secondary-lime' : ''}`}>
-                     {formData.name.trim() || 'ATHLETE RUNNER'}
-                   </h3>
-                   <div className="text-right">
-                     <p className="font-mono text-[9px] opacity-60 uppercase tracking-widest">Date</p>
-                     <p className="font-mono text-sm font-bold uppercase">{formData.date || new Date().toISOString().split('T')[0]}</p>
-                   </div>
-                 </div>
-                 <div className="flex justify-between">
-                   <div>
-                     <p className="font-mono text-[9px] opacity-60 uppercase tracking-widest">Location</p>
-                     <p className="font-mono text-xs uppercase font-bold">{formData.location.trim() || 'OCEANFRONT PARKWAY'}</p>
-                   </div>
-                 </div>
-              </div>
-
-              {/* Main Stats */}
-              <div className="mb-6">
-                 <p className="font-mono text-[9px] opacity-60 uppercase tracking-widest mb-1">Distance</p>
-                 <h1 className={`font-mono text-6xl font-extrabold tracking-tighter mb-4 ${template === 'neon' ? 'text-secondary-lime' : template === 'carbon' ? 'text-text-primary' : 'text-black'}`}>
-                   {formData.distance || '10.00'}<span className="text-lg opacity-60 ml-1.5 lowercase">{unit}</span>
-                 </h1>
-                 
-                 <div className="grid grid-cols-2 gap-4">
-                   <div>
-                     <p className="font-mono text-[9px] opacity-60 uppercase tracking-widest mb-1">Time</p>
-                     <p className="font-mono text-2xl font-black">{formData.duration || '00:48:30'}</p>
-                   </div>
-                   <div>
-                     <p className="font-mono text-[9px] opacity-60 uppercase tracking-widest mb-1">Avg Pace</p>
-                     <p className="font-mono text-2xl font-black text-primary-coral">
-                       {pace}<span className="text-xs opacity-60 font-medium ml-1">/{unit}</span>
-                     </p>
-                   </div>
-                 </div>
-              </div>
-
-              {/* Additional Metrics */}
-              <div className={`mb-6 py-4 border-y ${template === 'carbon' ? 'border-[#22252a]' : template === 'thermal' ? 'border-[#d4d4d8] border-dashed' : 'border-secondary-lime/30'}`}>
-                 <div className="grid grid-cols-2 gap-y-3 font-mono text-xs">
-                   <div className="flex justify-between col-span-2">
-                     <span className="opacity-60 uppercase">RPE (EFFORT)</span>
-                     <span className="font-black text-secondary-lime">{formData.rpe}/10</span>
-                   </div>
-                   <div className="flex justify-between col-span-2">
-                     <span className="opacity-60 uppercase">Runner Mood</span>
-                     <span className="font-bold uppercase text-primary-coral">{formData.mood || 'SMOOTH'}</span>
-                   </div>
-                   <div className="flex justify-between col-span-2">
-                     <span className="opacity-60 uppercase">Weather</span>
-                     <span className="font-bold uppercase">{formData.weather || 'SUNNY'}</span>
-                   </div>
-                 </div>
-              </div>
-
-              {/* Notes / Highlights */}
-              <div className="mb-8 font-mono text-xs pb-4">
-                <div className="grid grid-cols-2 gap-4 mb-4 uppercase">
-                  <div>
-                    <p className="opacity-60 mb-1 text-[9px] tracking-wider">Primary Win</p>
-                    <p className="font-bold text-text-primary truncate">{formData.win.trim() || 'FAST FINAL KM'}</p>
-                  </div>
-                  <div>
-                    <p className="opacity-60 mb-1 text-[9px] tracking-wider">Damage Report</p>
-                    <p className="font-bold text-text-primary truncate">{formData.damage.trim() || 'NONE / ZERO'}</p>
-                  </div>
-                </div>
-                <div className="uppercase">
-                   <p className="opacity-60 mb-1 text-[9px] tracking-wider">Coach/Athlete Notes</p>
-                   <p className="font-bold text-text-primary leading-relaxed text-[11px]">{formData.notes.trim() || 'PACE WAS SOLID. FELT VERY SMOOTH THROUGH THE HILLS.'}</p>
-                </div>
-              </div>
-
-              {/* Footer / Watermark */}
-              
-              {/* Thermal bottom edge effect */}
-              {template === 'thermal' && (
-                <div className="absolute -bottom-2 left-0 right-0 h-4 bg-[#f4f4f5]" style={{ clipPath: 'polygon(0 0, 5% 100%, 10% 0, 15% 100%, 20% 0, 25% 100%, 30% 0, 35% 100%, 40% 0, 45% 100%, 50% 0, 55% 100%, 60% 0, 65% 100%, 70% 0, 75% 100%, 80% 0, 85% 100%, 90% 0, 95% 100%, 100% 0)' }}>
-</div>
-              )}
-           {!['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
-  <div className={`mt-auto text-center font-mono text-[9px] tracking-[0.25em] uppercase pt-4 border-t ${
-    ['community challenge', 'weekly board', 'clean white', 'minimal award', 'minimal nutrition', 'minimal gear', 'classic', 'elite', 'receipt', 'white', 'table', 'minimal'].includes(template) 
-      ? 'border-dashed border-gray-400 text-gray-400' 
-      : 'border-dashed border-brand-border opacity-40 text-white'
-  }`}>
-    {typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'made with RunCard Studio'}
-  </div>
-)}
-
-{['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
-             <SharedTemplates template={template} formData={formData} componentName="RunReceiptGenerator"  />
-           )}
+              <SharedTemplates 
+                template={template} 
+                formData={{ ...formData, pace, unit }} 
+                componentName="RunReceiptGenerator" 
+              />
             </div>
           </div>
         </div>

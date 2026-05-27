@@ -428,9 +428,9 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
                      <span>Wristband</span>
                    </div>
                  </div>
-               )}
+                               )}
 
-           {!['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
+            {!['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(template) && (
   <div className={`mt-auto text-center font-mono text-[9px] tracking-[0.25em] uppercase pt-4 border-t ${
     ['community challenge', 'weekly board', 'clean white', 'minimal award', 'minimal nutrition', 'minimal gear', 'classic', 'elite', 'receipt', 'white', 'table', 'minimal'].includes(template) 
       ? 'border-dashed border-gray-400 text-gray-400' 
@@ -440,7 +440,7 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
   </div>
 )}
 
-{['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
+{['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(template) && (
              <SharedTemplates template={template} formData={formData} componentName="PaceBandGenerator" extraData={{ splits: typeof calculateSplits === "function" ? calculateSplits() : undefined }} />
            )}
 </div>

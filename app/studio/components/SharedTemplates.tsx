@@ -1,6 +1,25 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import React, { useState, useEffect } from 'react';
 import { useTemplateAccent } from './TemplateSelector';
+import { 
+  Activity, 
+  Map, 
+  CheckSquare, 
+  Square, 
+  TrendingUp, 
+  Zap, 
+  Clock, 
+  Dumbbell, 
+  Award, 
+  Printer, 
+  Layers, 
+  Compass, 
+  FileText,
+  Flame,
+  Shield,
+  CheckCircle,
+  HelpCircle
+} from 'lucide-react';
 
 export function useExportSize() {
   const [size, setSize] = useState("square");
@@ -18,7 +37,8 @@ export function useExportSize() {
 }
 
 export function getExportSizeClasses(exportSize: string, template: string) {
-  const isShared = ['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template);
+  const norm = (template || '').toLowerCase().trim().replace(/\s+/g, '-');
+  const isShared = ['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(norm);
 
   switch (exportSize) {
     case "story":
@@ -182,6 +202,15 @@ export default function SharedTemplates({ template, formData, componentName, ext
   const accentId = useTemplateAccent();
   const accent = getAccentStyles(accentId);
 
+  // Normalize template ID to keep IDs consistent and support both hyphenated/spaced formats
+  let normalizedTemplate = (template || 'original')
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-');
+  if (normalizedTemplate === 'race-poster-pro') {
+    normalizedTemplate = 'race-poster';
+  }
+
   // Title extraction logic
   const title = String(
     formData.title || formData.name || formData.athleteName || formData.raceName || formData.sessionName || formData.runnerName || formData.achievement || 'RUN SUMMARY'
@@ -215,7 +244,7 @@ export default function SharedTemplates({ template, formData, componentName, ext
   };
 
   // Finds the most important metric (e.g., Distance, Duration, Pace, Time) to make it oversized.
-  const getPrimaryMetric = () => {
+  const getPrimaryMetric = (): [string, any] | null => {
     const distKey = gridItems.find(([k]) => k.toLowerCase().includes('distance') || k.toLowerCase().includes('dist'));
     if (distKey) return distKey;
 
@@ -228,7 +257,76 @@ export default function SharedTemplates({ template, formData, componentName, ext
     return gridItems[0] || null;
   };
 
-  const renderChecklist = () => {
+  const primaryItem = getPrimaryMetric();
+  const secondaryItems = primaryItem 
+    ? gridItems.filter(([k]) => k !== primaryItem[0]) 
+    : gridItems;
+
+  const getLayoutClasses = (size: string) => {
+    switch (size) {
+      case "story":
+        return {
+          wrapper: "w-[400px] h-[711px] p-6 flex flex-col justify-between overflow-hidden",
+          title: "text-2xl md:text-3xl leading-tight font-black",
+          subtitle: "text-[10px] tracking-widest",
+          contentGap: "gap-4",
+          cardPadding: "p-3",
+          labelSize: "text-[9px]",
+          valueSize: "text-sm",
+          containerMinHeight: "min-h-[50px]"
+        };
+      case "landscape":
+        return {
+          wrapper: "w-[640px] h-[360px] p-5 flex flex-col justify-between overflow-hidden",
+          title: "text-xl md:text-2xl leading-none font-black",
+          subtitle: "text-[9px] tracking-wider",
+          contentGap: "gap-2.5",
+          cardPadding: "p-2.5",
+          labelSize: "text-[8px]",
+          valueSize: "text-xs",
+          containerMinHeight: "min-h-[44px]"
+        };
+      case "compact":
+        return {
+          wrapper: "w-[540px] h-[283px] p-4 flex flex-col justify-between overflow-hidden text-xs",
+          title: "text-lg md:text-xl leading-none font-extrabold tracking-tight",
+          subtitle: "text-[8px] tracking-wide",
+          contentGap: "gap-2",
+          cardPadding: "p-2",
+          labelSize: "text-[8px]",
+          valueSize: "text-xs",
+          containerMinHeight: "min-h-[40px]"
+        };
+      case "printable":
+        return {
+          wrapper: "w-[595px] h-[842px] p-8 flex flex-col justify-between overflow-hidden",
+          title: "text-3xl md:text-4xl leading-tight font-black",
+          subtitle: "text-[11px] tracking-widest",
+          contentGap: "gap-6",
+          cardPadding: "p-4",
+          labelSize: "text-[10px]",
+          valueSize: "text-base",
+          containerMinHeight: "min-h-[60px]"
+        };
+      case "square":
+      default:
+        return {
+          wrapper: "w-[480px] h-[480px] p-6 md:p-8 flex flex-col justify-between overflow-hidden",
+          title: "text-2xl md:text-3xl leading-tight font-black",
+          subtitle: "text-[10px] tracking-widest",
+          contentGap: "gap-4",
+          cardPadding: "p-3.5",
+          labelSize: "text-[9px]",
+          valueSize: "text-sm",
+          containerMinHeight: "min-h-[52px]"
+        };
+    }
+  };
+
+  const layout = getLayoutClasses(exportSize);
+
+  // Extract checklist items
+  const getChecklistItems = () => {
     const items: string[] = [];
     if (formData.bib) items.push("Race Bib");
     if (formData.pins) items.push("Safety Pins/Magnets");
@@ -254,1070 +352,1118 @@ export default function SharedTemplates({ template, formData, componentName, ext
     else if (exportSize === 'landscape') maxItems = 6;
     else if (exportSize === 'story') maxItems = 12;
 
-    const listToRender = items.slice(0, maxItems);
+    return items.slice(0, maxItems);
+  };
 
-    if (listToRender.length === 0) {
-      return (
-        <div className="flex-grow flex items-center justify-center text-xs text-zinc-500 italic uppercase tracking-widest py-8">
-          No Checklist Items Selected
-        </div>
-      );
-    }
+  const watermark = (
+    <div className={`mt-auto text-right text-[8px] uppercase tracking-widest font-mono opacity-40 pt-4 ${(normalizedTemplate === 'print-utility' || normalizedTemplate === 'minimal-white') ? 'text-black' : 'text-white'}`}>
+      {typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'made with RunCard Studio'}
+    </div>
+  );
 
-    if (template === 'carbon grid') {
-      return (
-        <div className="flex-1 grid grid-cols-2 gap-3 font-mono">
-          {listToRender.map((it, i) => (
-            <div key={i} className="flex items-center gap-2.5 p-2 bg-[#121316] border border-[#2d3139] relative">
-              <div className="absolute top-0 left-0 w-1 h-1 border-t border-l" style={{ borderColor: accent.hex }}></div>
-              <div className="w-4 h-4 shrink-0 border flex items-center justify-center" style={{ borderColor: accent.hex + '90', color: accent.hex }}>
-                <span className="w-1.5 h-1.5 bg-current inline-block"></span>
+  // ==========================================
+  // TEMPLATE 01: ORIGINAL (Balanced default layout)
+  // ==========================================
+  const renderOriginalTemplate = () => {
+    const showMap = componentName === 'RoutePosterGenerator' && !!extraData?.parsedData;
+
+    return (
+      <div className={`${layout.wrapper} flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none overflow-hidden bg-[#121316] border border-[#22252a] text-[#f2f4f7] rounded-lg p-6 justify-between`}>
+        <div className="flex flex-col h-full justify-between">
+          {/* Header */}
+          <div className="border-b border-[#22252a] pb-4 mb-4">
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="font-mono font-bold text-lg uppercase tracking-tight text-white truncate max-w-[70%]">{title}</h3>
+              <div className="text-right shrink-0">
+                <p className="font-mono text-[8px] opacity-60 uppercase tracking-widest">DATE</p>
+                <p className="font-mono text-xs font-bold uppercase" style={{ color: accent.hex }}>{dateStr || 'ORIGINAL'}</p>
               </div>
-              <span className="text-[10.5px] font-bold text-white truncate uppercase tracking-tight">{it}</span>
             </div>
-          ))}
-        </div>
-      );
-    }
+          </div>
 
-    if (template === 'race poster pro') {
-      return (
-        <div className="flex-1 grid grid-cols-2 gap-x-6 gap-y-2 font-sans text-white">
-          {listToRender.map((it, i) => (
-            <div key={i} className="flex items-center gap-3 py-2 px-3 border-l-3 bg-[#181a1f]" style={{ borderLeftColor: accent.hex }}>
-              <div className="w-3.5 h-3.5 shrink-0 border border-white/55 rounded-full flex items-center justify-center">
-                <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
+          {/* Content Area */}
+          <div className="flex-grow flex flex-col justify-center gap-3">
+            {componentName === 'RaceChecklistGenerator' ? (
+              <div className="grid grid-cols-2 gap-2 font-mono">
+                {getChecklistItems().slice(0, 6).map((it, i) => (
+                  <div key={i} className="flex items-center gap-2.5 p-2 bg-zinc-900 border border-zinc-800 rounded">
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: accent.hex }}></span>
+                    <span className="text-[10px] font-bold text-zinc-300 truncate uppercase">{it}</span>
+                  </div>
+                ))}
               </div>
-              <span className="text-xs font-black uppercase tracking-tight truncate">{it}</span>
-            </div>
-          ))}
-        </div>
-      );
-    }
-
-    if (template === 'minimal white') {
-      return (
-        <div className="flex-1 grid grid-cols-2 gap-x-8 gap-y-2.5 font-sans text-black">
-          {listToRender.map((it, i) => (
-            <div key={i} className="flex items-center gap-3 pb-1 border-b border-zinc-100">
-              <div className="w-4 h-4 shrink-0 rounded border border-black flex items-center justify-center">
-                <span className="text-[9px] font-black leading-none">✓</span>
+            ) : componentName === 'RoutePosterGenerator' ? (
+              <div className="grid grid-cols-2 gap-3 items-stretch">
+                <div className="bg-zinc-950 border border-zinc-800 flex items-center justify-center p-2 h-[100px] rounded overflow-hidden">
+                  {showMap ? (
+                    <svg viewBox="0 0 360 360" className="w-[85px] h-[85px] overflow-visible" style={{ stroke: accent.hex }}>
+                      <path d={extraData.parsedData.path} fill="none" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  ) : (
+                    <span className="text-[8px] text-zinc-500">NO TRAIL GPX</span>
+                  )}
+                </div>
+                <div className="flex flex-col justify-center text-left">
+                  <span className="text-[8px] text-zinc-500 uppercase tracking-widest">DISTANCE</span>
+                  <div className="text-xl font-black" style={{ color: accent.hex }}>{formData.distance || '—'}</div>
+                </div>
               </div>
-              <span className="text-xs font-bold text-zinc-900 truncate">{it}</span>
-            </div>
-          ))}
-        </div>
-      );
-    }
-
-    if (template === 'split panel') {
-      return (
-        <div className="flex-1 grid grid-cols-2 gap-2.5 font-mono">
-          {listToRender.map((it, i) => (
-            <div key={i} className="flex flex-col p-2.5 rounded-xl border border-[#22252a] bg-[#14151a]">
-              <span className="text-[8px] uppercase tracking-wider font-bold mb-1" style={{ color: accent.hex }}>ITEM {String(i+1).padStart(2,'0')}</span>
-              <span className="text-xs font-black text-white truncate">{it}</span>
-            </div>
-          ))}
-        </div>
-      );
-    }
-
-    if (template === 'neon edge') {
-      return (
-        <div className="flex-1 grid grid-cols-2 gap-3 font-mono text-white">
-          {listToRender.map((it, i) => (
-            <div key={i} className="flex items-center gap-3 p-2 border-l-2 bg-black/40" style={{ borderLeftColor: accent.hex }}>
-              <div className="w-4 h-4 shrink-0 border flex items-center justify-center" style={{ borderColor: accent.hex, color: accent.hex }}>
-                <span className="w-1.5 h-1.5 bg-current rounded-full" style={{ filter: `drop-shadow(0 0 2px ${accent.hex})` }}></span>
+            ) : componentName === 'PaceBandGenerator' && extraData && extraData.splits ? (
+              <div className="grid grid-cols-2 gap-1.5 text-zinc-300">
+                {extraData.splits.slice(0, 6).map((s: any, i: number) => (
+                  <div key={i} className="flex justify-between items-center p-2 bg-zinc-900 border border-zinc-800 rounded text-[10px]">
+                    <span className="text-zinc-550">{s.km ?? s.marker ?? ''}</span>
+                    <span className="font-bold text-white">{s.current}</span>
+                  </div>
+                ))}
               </div>
-              <span className="text-xs font-bold tracking-tight truncate">{it}</span>
-            </div>
-          ))}
-        </div>
-      );
-    }
+            ) : componentName === 'RaceSplitGenerator' ? (
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                {gridItems.slice(0, 6).map(([k, v]) => (
+                  <div key={k} className="p-2 bg-zinc-900 border border-zinc-800 rounded">
+                    <span className="text-[8px] text-zinc-500 block uppercase">{getLabel(k)}</span>
+                    <span className="text-xs font-bold text-white truncate block mt-0.5">{String(v)}</span>
+                  </div>
+                ))}
+              </div>
+            ) : primaryItem ? (
+              <div>
+                <div className="mb-4">
+                  <span className="text-[8px] text-zinc-400 uppercase tracking-widest block mb-1">{getLabel(primaryItem[0])}</span>
+                  <span className="text-4xl font-black tracking-tight" style={{ color: accent.hex }}>
+                    {String(primaryItem[1])}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {secondaryItems.slice(0, 4).map(([k, v]) => (
+                    <div key={k} className="p-2 bg-zinc-900/60 border border-zinc-850 rounded">
+                      <span className="text-[8px] text-zinc-500 block uppercase">{getLabel(k)}</span>
+                      <span className="text-xs font-bold text-white block mt-0.5 truncate">{String(v)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                {gridItems.slice(0, 4).map(([k, v]) => (
+                  <div key={k} className="p-2 bg-zinc-900 border border-zinc-800 rounded">
+                    <span className="text-[8px] text-zinc-500 block uppercase">{getLabel(k)}</span>
+                    <span className="text-xs font-bold text-white block mt-0.5 truncate">{String(v)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
-    if (template === 'print utility') {
-      return (
-        <div className="flex-1 grid grid-cols-2 gap-x-6 gap-y-1.5 font-mono text-black">
-          {listToRender.map((it, i) => (
-            <div key={i} className="flex items-center gap-3 py-1 border-b border-dashed border-gray-300">
-              <div className="w-4 h-4 shrink-0 border border-zinc-400 flex items-center justify-center"></div>
-              <span className="text-[11px] font-bold text-black truncate uppercase tracking-tight">{it}</span>
-            </div>
-          ))}
+          {/* Footer watermark */}
+          <div className="flex items-center justify-between border-t border-[#22252a] pt-3 mt-4 text-[8px] text-zinc-500 tracking-wider font-mono">
+            <span>ORIGINAL ATHLETIC DOCKET</span>
+            {watermark}
+          </div>
         </div>
-      );
-    }
+      </div>
+    );
+  };
 
-    if (template === 'compact story') {
-      return (
-        <div className="flex-1 flex flex-col justify-center divide-y divide-[#22252a]/60 font-sans text-white">
-          {listToRender.map((it, i) => (
-            <div key={i} className="flex justify-between items-center py-2.5 px-2">
-              <span className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">{it}</span>
-              <span className="w-4 h-4 shrink-0 border flex items-center justify-center" style={{ borderColor: accent.hex, color: accent.hex }}>
-                <span className="w-1.5 h-1.5 bg-current rounded-full"></span>
+  // ==========================================
+  // TEMPLATE 02: SPORT (Strong coral accent bar, bold athletic blocks)
+  // ==========================================
+  const renderSportTemplate = () => {
+    const showMap = componentName === 'RoutePosterGenerator' && !!extraData?.parsedData;
+
+    return (
+      <div className={`${layout.wrapper} flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none overflow-hidden bg-[#0c0d12] border-2 border-zinc-800 text-white justify-between`}>
+        {/* Top Accent Coral Bar */}
+        <div className="absolute top-0 left-0 right-0 h-2" style={{ backgroundColor: accent.hex !== "#ffffff" ? accent.hex : '#ff3330' }}></div>
+
+        <div className="flex-grow flex flex-col h-full justify-between pt-5 px-3 pb-3 gap-3">
+          {/* Header */}
+          <div className="flex justify-between items-baseline border-b border-zinc-800 pb-2">
+            <h1 className="text-base md:text-lg font-black uppercase tracking-tighter text-white truncate max-w-[70%]">{title}</h1>
+            <span className="text-[8px] font-bold tracking-widest uppercase border px-1.5 py-0.5 rounded shrink-0 font-mono" style={{ borderColor: accent.hex, color: accent.hex }}>
+              {dateStr || 'SPORTS_RECD'}
+            </span>
+          </div>
+
+          {/* Big Metric Strip / Focal point */}
+          <div className="flex-grow flex flex-col justify-center gap-3">
+            {componentName === 'RaceChecklistGenerator' ? (
+              <div className="grid grid-cols-2 gap-2 text-white font-sans">
+                {getChecklistItems().slice(0, 6).map((it, i) => (
+                  <div key={i} className="flex items-center gap-2 p-2.5 bg-zinc-900 border-l-4 rounded-r" style={{ borderLeftColor: accent.hex }}>
+                    <span className="text-[10px] font-black uppercase text-zinc-200">{it}</span>
+                  </div>
+                ))}
+              </div>
+            ) : componentName === 'RoutePosterGenerator' ? (
+              <div className="flex items-center justify-between gap-4 bg-zinc-900 p-3 rounded border border-zinc-800">
+                <div className="h-[90px] w-[90px] flex items-center justify-center bg-black rounded overflow-hidden p-1">
+                  {showMap ? (
+                    <svg viewBox="0 0 360 360" className="w-[80px] h-[80px] overflow-visible animate-pulse" style={{ stroke: accent.hex }}>
+                      <path d={extraData.parsedData.path} fill="none" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  ) : (
+                    <span className="text-[8px] text-zinc-600">NO GPX</span>
+                  )}
+                </div>
+                <div className="flex-1 text-left">
+                  <span className="text-[8px] text-zinc-500 uppercase tracking-widest block font-black">OUTING LENGTH</span>
+                  <span className="text-3xl font-black block mt-1" style={{ color: accent.hex }}>{formData.distance || '—'}</span>
+                </div>
+              </div>
+            ) : componentName === 'PaceBandGenerator' && extraData && extraData.splits ? (
+              <div className="grid grid-cols-3 gap-1.5 text-zinc-200">
+                {extraData.splits.slice(0, 6).map((s: any, i: number) => (
+                  <div key={i} className="p-2 bg-zinc-900 border border-zinc-800 rounded text-center">
+                    <span className="text-[8px] text-zinc-500 block uppercase font-mono">{s.km ?? s.marker ?? ''}</span>
+                    <span className="text-xs font-black" style={{ color: accent.hex }}>{s.current}</span>
+                  </div>
+                ))}
+              </div>
+            ) : primaryItem ? (
+              <div>
+                <div className="bg-zinc-900/90 border border-zinc-800 p-3 px-4 rounded mb-2.5 flex justify-between items-center shadow-lg">
+                  <div>
+                    <span className="text-[7px] text-zinc-500 uppercase tracking-[0.2em] font-black block">{getLabel(primaryItem[0])}</span>
+                    <span className="text-3xl md:text-4xl font-extrabold tracking-tighter uppercase text-white mt-0.5 inline-block">
+                      {String(primaryItem[1])}
+                    </span>
+                  </div>
+                  <div className="w-1.5 h-10 rounded shrink-0 animate-pulse" style={{ backgroundColor: accent.hex }}></div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {secondaryItems.slice(0, 4).map(([k, v]) => (
+                    <div key={k} className="p-2 bg-zinc-900 border border-zinc-850 rounded">
+                      <span className="text-[8px] text-zinc-500 block uppercase font-bold tracking-tight">{getLabel(k)}</span>
+                      <span className="text-xs font-extrabold block mt-0.5 truncate text-zinc-300">{String(v)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                {gridItems.slice(0, 4).map(([k, v]) => (
+                  <div key={k} className="p-2.5 bg-zinc-900 border border-zinc-800 rounded">
+                    <span className="text-[8px] text-zinc-500 block uppercase font-extrabold tracking-tight">{getLabel(k)}</span>
+                    <span className="text-xs font-black block mt-0.5 truncate text-zinc-200">{String(v)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="flex justify-between items-center border-t border-zinc-850 pt-2.5 mt-2 text-[8px] font-mono tracking-widest text-zinc-500 font-extrabold">
+            <span>PERFORMANCE LAB SERIES // MODE_SPORT</span>
+            {watermark}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ==========================================
+  // TEMPLATE 03: CARBON (Premium dark technical card with grid layout)
+  // ==========================================
+  const renderCarbonTemplate = () => {
+    const showMap = componentName === 'RoutePosterGenerator' && !!extraData?.parsedData;
+
+    return (
+      <div className={`${layout.wrapper} flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none overflow-hidden bg-[#07080a] border border-zinc-900 text-white justify-between`}>
+        {/* Subtle grid pattern background */}
+        <div className="absolute inset-0 bg-[#0f1115]/30 bg-[linear-gradient(to_right,#14171d_1px,transparent_1px),linear-gradient(to_bottom,#14171d_1px,transparent_1px)] [background-size:20px_20px] pointer-events-none z-0"></div>
+
+        <div className="relative z-10 flex-grow flex flex-col h-full justify-between p-3.5 gap-2.5">
+          {/* Technical Header */}
+          <div className="border-b-2 border-zinc-850 pb-2 flex justify-between items-end">
+            <div className="flex-1 min-w-0 pr-3">
+              <span className="text-[6.5px] text-zinc-550 uppercase tracking-[0.25em] font-black block">TECHNICAL TELEMETRY DATABASE</span>
+              <h1 className="text-xs md:text-sm uppercase font-mono tracking-wider font-extrabold truncate text-white mt-0.5">{title}</h1>
+            </div>
+            <span className="inline-block font-mono border-2 bg-black px-2 py-0.5 rounded text-[8px] font-black tracking-widest uppercase shrink-0" style={{ borderColor: accent.hex, color: accent.hex }}>
+              {dateStr || 'RC_DATA_CRB'}
+            </span>
+          </div>
+
+          {/* Main Data Panel & Dense Rows */}
+          <div className="flex-grow flex flex-col justify-center gap-2">
+            {componentName === 'RaceChecklistGenerator' ? (
+              <div className="grid grid-cols-2 gap-2 font-mono">
+                {getChecklistItems().slice(0, 6).map((it, i) => (
+                  <div key={i} className="flex justify-between items-center p-2 border border-zinc-850 bg-zinc-950/90 rounded relative">
+                    <div className="absolute top-0 left-0 w-1 h-1 border-t border-l" style={{ borderColor: accent.hex }}></div>
+                    <span className="text-[9px] font-bold text-zinc-400 uppercase truncate">0{i+1} {"//"} {it}</span>
+                    <span className="text-[7.5px] text-emerald-500 font-extrabold tracking-tighter uppercase">[OK]</span>
+                  </div>
+                ))}
+              </div>
+            ) : componentName === 'RoutePosterGenerator' ? (
+              <div className="grid grid-cols-2 gap-2.5 items-stretch">
+                <div className="rounded border border-zinc-850 bg-zinc-950 flex items-center justify-center p-2 min-h-[95px]">
+                  {showMap ? (
+                    <svg viewBox="0 0 360 360" className="w-[85px] h-[85px] overflow-visible" style={{ stroke: accent.hex, filter: `drop-shadow(0 0 4px ${accent.hex}aa)` }}>
+                      <path d={extraData.parsedData.path} fill="none" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  ) : (
+                    <span className="text-[8px] text-zinc-750">NO TRACK LOG</span>
+                  )}
+                </div>
+                <div className="flex flex-col justify-center border border-zinc-850 bg-zinc-950/80 p-2 text-left relative">
+                  <div className="absolute top-0 left-0 w-1 h-1 border-t border-l" style={{ borderColor: accent.hex }}></div>
+                  <span className="text-[7px] text-zinc-500 uppercase tracking-widest font-bold font-mono">TOTAL DIST</span>
+                  <div className="text-xl font-bold font-mono mt-1 text-white" style={{ color: accent.hex }}>{formData.distance || '—'}</div>
+                </div>
+              </div>
+            ) : componentName === 'PaceBandGenerator' && extraData && extraData.splits ? (
+              <div className="space-y-1 w-full text-zinc-300 font-mono">
+                {extraData.splits.slice(0, 5).map((s: any, i: number) => (
+                  <div key={i} className="flex justify-between py-1 px-1.5 border border-zinc-900 bg-zinc-950/65 text-[10px]">
+                    <span className="text-zinc-550 font-bold">{s.km ?? s.marker ?? ''} MARK</span>
+                    <span className="font-extrabold text-white" style={{ color: accent.hex }}>{s.current}</span>
+                  </div>
+                ))}
+              </div>
+            ) : primaryItem ? (
+              <div>
+                <div className="bg-zinc-950 border border-zinc-850 p-3 px-3.5 text-center relative mb-2 shadow-[0_4px_20px_rgba(0,0,0,0.6)]">
+                  <div className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l" style={{ borderColor: accent.hex }}></div>
+                  <div className="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r" style={{ borderColor: accent.hex }}></div>
+                  <span className="text-[6.5px] text-zinc-500 tracking-[0.2em] uppercase font-bold block">{getLabel(primaryItem[0])}</span>
+                  <span className="text-2xl font-black mt-1 font-mono tracking-wide inline-block" style={{ color: accent.hex }}>
+                    {String(primaryItem[1])}
+                  </span>
+                </div>
+                <div className="space-y-1.5">
+                  {secondaryItems.slice(0, 4).map(([k, v]) => (
+                    <div key={k} className="flex justify-between items-baseline border-b border-zinc-850 pb-1 text-[10px] font-mono">
+                      <span className="text-zinc-550 uppercase font-semibold text-[8px]">{getLabel(k)}</span>
+                      <span className="font-extrabold text-zinc-350 text-right truncate max-w-[65%]">{String(v)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {gridItems.slice(0, 5).map(([k, v]) => (
+                  <div key={k} className="flex justify-between items-baseline border-b border-zinc-850 pb-1 text-[10px] font-mono">
+                    <span className="text-zinc-500 uppercase font-bold text-[8px]">{getLabel(k)}</span>
+                    <span className="font-black text-white text-right truncate max-w-[65%]">{String(v)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Footer Metadata */}
+          <div className="flex justify-between items-center mt-2 pt-2 border-t border-zinc-850 text-[7px] text-zinc-650 font-mono tracking-widest uppercase">
+            <span>RC_INTEGRAL_CARBON_SYS_ACTIVE</span>
+            {watermark}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ==========================================
+  // TEMPLATE 04: CARBON GRID (Technical Panel/Grid Dashboard Style)
+  // ==========================================
+  const renderCarbonGridTemplate = () => {
+    const showMap = componentName === 'RoutePosterGenerator' && !!extraData?.parsedData;
+
+    return (
+      <div className={`${layout.wrapper} flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none overflow-hidden bg-[#090b0e] border-2 border-zinc-900 text-white font-mono justify-between`}>
+        {/* Absolute Design Background Grid Layer */}
+        <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:12px_12px] opacity-55 pointer-events-none z-0"></div>
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#111827_1px,transparent_1px),linear-gradient(to_bottom,#111827_1px,transparent_1px)] [background-size:24px_24px] opacity-35 pointer-events-none z-0"></div>
+        
+        {/* Accent Top Border Indicator */}
+        <div className="absolute top-0 left-0 right-0 h-1" style={{ backgroundColor: accent.hex }}></div>
+
+        {/* Technical Subtext & Indicators */}
+        <div className="absolute top-3 right-3 flex items-center gap-1.5 opacity-40 text-[7px] tracking-wider text-zinc-550">
+          <span className="inline-block w-1.5 h-1.5 rounded-full animate-pulse bg-emerald-500"></span>
+          <span>RC_SYS_ACTIVE // MODE_04</span>
+        </div>
+
+        <div className="relative z-10 flex flex-col h-full justify-between gap-2.5 p-1 mt-1">
+          {/* Header Dashboard Area */}
+          <div className="border-b-2 border-zinc-800 pb-2.5 flex items-baseline justify-between">
+            <div className="flex-1 min-w-0 pr-3">
+              <span className="text-[7px] text-zinc-500 uppercase tracking-widest font-black block">ATHLETIC RECORD DATABASE</span>
+              <h1 className="text-sm md:text-base uppercase tracking-tight text-white font-black break-words mt-0.5">{title}</h1>
+            </div>
+            <div className="shrink-0 text-right">
+              <span className="inline-block font-mono border px-1.5 py-0.5 rounded text-[8px] tracking-tight font-extrabold uppercase text-neutral-300 bg-zinc-900/80" style={{ borderColor: accent.hex }}>
+                {dateStr || 'GRID_MTRX'}
               </span>
             </div>
-          ))}
-        </div>
-      );
-    }
-
-    return null;
-  };
-
-  const renderRoutePoster = () => {
-    const isDark = (template !== 'print utility' && template !== 'minimal white');
-    const showMap = !!extraData?.parsedData;
-    
-    const mapElement = showMap ? (
-      <div className="flex-grow flex items-center justify-center p-1 w-full max-h-[175px] md:max-h-[220px] overflow-hidden">
-        <svg viewBox="0 0 360 360" className="w-[180px] h-[180px] md:w-[245px] md:h-[245px] overflow-visible max-h-[165px] md:max-h-[210px]" style={{ stroke: accent.hex, filter: template === 'neon edge' ? `drop-shadow(0 0 4px ${accent.hex}aa)` : undefined }}>
-          <path d={extraData.parsedData.path} fill="none" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
-          {formData.showStartEnd && extraData.parsedData.points?.length > 0 && (
-            <>
-              <circle cx={extraData.parsedData.points[0].x} cy={extraData.parsedData.points[0].y} r="8" fill="#a0cc00" stroke={isDark ? "#000" : "#fff"} strokeWidth="3.5" />
-              <circle cx={extraData.parsedData.points[extraData.parsedData.points.length-1].x} cy={extraData.parsedData.points[extraData.parsedData.points.length-1].y} r="8" fill="#ff3330" stroke={isDark ? "#000" : "#fff"} strokeWidth="3.5" />
-            </>
-          )}
-        </svg>
-      </div>
-    ) : (
-      <div className={`flex-grow flex items-center justify-center py-8 text-[10px] font-mono tracking-widest uppercase opacity-45 px-6 border border-dashed rounded ${isDark ? 'border-zinc-800 text-zinc-500' : 'border-zinc-300 text-zinc-400'}`}>
-        Upload GPX Map
-      </div>
-    );
-
-    const statsElement = (
-      <div className="w-full flex-shrink-0 mt-2">
-        {formData.distance && (
-          <div className="text-center mb-1">
-            <span className="text-[10px] uppercase tracking-wider text-gray-400 font-bold">TOTAL DISTANCE</span>
-            <div className="text-xl md:text-2xl font-black" style={{ color: accent.hex }}>{formData.distance}</div>
           </div>
-        )}
-        {formData.showElevation && extraData?.parsedData?.eleInfo?.valid && (
-          <div className={`grid grid-cols-2 gap-4 text-center border-t py-2 text-[10px] ${isDark ? 'border-[#2d3139] text-zinc-400' : 'border-zinc-200 text-zinc-600'}`}>
-            <div>
-              <span className="uppercase text-[8px] opacity-60 tracking-wider">Elevation Min</span>
-              <div className="font-extrabold text-xs text-white">{Math.round(extraData.parsedData.eleInfo.min)}m</div>
-            </div>
-            <div className={`border-l ${isDark ? 'border-[#2d3139]' : 'border-zinc-200'}`}>
-              <span className="uppercase text-[8px] opacity-60 tracking-wider">Elevation Max</span>
-              <div className="font-extrabold text-xs text-white">{Math.round(extraData.parsedData.eleInfo.max)}m</div>
-            </div>
-          </div>
-        )}
-      </div>
-    );
 
-    if (template === 'carbon grid') {
-      return (
-        <div className="flex-1 flex flex-col justify-between items-center w-full gap-2 p-3 border border-[#2d3139] bg-[#121316]/50 relative">
-          <div className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l" style={{ borderColor: accent.hex }}></div>
-          <div className="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r" style={{ borderColor: accent.hex }}></div>
-          {mapElement}
-          {statsElement}
-        </div>
-      );
-    }
-
-    if (template === 'race poster pro') {
-      return (
-        <div className="flex-1 flex flex-col justify-between items-center w-full bg-[#181a1f]/60 border-l-4 p-3 gap-2" style={{ borderLeftColor: accent.hex }}>
-          {mapElement}
-          <div className="w-full h-[1px] bg-zinc-800" style={{ backgroundColor: accent.hex + '35' }}></div>
-          {statsElement}
-        </div>
-      );
-    }
-
-    if (template === 'minimal white') {
-      const darkStatsElement = (
-        <div className="w-full flex-shrink-0 mt-2">
-          {formData.distance && (
-            <div className="text-center mb-1">
-              <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-bold">TOTAL DISTANCE</span>
-              <div className="text-xl md:text-2xl font-black text-black">{formData.distance}</div>
-            </div>
-          )}
-          {formData.showElevation && extraData?.parsedData?.eleInfo?.valid && (
-            <div className="grid grid-cols-2 gap-4 text-center border-t border-zinc-200 py-2 text-[10px] text-zinc-600">
-              <div>
-                <span className="uppercase text-[8px] opacity-60 tracking-wider">Elevation Min</span>
-                <div className="font-extrabold text-xs text-black">{Math.round(extraData.parsedData.eleInfo.min)}m</div>
-              </div>
-              <div className="border-l border-zinc-200">
-                <span className="uppercase text-[8px] opacity-60 tracking-wider">Elevation Max</span>
-                <div className="font-extrabold text-xs text-black">{Math.round(extraData.parsedData.eleInfo.max)}m</div>
-              </div>
-            </div>
-          )}
-        </div>
-      );
-      return (
-        <div className="flex-1 flex flex-col justify-between items-center w-full bg-white border border-zinc-200 p-3 gap-2">
-          {mapElement}
-          {darkStatsElement}
-        </div>
-      );
-    }
-
-    if (template === 'split panel') {
-      return (
-        <div className="flex-1 grid grid-cols-2 gap-3 w-full">
-          <div className="rounded-xl border border-[#22252a] bg-[#14151a] p-3 flex items-center justify-center">
-            {mapElement}
-          </div>
-          <div className="rounded-xl border border-[#22252a] bg-[#14151a] p-4 flex flex-col justify-center text-left">
-            <span className="text-[8px] uppercase tracking-wider font-bold" style={{ color: accent.hex }}>METRICS</span>
-            {formData.distance && (
-              <div className="mt-1 text-lg font-black text-white">{formData.distance}</div>
-            )}
-            {formData.showElevation && extraData?.parsedData?.eleInfo?.valid && (
-              <div className="mt-2 text-[10px] text-gray-400 border-t border-[#22252a] pt-2">
-                <p>MIN: {Math.round(extraData.parsedData.eleInfo.min)}m</p>
-                <p>MAX: {Math.round(extraData.parsedData.eleInfo.max)}m</p>
-              </div>
-            )}
-          </div>
-        </div>
-      );
-    }
-
-    if (template === 'neon edge') {
-      return (
-        <div className="flex-1 flex flex-col justify-between items-center w-full bg-[#0a0b0d]/85 p-4 border-l-[3px]" style={{ borderLeftColor: accent.hex }}>
-          {mapElement}
-          {statsElement}
-        </div>
-      );
-    }
-
-    if (template === 'print utility') {
-      const darkStatsElementPrint = (
-        <div className="w-full flex-shrink-0 mt-2">
-          {formData.distance && (
-            <div className="text-center mb-1">
-              <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-bold">TOTAL DISTANCE</span>
-              <div className="text-xl md:text-2xl font-black text-black">{formData.distance}</div>
-            </div>
-          )}
-          {formData.showElevation && extraData?.parsedData?.eleInfo?.valid && (
-            <div className="grid grid-cols-2 gap-4 text-center border-t border-zinc-300 py-2 text-[10px] text-zinc-600">
-              <div>
-                <span className="uppercase text-[8px] opacity-60 tracking-wider">Elevation Min</span>
-                <div className="font-extrabold text-xs text-black">{Math.round(extraData.parsedData.eleInfo.min)}m</div>
-              </div>
-              <div className="border-l border-zinc-300">
-                <span className="uppercase text-[8px] opacity-60 tracking-wider">Elevation Max</span>
-                <div className="font-extrabold text-xs text-black">{Math.round(extraData.parsedData.eleInfo.max)}m</div>
-              </div>
-            </div>
-          )}
-        </div>
-      );
-      return (
-        <div className="flex-1 flex flex-col justify-between items-center w-full bg-white border border-dashed border-zinc-300 p-2 gap-2 text-black">
-          {mapElement}
-          {darkStatsElementPrint}
-        </div>
-      );
-    }
-
-    if (template === 'compact story') {
-      return (
-        <div className="flex-1 flex flex-col justify-center items-center w-full gap-3">
-          {mapElement}
-          {statsElement}
-        </div>
-      );
-    }
-
-    return null;
-  };
-
-  const renderContent = (themeClasses: any) => {
-    if (componentName === 'RaceChecklistGenerator') {
-      return renderChecklist();
-    }
-    if (componentName === 'RoutePosterGenerator') {
-      return renderRoutePoster();
-    }
-
-    let gridCols = "grid-cols-2";
-    if (exportSize === "story") {
-      gridCols = "grid-cols-1 md:grid-cols-2";
-    } else if (exportSize === "landscape") {
-      gridCols = gridItems.length > 4 ? "grid-cols-3" : "grid-cols-2";
-    } else if (exportSize === "compact") {
-      gridCols = "grid-cols-3";
-    }
-
-    let cardPadding = "p-3";
-    let labelSize = "text-[9px]";
-    let valueSize = "text-sm";
-    let containerMinHeight = "min-h-[50px]";
-    
-    if (exportSize === "compact") {
-      cardPadding = "p-2";
-      labelSize = "text-[8px]";
-      valueSize = "text-xs";
-      containerMinHeight = "min-h-[40px]";
-    }
-
-    // --- TEMPLATE 09: PRINT UTILITY ---
-    if (template === 'print utility') {
-      if (componentName === 'PaceBandGenerator' && extraData && extraData.splits) {
-        const isWide = exportSize === 'landscape' || exportSize === 'compact';
-        return (
-          <div className="flex-1 w-full text-left font-mono text-black">
-            <div className={`grid ${isWide ? 'grid-cols-3' : 'grid-cols-2'} text-[9px] uppercase font-bold tracking-widest pb-1 mb-2 border-b-2 border-black`}>
-              {isWide ? (
-                <>
-                  <div>Split Marker</div><div>Split Time</div><div>Cumulative</div>
-                </>
-              ) : (
-                <>
-                  <div>Distance Unit</div><div>Cumulative Time</div>
-                </>
-              )}
-            </div>
-            <div className={`grid ${isWide ? 'grid-cols-3' : 'grid-cols-2'} gap-x-6 gap-y-1.5`}>
-              {extraData.splits.map((s: any, i: number) => {
-                const step = s.km ?? s.marker ?? '';
-                const timeText = s.current ?? (s.cumTime ? formatTime(s.cumTime) : '');
-                const suffix = s.total ? ` [${s.total}]` : '';
-                return (
-                  <div key={i} className="flex justify-between items-baseline py-1 border-b border-dashed border-gray-300">
-                    <span className="font-bold text-[10px]">{step}</span>
-                    <span className="flex-grow border-b border-dotted border-gray-300 mx-2"></span>
-                    <span className="text-right text-[11px] font-bold">{timeText}<span className="text-[8px] opacity-60 font-medium">{suffix}</span></span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      }
-
-      if (componentName === 'RaceSplitGenerator') {
-        const splits = gridItems.filter(([k]) => k.startsWith('split'));
-        const others = gridItems.filter(([k]) => !k.startsWith('split'));
-        return (
-          <div className="flex-1 w-full flex flex-col gap-4 font-mono text-black">
-            <div className="space-y-1">
-              <div className="text-[10px] uppercase tracking-wide font-black border-b border-black pb-1 mb-2 text-gray-500">GENERAL STATS</div>
-              {others.map(([k, v]) => (
-                <div key={k} className="flex justify-between items-baseline py-1 border-b border-dashed border-gray-300">
-                  <span className="text-[9px] uppercase tracking-wider text-gray-500">{getLabel(k)}</span>
-                  <span className="flex-grow border-b border-dotted border-gray-300 mx-2"></span>
-                  <span className="text-[11px] font-bold text-black">{String(v)}</span>
-                </div>
-              ))}
-            </div>
-            <div className="space-y-1">
-              <div className="text-[10px] uppercase tracking-wide font-black border-b border-black pb-1 mb-2 text-gray-500">RACE SPLITS</div>
-              {splits.map(([k, v]) => (
-                <div key={k} className="flex justify-between items-baseline py-1 border-b border-dashed border-gray-300">
-                  <span className="text-[9px] uppercase tracking-wider text-gray-400">{k.replace('split', 'SPLIT ')}</span>
-                  <span className="flex-grow border-b border-dotted border-gray-300 mx-2"></span>
-                  <span className="text-[11px] font-bold text-black">{String(v)}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      }
-
-      return (
-        <div className="flex-1 flex flex-col justify-start w-full gap-1 font-mono text-black">
-          <div className="text-[10px] uppercase tracking-widest font-black border-b-2 border-black pb-1 mb-2 text-black flex justify-between">
-            <span>METRIC PROFILE</span>
-            <span>VALUE</span>
-          </div>
-          {gridItems.map(([k, v]) => (
-            <div key={k} className="flex justify-between items-baseline py-1.5 border-b border-dashed border-gray-300">
-              <span className="text-[9px] uppercase tracking-wider text-gray-500">{getLabel(k)}</span>
-              <span className="flex-grow border-b border-dotted border-gray-300 mx-2"></span>
-              <span className="text-[11.5px] font-bold text-black truncate max-w-[50%]">{String(v)}</span>
-            </div>
-          ))}
-        </div>
-      );
-    }
-
-    // --- TEMPLATE 06: MINIMAL WHITE ---
-    if (template === 'minimal white') {
-      if (componentName === 'PaceBandGenerator' && extraData && extraData.splits) {
-        const isWide = exportSize === 'landscape' || exportSize === 'compact';
-        return (
-          <div className="flex-1 w-full text-left font-sans text-black">
-            <div className="grid grid-cols-2 border-b border-black pb-1 mb-2">
-              <span className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold">Split</span>
-              <span className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold text-right font-mono" style={{ color: accent.hex }}>Pace / Delta</span>
-            </div>
-            <div className={`grid ${isWide ? 'grid-cols-2' : 'grid-cols-1'} gap-x-8 gap-y-1`}>
-              {extraData.splits.map((s: any, i: number) => {
-                const step = s.km ?? s.marker ?? '';
-                const timeText = s.current ?? (s.cumTime ? formatTime(s.cumTime) : '');
-                const suffix = s.total ? ` (${s.total})` : '';
-                return (
-                  <div key={i} className="flex justify-between items-center py-1.5 border-b border-zinc-100">
-                    <span className="text-[11px] font-bold tracking-tight text-neutral-800">{step}</span>
-                    <span className="text-[11px] text-right font-mono tracking-tighter text-black">{timeText}<span className="text-[9px] font-sans opacity-50 ml-1" style={{ color: accent.hex }}>{suffix}</span></span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      }
-
-      if (componentName === 'RaceSplitGenerator') {
-        const splits = gridItems.filter(([k]) => k.startsWith('split'));
-        const others = gridItems.filter(([k]) => !k.startsWith('split'));
-        return (
-          <div className="flex-1 w-full flex flex-col gap-4 font-sans text-black">
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-              {others.map(([k, v]) => (
-                <div key={k} className="border-b border-zinc-200 pb-1.5">
-                  <div className="text-[8px] uppercase tracking-widest font-bold mb-0.5" style={{ color: accent.hex }}>{getLabel(k)}</div>
-                  <div className="text-xs font-bold text-black">{String(v)}</div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-2 border-t border-black pt-2">
-              <div className="text-[9px] uppercase tracking-widest text-zinc-400 font-black mb-1.5">Splits Track</div>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs">
-                {splits.map(([k, v]) => (
-                  <div key={k} className="flex justify-between py-1 border-b border-zinc-100">
-                    <span className="font-medium text-zinc-500">{k.replace('split', 'Split ')}</span>
-                    <span className="font-mono font-bold text-black" style={{ color: accent.hex }}>{String(v)}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        );
-      }
-
-      return (
-        <div className="flex-1 flex flex-col justify-start w-full gap-1 font-sans text-black">
-          {gridItems.map(([k, v]) => (
-            <div key={k} className="flex justify-between items-baseline border-b border-zinc-200 py-2.5">
-              <span className="text-[9.5px] font-sans font-semibold tracking-wider uppercase text-zinc-500">{getLabel(k)}</span>
-              <span className="text-xs font-sans font-extrabold text-black text-right truncate max-w-[60%]" style={{ color: accent.hex }}>{String(v)}</span>
-            </div>
-          ))}
-        </div>
-      );
-    }
-
-    // --- TEMPLATE 04: CARBON GRID ---
-    if (template === 'carbon grid') {
-      if (componentName === 'PaceBandGenerator' && extraData && extraData.splits) {
-        const isWide = exportSize === 'landscape' || exportSize === 'compact';
-        return (
-          <div className="flex-1 w-full text-center mt-1 pb-1 overflow-visible font-mono text-[#f2f4f7]">
-            <div className="grid grid-cols-2 text-[9px] uppercase tracking-widest pb-1 mb-2 border-b border-[#2d3139]" style={{ color: accent.hex }}>
-              <div>Target Marker</div><div>Technical Split</div>
-            </div>
-            <div className={`grid ${isWide ? 'grid-cols-2' : 'grid-cols-1'} gap-x-6 gap-y-2`}>
-              {extraData.splits.map((s: any, i: number) => {
-                const step = s.km ?? s.marker ?? '';
-                const timeText = s.current ?? (s.cumTime ? formatTime(s.cumTime) : '');
-                const suffix = s.total ? ` [${s.total}]` : '';
-                return (
-                  <div key={i} className="flex justify-between items-center p-2 rounded-none border border-[#2d3139]/40 bg-[#121316] relative">
+          {/* Technical Grid Panels */}
+          <div className="flex-grow flex flex-col justify-center gap-2">
+            {componentName === 'RaceChecklistGenerator' ? (
+              <div className="grid grid-cols-2 gap-2 font-mono">
+                {getChecklistItems().slice(0, 6).map((it, i) => (
+                  <div key={i} className="flex items-center gap-2.5 p-2 bg-zinc-950/80 border border-zinc-850 relative shadow-sm">
+                    {/* Small technical block highlight in corner */}
                     <div className="absolute top-0 left-0 w-1 h-1 border-t border-l" style={{ borderColor: accent.hex }}></div>
-                    <span className="text-[10px] font-bold text-gray-400">{step}</span>
-                    <span className="text-[11px] font-black text-white">{timeText}<span className="text-[8px] ml-1" style={{ color: accent.hex }}>{suffix}</span></span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      }
-
-      if (componentName === 'RaceSplitGenerator') {
-        const splits = gridItems.filter(([k]) => k.startsWith('split'));
-        const others = gridItems.filter(([k]) => !k.startsWith('split'));
-        return (
-          <div className="flex-1 w-full flex flex-col gap-3 font-mono">
-            <div className="grid grid-cols-3 gap-2">
-              {others.map(([k, v]) => (
-                <div key={k} className="flex flex-col justify-center p-2 border border-[#2d3139]/60 bg-[#111215] relative min-h-[44px]">
-                  <div className="absolute top-0 left-0 w-1 h-1 border-t border-l" style={{ borderColor: accent.hex + '80' }}></div>
-                  <span className="text-[8px] uppercase font-bold mb-0.5" style={{ color: accent.hex }}>{getLabel(k)}</span>
-                  <span className="text-[11px] font-black text-white truncate">{String(v)}</span>
-                </div>
-              ))}
-            </div>
-            <div className="border-t border-[#2d3139]/80 pt-2 text-[#f2f4f7]">
-              <div className="text-[9px] uppercase tracking-widest mb-1.5" style={{ color: accent.hex }}>DATA ARRAYS</div>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
-                {splits.map(([k, v]) => (
-                  <div key={k} className="flex justify-between items-center p-1.5 border border-[#2d3139]/30 bg-[#121316]/50">
-                    <span className="text-[9px]" style={{ color: accent.hex }}>{k.replace('split', 'SP ')}</span>
-                    <span className="font-extrabold text-white">{String(v)}</span>
+                    <div className="w-3.5 h-3.5 shrink-0 border border-zinc-700 flex items-center justify-center bg-zinc-900">
+                      <span className="w-1.5 h-1.5 bg-emerald-400 inline-block"></span>
+                    </div>
+                    <span className="text-[9px] font-bold text-zinc-300 truncate tracking-tight uppercase">{it}</span>
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
-        );
-      }
-
-      const primaryItem04 = getPrimaryMetric();
-      const secondaryItems04 = primaryItem04 
-        ? gridItems.filter(([k]) => k !== primaryItem04[0]) 
-        : gridItems;
-
-      return (
-        <div className="flex-1 flex flex-col gap-3 font-mono text-[#f2f4f7]">
-          {primaryItem04 && (
-            <div className="flex flex-col justify-center p-3.5 bg-[#121316] border border-[#3a322d] relative overflow-hidden min-h-[64px]">
-              <div className="absolute top-0 left-0 w-2 h-2 border-t border-l" style={{ borderColor: accent.hex }}></div>
-              <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r" style={{ borderColor: accent.hex }}></div>
-              <span className="text-[9px] uppercase tracking-widest text-zinc-500 mb-0.5 font-bold">{getLabel(primaryItem04[0])}</span>
-              <span className="text-2xl font-black tracking-tight text-white">{String(primaryItem04[1])}</span>
-            </div>
-          )}
-          <div className="grid grid-cols-2 gap-2">
-            {secondaryItems04.map(([k, v]) => {
-              const label = getLabel(k);
-              const isPaceTime = k.toLowerCase().includes('pace') || k.toLowerCase().includes('time') || k.toLowerCase().includes('duration') || k.toLowerCase().includes('target') || k.toLowerCase().includes('intensity');
-              const isPositive = String(v).toLowerCase().includes('good') || String(v).toLowerCase().includes('excellent') || String(v).toLowerCase().includes('yes') || String(v).toLowerCase().includes('solid');
-              const valColor = isPositive ? 'text-[#a0cc00]' : isPaceTime ? 'text-[#ff3330]' : 'text-white';
-              return (
-                <div key={k} className="flex flex-col justify-center p-2.5 bg-[#121316] border border-[#22252a]/80 relative min-h-[46px]">
-                  <div className="absolute top-0 left-0 w-1 h-1 border-t border-l" style={{ borderColor: accent.hex + '60' }}></div>
-                  <span className="text-[8.5px] uppercase tracking-widest text-zinc-500 mb-0.5">{label}</span>
-                  <span className={`text-[12px] font-black truncate ${valColor}`}>{String(v)}</span>
+            ) : componentName === 'RoutePosterGenerator' ? (
+              <div className="grid grid-cols-2 gap-2 items-stretch">
+                <div className="bg-zinc-950/95 border border-zinc-800 flex items-center justify-center p-2 relative h-[110px] rounded shadow-md overflow-hidden animate-fade-in">
+                  <div className="absolute top-1 left-2 text-[6px] text-zinc-600 tracking-wider">MAP_TRACKER</div>
+                  {showMap ? (
+                    <svg viewBox="0 0 360 360" className="w-[85px] h-[85px] overflow-visible" style={{ stroke: accent.hex }}>
+                      <path d={extraData.parsedData.path} fill="none" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  ) : (
+                    <span className="text-[8px] text-zinc-650">NO GPX TRACK</span>
+                  )}
                 </div>
-              );
-            })}
+                <div className="flex flex-col gap-1.5 justify-center">
+                  <div className="bg-zinc-950/80 border border-zinc-850 p-2 text-left relative">
+                    <div className="absolute top-0 left-0 w-1 h-1 border-t border-l" style={{ borderColor: accent.hex }}></div>
+                    <div className="text-[7px] text-zinc-500 uppercase font-black tracking-widest">RECORD_DIS</div>
+                    <div className="text-base font-black text-white font-mono mt-0.5" style={{ color: accent.hex }}>{formData.distance || '—'}</div>
+                  </div>
+                  {formData.showElevation && extraData?.parsedData?.eleInfo?.valid && (
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <div className="p-1 px-1.5 bg-zinc-950/80 border border-zinc-850">
+                        <span className="text-[6px] text-zinc-500 block font-semibold leading-none">E_MIN</span>
+                        <span className="font-bold text-[9px] text-zinc-350 font-mono mt-0.5 inline-block">{Math.round(extraData.parsedData.eleInfo.min)}m</span>
+                      </div>
+                      <div className="p-1 px-1.5 bg-zinc-950/80 border border-zinc-850">
+                        <span className="text-[6px] text-zinc-500 block font-semibold leading-none">E_MAX</span>
+                        <span className="font-bold text-[9px] text-zinc-350 font-mono mt-0.5 inline-block">{Math.round(extraData.parsedData.eleInfo.max)}m</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : componentName === 'PaceBandGenerator' && extraData && extraData.splits ? (
+              <div className="grid grid-cols-2 gap-1.5 text-zinc-300">
+                {extraData.splits.slice(0, 6).map((s: any, i: number) => {
+                  const isEven = i % 2 === 0;
+                  return (
+                    <div key={i} className={`flex justify-between items-center p-2 border border-zinc-850 bg-zinc-950/85 relative`}>
+                      <div className="absolute top-0 left-0 w-1 h-1 border-t border-l" style={{ borderColor: isEven ? accent.hex : '#f87171' }}></div>
+                      <span className="text-[8px] text-zinc-550 font-extrabold">{s.km ?? s.marker ?? ''}</span>
+                      <span className="text-[10px] font-bold text-white tracking-tight font-mono">{s.current ?? (s.cumTime ? formatTime(s.cumTime) : '')}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : componentName === 'RaceSplitGenerator' ? (
+              <div className="grid grid-cols-2 gap-2 text-white">
+                {gridItems.slice(0, 6).map(([k, v]) => {
+                  const isTime = k.toString().toLowerCase().includes('time') || k.toString().toLowerCase().includes('pace');
+                  return (
+                    <div key={k} className="p-2 bg-zinc-950/90 border border-zinc-850 relative rounded-sm">
+                      <div className="absolute top-0 left-0 w-1 h-1 border-t border-l" style={{ borderColor: isTime ? '#f87171' : accent.hex }}></div>
+                      <span className="text-[7px] text-zinc-500 tracking-wider block uppercase">{getLabel(k)}</span>
+                      <span className="text-xs font-bold font-mono tracking-tight text-white block mt-0.5 truncate">{String(v)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2 text-white">
+                {gridItems.slice(0, 6).map(([k, v], i) => {
+                  // Primary metric shown in lime positive, supporting details in deep red / coral
+                  const isMainMetric = i === 0 || i === 1;
+                  return (
+                    <div key={k} className="flex flex-col justify-between p-2 bg-zinc-950/85 border border-zinc-850/80 relative min-h-[46px]">
+                      <div className="absolute top-0 left-0 w-1 h-1 border-t border-l" style={{ borderColor: isMainMetric ? accent.hex : '#f43f5e' }}></div>
+                      <span className="text-[7px] uppercase tracking-widest text-zinc-500">{getLabel(k)}</span>
+                      <span className="text-xs font-black truncate font-mono text-right" style={{ color: isMainMetric ? '#a3e635' : '#f87171' }}>
+                        {String(v)}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between border-t border-zinc-850 pt-2 pb-0.5 text-[8px] text-zinc-600 font-mono tracking-wider">
+            <span>STABLE NETWORK DATA SOURCE // CLIENT LOAD</span>
+            {watermark}
           </div>
         </div>
-      );
-    }
+      </div>
+    );
+  };
 
-    // --- TEMPLATE 05: RACE POSTER ---
-    if (template === 'race poster pro') {
-      if (componentName === 'PaceBandGenerator' && extraData && extraData.splits) {
-        return (
-          <div className="flex-1 w-full text-left font-sans text-white">
-            <div className="pb-1 mb-2 border-b-2" style={{ borderColor: accent.hex }}>
-              <span className="text-[10px] uppercase tracking-wider text-gray-400 font-extrabold">ATHLETIC INTERVAL SPLITS</span>
-            </div>
-            <div className="space-y-1 max-h-[220px] overflow-visible">
-              {extraData.splits.map((s: any, i: number) => {
-                const step = s.km ?? s.marker ?? '';
-                const timeText = s.current ?? (s.cumTime ? formatTime(s.cumTime) : '');
-                const suffix = s.total ? ` [${s.total}]` : '';
-                return (
-                  <div key={i} className="flex justify-between items-center py-2 border-l-4 pl-3 bg-[#181a1f]" style={{ borderLeftColor: accent.hex }}>
-                    <span className="text-[11px] font-black tracking-tight">{step}</span>
-                    <span className="text-xs font-mono font-bold">{timeText}<span className="text-[9px] text-gray-400 ml-1">{suffix}</span></span>
-                  </div>
-                );
-              })}
+  // ==========================================
+  // TEMPLATE 05: RACE POSTER (Artistic Symmetrical Poster Series)
+  // ==========================================
+  const renderRacePosterTemplate = () => {
+    const showMap = componentName === 'RoutePosterGenerator' && !!extraData?.parsedData;
+
+    return (
+      <div className={`${layout.wrapper} flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none overflow-hidden bg-[#030303] border border-neutral-900 text-white justify-between pb-4`}>
+        {/* Symmetrical fine details */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-1 shrink-0" style={{ backgroundColor: accent.hex }}></div>
+
+        <div className="flex-grow flex flex-col justify-between pt-6 px-4 gap-3.5">
+          {/* Symmetrical Editorial Header */}
+          <div className="text-center font-sans">
+            <span className="text-[7px] uppercase tracking-[0.3em] text-[#a1a1aa] font-medium mb-1 block">RUNCARD FINE ART POSTER SERIES</span>
+            <h1 className="text-xl md:text-2xl uppercase tracking-[0.05em] font-black leading-none break-words text-white">{title}</h1>
+            <div className="flex items-center justify-center gap-2 mt-2">
+              <span className="w-1.5 h-[1.5px]" style={{ backgroundColor: accent.hex }}></span>
+              <span className="text-[8px] uppercase tracking-widest text-zinc-500 font-extrabold">{dateStr || 'ATHLETICS'}</span>
+              <span className="w-1.5 h-[1.5px]" style={{ backgroundColor: accent.hex }}></span>
             </div>
           </div>
-        );
-      }
 
-      if (componentName === 'RaceSplitGenerator') {
-        const splits = gridItems.filter(([k]) => k.startsWith('split'));
-        const others = gridItems.filter(([k]) => !k.startsWith('split'));
-        return (
-          <div className="flex-1 w-full flex flex-col gap-3 font-sans">
-            <div className="grid grid-cols-2 gap-2">
-              {others.map(([k, v]) => (
-                <div key={k} className="p-2.5 border-l-3 bg-[#181a1f]/80" style={{ borderLeftColor: accent.hex }}>
-                  <div className="text-[8px] uppercase tracking-wider text-gray-400 font-extrabold mb-0.5">{getLabel(k)}</div>
-                  <div className="text-xs font-black text-white truncate">{String(v)}</div>
+          {/* Symmetrical Hero Focal Area with One Massive Central Metric */}
+          <div className="flex-1 flex flex-col justify-center items-center my-3">
+            {componentName === 'RoutePosterGenerator' ? (
+              <div className="flex-grow flex flex-col items-center justify-center w-full gap-2">
+                <div className="h-[120px] flex items-center justify-center">
+                  {showMap ? (
+                    <svg viewBox="0 0 360 360" className="w-[120px] h-[120px] overflow-visible" style={{ stroke: accent.hex }}>
+                      <path d={extraData.parsedData.path} fill="none" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  ) : (
+                    <Compass className="w-12 h-12 opacity-30 animate-pulse" />
+                  )}
                 </div>
-              ))}
-            </div>
-            <div className="mt-1 border-t pt-2" style={{ borderTopColor: accent.hex + '40' }}>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                {splits.map(([k, v]) => (
-                  <div key={k} className="flex justify-between items-center py-1.5 px-2 border-b border-zinc-800">
-                    <span className="font-extrabold text-gray-400 text-[10px] tracking-tight">{k.replace('split', 'RUN SPLIT ')}</span>
-                    <span className="font-mono font-black text-white">{String(v)}</span>
+                {formData.distance && (
+                  <div className="text-center mt-2.5">
+                    <span className="text-[8px] uppercase tracking-widest text-zinc-550 font-bold block">OUTING SCALE</span>
+                    <span className="text-2xl font-extrabold" style={{ color: accent.hex }}>{formData.distance}</span>
+                  </div>
+                )}
+              </div>
+            ) : componentName === 'RaceChecklistGenerator' ? (
+              <div className="w-[200px] border border-neutral-900 rounded-sm bg-neutral-950/60 p-2.5 flex flex-col gap-1.5">
+                <span className="text-[7px] uppercase tracking-wider text-zinc-400 font-bold text-center border-b border-neutral-900 pb-1 mb-0.5">CORE SCHEDULES</span>
+                {getChecklistItems().slice(0, 4).map((it, i) => (
+                  <div key={i} className="flex items-center gap-2.5 py-1 text-center justify-center border-b border-neutral-900/40 last:border-0 last:pb-0">
+                    <span className="w-1 h-1 rounded-full shrink-0" style={{ backgroundColor: accent.hex }} />
+                    <span className="text-[9px] font-extrabold uppercase tracking-tight text-neutral-300 truncate">{it}</span>
                   </div>
                 ))}
               </div>
-            </div>
+            ) : componentName === 'PaceBandGenerator' ? (
+              <div className="text-center flex flex-col gap-1.5 bg-neutral-950/50 p-3 rounded border border-neutral-900 w-[200px]">
+                <span className="text-[7px] text-zinc-400 uppercase font-bold tracking-[0.2em] mb-1.5 block">KEY METERS</span>
+                {extraData.splits?.slice(0, 3).map((s: any, i: number) => (
+                  <div key={i} className="flex justify-between items-baseline text-xs font-sans border-b border-neutral-900 last:border-0 pb-1 last:pb-0">
+                    <span className="text-zinc-500 uppercase text-[9px] font-bold font-mono">{s.km ?? s.marker ?? ''}</span>
+                    <span className="font-extrabold text-neutral-200">{s.current}</span>
+                  </div>
+                ))}
+              </div>
+            ) : primaryItem ? (
+              <div className="text-center">
+                <span className="text-[8px] uppercase tracking-[0.25em] text-[#a1a1aa] font-bold block mb-1">{getLabel(primaryItem[0])}</span>
+                <span className="text-5xl md:text-6xl font-black tracking-tight leading-none text-white uppercase block mt-1">
+                  {String(primaryItem[1])}
+                </span>
+                <div className="w-8 h-[2px] mx-auto mt-3" style={{ backgroundColor: accent.hex }}></div>
+              </div>
+            ) : (
+              <span className="text-xs opacity-20">NO POSTER FOCAL METRIC</span>
+            )}
           </div>
-        );
-      }
 
-      const primaryItem05 = getPrimaryMetric();
-      const secondaryItems05 = primaryItem05 
-        ? gridItems.filter(([k]) => k !== primaryItem05[0]) 
-        : gridItems;
-
-      return (
-        <div className="flex-1 flex flex-col justify-between font-sans text-white">
-          {primaryItem05 ? (
-            <div className="my-auto text-center flex flex-col justify-center py-3">
-              <span className="text-[10px] uppercase tracking-[0.2em] text-[#71717a] font-extrabold mb-1">{getLabel(primaryItem05[0])}</span>
-              <span className="text-3xl md:text-4xl font-black tracking-tighter leading-none text-white uppercase">{String(primaryItem05[1])}</span>
-              <div className="w-1/4 h-[2px] mx-auto mt-3" style={{ backgroundColor: accent.hex }}></div>
+          {/* Compact visual rows of secondary specs at the botton */}
+          {secondaryItems.length > 0 && componentName !== 'RoutePosterGenerator' && (
+            <div className="flex flex-col gap-1.5 py-2.5 border-t border-b border-neutral-950">
+              {secondaryItems.slice(0, 3).map(([k, v]) => (
+                <div key={k} className="flex justify-between items-center text-xs px-2">
+                  <span className="text-[7px] uppercase tracking-wider text-neutral-400 font-black">{getLabel(k)}</span>
+                  <span className="font-extrabold text-zinc-100 uppercase text-[10px]">{String(v)}</span>
+                </div>
+              ))}
             </div>
-          ) : (
-            <div className="my-auto text-center py-4 text-zinc-500 italic uppercase text-[10px] tracking-widest">No metrics</div>
           )}
-          
-          <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 pt-2 border-t border-zinc-900/40">
-            {secondaryItems05.map(([k, v]) => (
-              <div key={k} className="flex justify-between items-center py-1 border-b border-zinc-900/60">
-                <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#71717a]">{getLabel(k)}</span>
-                <span className="text-[11px] font-black text-white truncate max-w-[65%]">{String(v)}</span>
-              </div>
-            ))}
+
+          {/* Absolute Fine Typography Footer */}
+          <div className="flex flex-col items-center border-t border-neutral-950 pt-3 mt-auto">
+            <span className="text-[7px] uppercase tracking-[0.3em] font-sans text-zinc-500 block mb-1">INTENDED EXCLUSIVELY FOR ATHLETE PRESERVATION</span>
+            {watermark}
           </div>
         </div>
-      );
-    }
+      </div>
+    );
+  };
 
-    // --- TEMPLATE 07: SPLIT PANEL ---
-    if (template === 'split panel') {
-      if (componentName === 'PaceBandGenerator' && extraData && extraData.splits) {
-        return (
-          <div className="flex-1 w-full text-left font-mono text-[#f2f4f7]">
-            <div className="grid grid-cols-2 gap-2">
-              {extraData.splits.map((s: any, i: number) => {
-                const step = s.km ?? s.marker ?? '';
-                const timeText = s.current ?? (s.cumTime ? formatTime(s.cumTime) : '');
-                return (
-                  <div key={i} className="flex flex-col p-3 rounded-xl border border-[#22252a] bg-[#14151a] shadow-[0_4px_10px_rgba(0,0,0,0.3)]">
-                    <span className="text-[8px] uppercase tracking-wider font-bold" style={{ color: accent.hex }}>{step}</span>
-                    <span className="text-xs font-black text-white truncate mt-1">{timeText}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      }
+  // ==========================================
+  // TEMPLATE 06: MINIMAL WHITE (瑞士极简主义海报专版)
+  // ==========================================
+  const renderMinimalWhiteTemplate = () => {
+    const showMap = componentName === 'RoutePosterGenerator' && !!extraData?.parsedData;
 
-      const panels = gridItems.slice(0, 4);
-      return (
-        <div className="flex-1 grid gap-3 grid-cols-2 font-mono">
-          {panels.map(([k, v], i) => {
-            const isPrimary = i === 0;
-            const highlightColor = isPrimary ? '#ff3330' : accent.hex;
-            return (
-              <div 
-                key={k} 
-                className="flex flex-col justify-center p-3 rounded-xl border border-[#22252a] bg-[#14151a] shadow-[0_4px_12px_rgba(0,0,0,0.5)]"
-                style={{ borderTopWidth: '3px', borderTopColor: highlightColor }}
-              >
-                <span className="text-[8px] uppercase tracking-widest font-bold text-zinc-500 mb-0.5">{getLabel(k)}</span>
-                <span className="text-xs font-black text-white truncate">{String(v)}</span>
-              </div>
-            );
-          })}
-        </div>
-      );
-    }
-
-    // --- TEMPLATE 08: NEON EDGE ---
-    if (template === 'neon edge') {
-      if (componentName === 'PaceBandGenerator' && extraData && extraData.splits) {
-        return (
-          <div className="flex-1 w-full text-left font-mono text-white">
-            <div className="grid grid-cols-1 gap-2">
-              {extraData.splits.map((s: any, i: number) => {
-                const step = s.km ?? s.marker ?? '';
-                const timeText = s.current ?? (s.cumTime ? formatTime(s.cumTime) : '');
-                const isLime = i % 2 === 0;
-                return (
-                  <div 
-                    key={i} 
-                    className="flex justify-between items-center px-3 py-2 border-l-2 bg-black/40"
-                    style={{ 
-                      borderLeftColor: isLime ? accent.hex : accent.hex + '99',
-                      color: isLime ? accent.hex : '#ffffff' 
-                    }}
-                  >
-                    <span className="text-[10px] uppercase font-bold text-gray-400">{step}</span>
-                    <span className="text-[12px] font-black">{timeText}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      }
-
-      const primaryItem08 = getPrimaryMetric();
-      const secondaryItems08 = primaryItem08 
-        ? gridItems.filter(([k]) => k !== primaryItem08[0]) 
-        : gridItems;
+    return (
+      <div className={`${layout.wrapper} flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none overflow-hidden bg-white border border-zinc-200 text-zinc-900 font-sans justify-between p-2`}>
         
-      return (
-        <div className="flex-1 flex flex-col gap-2 p-1 font-mono text-white">
-          {primaryItem08 && (
-            <div className="flex flex-col justify-center p-2.5 bg-[#0a0b0d]/80 border-l-[3px] relative" style={{ borderLeftColor: '#ff3330', backgroundColor: '#ff333008' }}>
-              <span className="text-[8.5px] uppercase tracking-wider text-zinc-500 mb-0.5 font-bold">{getLabel(primaryItem08[0])}</span>
-              <span className="text-xl font-black text-[#ff3330] tracking-tight">{String(primaryItem08[1])}</span>
+        {/* Subtle geometric structural marker */}
+        <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-zinc-950"></div>
+        <div className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-zinc-950"></div>
+
+        <div className="flex-grow flex flex-col justify-between h-full py-2 px-1">
+          {/* Header Block Minimalist */}
+          <div className="border-b-[3px] border-zinc-950 pb-3 mb-2">
+            <div className="flex justify-between items-baseline">
+              <span className="text-[8px] font-mono tracking-widest text-zinc-400 uppercase">SWISS PRINT SPECIFIED // ATHLETIC REPORT</span>
+              <span className="text-[9px] uppercase font-mono tracking-widest text-[#71717a] font-black">{dateStr || 'DOC_MNM'}</span>
             </div>
-          )}
-          <div className="grid grid-cols-2 gap-2">
-            {secondaryItems08.map(([k, v]) => (
-              <div 
-                key={k} 
-                className="flex flex-col justify-center p-2 px-2.5 bg-[#0a0b0d]/70 border-l-[2px]"
-                style={{ borderLeftColor: accent.hex, backgroundColor: accent.hex + '04' }}
-              >
-                <span className="text-[8px] uppercase tracking-wider text-zinc-500 mb-0.5">{getLabel(k)}</span>
-                <span className="text-xs font-black text-white truncate">{String(v)}</span>
-              </div>
-            ))}
+            <h1 className="text-xl md:text-2xl font-black uppercase tracking-tight text-neutral-950 break-words mt-1.5 flex items-center gap-1.5">
+              {title}
+              <span className="w-2.5 h-2.5 rounded-full inline-block shrink-0" style={{ backgroundColor: accent.hex }} />
+            </h1>
           </div>
-        </div>
-      );
-    }
 
-    // --- TEMPLATE 10: COMPACT STORY ---
-    if (template === 'compact story') {
-      if (componentName === 'PaceBandGenerator' && extraData && extraData.splits) {
-        return (
-          <div className="flex-1 w-full flex flex-col justify-center divide-y divide-[#22252a]/60 font-sans text-white">
-            {extraData.splits.slice(0, 6).map((s: any, i: number) => {
-              const step = s.km ?? s.marker ?? '';
-              const timeText = s.current ?? (s.cumTime ? formatTime(s.cumTime) : '');
-              return (
-                <div key={i} className="flex justify-between items-center py-2.5 px-2">
-                  <span className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">{step}</span>
-                  <span className="text-xs font-black font-mono" style={{ color: accent.hex }}>{timeText}</span>
-                </div>
-              );
-            })}
-          </div>
-        );
-      }
-
-      const primaryItem10 = getPrimaryMetric();
-      const secondaryItems10 = primaryItem10 
-        ? gridItems.filter(([k]) => k !== primaryItem10[0]) 
-        : gridItems;
-
-      return (
-        <div className="flex-1 flex flex-col justify-between font-sans text-white">
-          {primaryItem10 ? (
-            <div className="my-auto text-center flex flex-col justify-center py-1">
-              <span className="text-[9px] uppercase tracking-[0.15em] text-zinc-500 font-bold mb-0.5">{getLabel(primaryItem10[0])}</span>
-              <span className="text-2xl font-black uppercase tracking-tight" style={{ color: accent.hex }}>{String(primaryItem10[1])}</span>
-            </div>
-          ) : (
-            <div className="my-auto text-center text-zinc-500 italic text-xs">No metrics</div>
-          )}
-          
-          <div className="mt-auto space-y-0.5 divide-y divide-[#22252a]/40">
-            {secondaryItems10.slice(0, 4).map(([k, v]) => (
-              <div key={k} className="flex justify-between items-center py-2 px-1 text-xs border-[#22252a]/40">
-                <span className="text-[9px] uppercase tracking-wider text-zinc-500 font-bold">{getLabel(k)}</span>
-                <span className="font-extrabold text-white truncate max-w-[65%]">{String(v)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
-
-    if (componentName === 'PaceBandGenerator' && extraData && extraData.splits) {
-       const isWide = exportSize === 'landscape' || exportSize === 'compact';
-       return (
-         <div className="flex-1 w-full text-center mt-1 pb-1 overflow-visible">
-            <div className={`grid ${isWide ? 'grid-cols-3' : 'grid-cols-2'} text-[10px] uppercase font-bold tracking-widest pb-1 mb-1.5 border-b ${themeClasses.border}`}>
-               {isWide ? (
-                 <>
-                   <div>Split 1</div><div>Split 2</div><div>Split 3</div>
-                 </>
-               ) : (
-                 <>
-                   <div>Units</div><div>Time / Cumulative</div>
-                 </>
-               )}
-            </div>
-            <div className={`grid ${isWide ? 'grid-cols-3' : 'grid-cols-2'} gap-x-4 gap-y-1.5 overflow-visible`}>
-              {extraData.splits.map((s: any, i: number) => {
-                const step = s.km ?? s.marker ?? '';
-                const timeText = s.current ?? (s.cumTime ? formatTime(s.cumTime) : '');
-                const suffix = s.total ? ` (${s.total})` : '';
-                return (
-                  <div key={i} className={`flex justify-between text-[11px] font-mono items-center pb-0.5 border-b border-dashed ${themeClasses.borderDashed}`}>
-                    <span className="font-bold">{step}</span>
-                    <span className="text-right">{timeText}<span className="opacity-50 text-[9px]">{suffix}</span></span>
+          {/* Structured Rows Layout Content */}
+          <div className="flex-1 flex flex-col justify-center gap-2">
+            {componentName === 'RaceChecklistGenerator' ? (
+              <div className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-zinc-900 font-sans">
+                {getChecklistItems().slice(0, 8).map((it, i) => (
+                  <div key={i} className="flex items-center gap-3 py-1 border-b border-zinc-100">
+                    <span className="text-[9px] font-mono text-zinc-400 font-black">0{i+1}</span>
+                    <span className="text-xs font-bold text-zinc-900 truncate uppercase">{it}</span>
                   </div>
-                );
-              })}
-            </div>
-         </div>
-       );
-    }
-    
-    if (componentName === 'RaceSplitGenerator') {
-       // Only show populated splits
-       const splits = gridItems.filter(([k]) => k.startsWith('split'));
-       const others = gridItems.filter(([k]) => !k.startsWith('split'));
-       const isWide = exportSize === 'landscape' || exportSize === 'compact';
-       return (
-         <div className="flex-1 w-full flex flex-col gap-2 overflow-visible">
-            <div className={`grid gap-2 ${exportSize === 'compact' ? 'grid-cols-3 gap-1.5' : (template === 'split panel' || template === 'compact story') ? 'grid-cols-1' : 'grid-cols-2'}`}>
-              {others.map(([k, v]) => (
-                <div key={k} className={`flex flex-col flex-1 justify-center p-2 rounded ${themeClasses.card} ${exportSize === 'compact' ? 'min-h-[40px]' : 'min-h-[50px]'}`}>
-                  <span className={`text-[8px] uppercase tracking-widest font-bold mb-0.5 ${themeClasses.label}`}>{getLabel(k)}</span>
-                  <span className={`text-xs font-bold truncate ${themeClasses.value}`}>{String(v)}</span>
+                ))}
+              </div>
+            ) : componentName === 'RoutePosterGenerator' ? (
+              <div className="flex items-center justify-between gap-4 w-full">
+                <div className="p-3 border border-zinc-200 bg-zinc-50/50 flex items-center justify-center shrink-0 w-[110px] h-[110px] rounded overflow-hidden">
+                  {showMap ? (
+                    <svg viewBox="0 0 360 360" className="w-[95px] h-[95px] overflow-visible" style={{ stroke: '#000000' }}>
+                      <path d={extraData.parsedData.path} fill="none" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  ) : (
+                    <span className="text-[8px] text-zinc-400 font-mono">NO TRACK GRAPH</span>
+                  )}
                 </div>
-              ))}
-            </div>
-            
-            <div className={`grid ${isWide ? 'grid-cols-3' : 'grid-cols-2'} gap-x-4 gap-y-1 mt-1`}>
-              {splits.map(([k, v]) => (
-                <div key={k} className={`flex justify-between items-center border-b pb-0.5 ${themeClasses.border} text-xs`}>
-                  <span className={`text-[9px] uppercase font-bold ${themeClasses.label}`}>{k.replace('split', 'Split ')}</span>
-                  <span className={`font-mono font-bold ${themeClasses.value}`}>{String(v)}</span>
+                <div className="flex-1 flex flex-col justify-center text-left">
+                  <span className="text-[8px] uppercase tracking-wider font-extrabold text-zinc-400">INDEX METRIC_06_DISTANCE</span>
+                  <div className="text-2xl font-black text-zinc-950 mt-1 uppercase" style={{ color: accent.hex !== '#FFFFFF' && accent.hex !== 'clean white' ? accent.hex : '#000000' }}>{formData.distance || '—'}</div>
+                  {formData.showElevation && extraData?.parsedData?.eleInfo?.valid && (
+                    <div className="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-zinc-100 text-[10px]">
+                      <div>
+                        <span className="text-[7px] text-zinc-400 block font-bold">ALT_MIN</span>
+                        <span className="font-extrabold text-zinc-900 font-mono">{Math.round(extraData.parsedData.eleInfo.min)}m</span>
+                      </div>
+                      <div>
+                        <span className="text-[7px] text-zinc-400 block font-bold">ALT_MAX</span>
+                        <span className="font-extrabold text-zinc-900 font-mono">{Math.round(extraData.parsedData.eleInfo.max)}m</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
-         </div>
-       );
-    }
-
-    return (
-      <div className={`flex-1 grid gap-2 overflow-visible ${template === 'compact story' ? 'grid-cols-1' : template === 'split panel' ? 'grid-cols-2' : gridCols}`}>
-        {gridItems.map(([k, v], i) => (
-          <div key={k} className={`flex flex-col flex-1 ${containerMinHeight} justify-center ${cardPadding} rounded ${themeClasses.card}`}>
-            <span className={`${labelSize} uppercase tracking-widest font-bold mb-0.5 ${themeClasses.label}`}>{getLabel(k)}</span>
-            <span className={`${valueSize} font-bold truncate ${themeClasses.value}`}>{String(v)}</span>
+              </div>
+            ) : componentName === 'PaceBandGenerator' && extraData && extraData.splits ? (
+              <div className="space-y-1 w-full text-zinc-900">
+                <div className="grid grid-cols-2 py-1 text-[8px] font-mono text-zinc-450 border-b border-zinc-200 uppercase font-black tracking-widest">
+                  <span>KM MARKER</span>
+                  <span className="text-right">INTERVAL SPLIT</span>
+                </div>
+                {extraData.splits.slice(0, 5).map((s: any, i: number) => (
+                  <div key={i} className="flex justify-between py-1 border-b border-zinc-100 text-xs font-mono">
+                    <span className="font-bold text-zinc-500">{(i + 1) + " - " + (s.km ?? s.marker ?? "")}</span>
+                    <span className="font-extrabold text-zinc-955">{s.current}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-1.5 w-full">
+                {gridItems.slice(0, 5).map(([k, v]) => (
+                  <div key={k} className="flex justify-between items-baseline border-b border-zinc-100 py-1 text-xs text-zinc-900 font-sans">
+                    <span className="text-[9px] uppercase font-bold text-zinc-400 tracking-wider pr-4">{getLabel(k)}</span>
+                    <span className="font-black text-zinc-950 text-right truncate max-w-[65%] uppercase font-mono">{String(v)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        ))}
+
+          {/* Simple minimalist Swiss footer */}
+          <div className="flex justify-between items-end border-t border-zinc-950 pt-2.5 text-[8px] text-zinc-400 mt-2">
+            <span className="tracking-widest font-mono">PRINT FRIENDLY TIMING CARD SCHEMA // SWISS DESIGN</span>
+            {watermark}
+          </div>
+        </div>
       </div>
     );
   };
 
-  const watermark = <div className={`mt-auto text-right text-[8px] uppercase tracking-widest font-mono opacity-40 pt-4 ${(template === 'print utility' || template === 'minimal white') ? 'text-black' : 'text-white'}`}>{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'made with RunCard Studio'}</div>;
+  // ==========================================
+  // TEMPLATE 07: SPLIT PANEL (Modular Bento Architecture)
+  // ==========================================
+  const renderSplitPanelTemplate = () => {
+    const showMap = componentName === 'RoutePosterGenerator' && !!extraData?.parsedData;
 
-  const getSizeStyles = (size: string) => {
-    switch (size) {
-      case "story":
-        return {
-          wrapper: "w-[400px] h-[711px] p-8",
-          title: "text-3xl",
-          subtitle: "text-[10px]",
-          contentGap: "gap-6",
-        };
-      case "landscape":
-        return {
-          wrapper: "w-[640px] h-[360px] p-6",
-          title: "text-2xl",
-          subtitle: "text-[9px]",
-          contentGap: "gap-4",
-        };
-      case "compact":
-        return {
-          wrapper: "w-[540px] h-[283px] p-4",
-          title: "text-xl",
-          subtitle: "text-[8px]",
-          contentGap: "gap-2.5",
-        };
-      case "printable":
-        return {
-          wrapper: "w-[595px] h-[842px] p-8",
-          title: "text-4xl",
-          subtitle: "text-[11px]",
-          contentGap: "gap-8",
-        };
-      case "square":
-      default:
-        return {
-          wrapper: "w-[480px] h-[480px] p-8",
-          title: "text-3xl",
-          subtitle: "text-[10px]",
-          contentGap: "gap-6",
-        };
-    }
+    return (
+      <div className={`${layout.wrapper} flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none overflow-hidden bg-[#0a0c10] text-[#f2f4f7] font-mono justify-between p-2`}>
+        {/* Bento modular clean wrapper */}
+        <div className="flex-1 flex flex-col justify-between gap-2.5 h-full relative z-10">
+          
+          {/* Top Header Panel Block */}
+          <div className="bg-[#12141c] rounded-xl p-3.5 border border-zinc-800 shadow-md">
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-[7.5px] uppercase tracking-widest text-[#71717a] font-extrabold block">BENTO ATHLETIC SYSTEM</span>
+              <span className="text-[7.5px] px-1.5 py-0.5 rounded uppercase font-black tracking-tight" style={{ backgroundColor: accent.hex, color: accent.hex === '#FFFFFF' ? '#000000' : '#ffffff' }}>
+                {dateStr || 'DATA_07'}
+              </span>
+            </div>
+            <h1 className="text-sm md:text-base uppercase tracking-tight break-words font-black" style={{ color: accent.hex }}>{title}</h1>
+          </div>
+
+          {/* Bento Board Space Grid layout */}
+          <div className="flex-grow flex flex-col justify-center gap-2">
+            {componentName === 'RaceChecklistGenerator' ? (
+              <div className="grid grid-cols-2 gap-2">
+                {getChecklistItems().slice(0, 6).map((it, i) => (
+                  <div key={i} className="flex items-center gap-2.5 p-2 rounded-lg border border-zinc-850 bg-[#141620] relative shadow group">
+                    <CheckCircle className="w-3.5 h-3.5 shrink-0" style={{ color: accent.hex }} />
+                    <span className="text-[10px] font-black text-white truncate uppercase">{it}</span>
+                  </div>
+                ))}
+              </div>
+            ) : componentName === 'RoutePosterGenerator' ? (
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-xl border border-zinc-850 bg-[#141620] p-2 flex items-center justify-center min-h-[110px]">
+                  {showMap ? (
+                    <svg viewBox="0 0 360 360" className="w-[95px] h-[95px] overflow-visible" style={{ stroke: accent.hex }}>
+                      <path d={extraData.parsedData.path} fill="none" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  ) : (
+                    <HelpCircle className="w-8 h-8 opacity-25" />
+                  )}
+                </div>
+                <div className="rounded-xl border border-zinc-850 bg-[#141620] p-3 flex flex-col justify-center text-left">
+                  <span className="text-[8px] uppercase tracking-wider font-bold text-zinc-500">MAPPING_DIS</span>
+                  <div className="mt-1 text-base font-black text-white" style={{ color: accent.hex }}>{formData.distance || '—'}</div>
+                  {formData.showElevation && extraData?.parsedData?.eleInfo?.valid && (
+                    <div className="mt-1.5 text-[8px] text-gray-500 border-t border-zinc-800 pt-1">
+                      <p>H_MIN: {Math.round(extraData.parsedData.eleInfo.min)}m</p>
+                      <p>H_MAX: {Math.round(extraData.parsedData.eleInfo.max)}m</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : componentName === 'PaceBandGenerator' ? (
+              <div className="grid grid-cols-2 gap-2">
+                {extraData.splits?.slice(0, 4).map((s: any, i: number) => (
+                  <div key={i} className="flex flex-col p-2.5 rounded-lg border border-zinc-850 bg-[#141620] shadow">
+                    <span className="text-[8px] uppercase tracking-wider font-bold" style={{ color: accent.hex }}>{s.km ?? s.marker ?? ''}</span>
+                    <span className="text-xs font-black text-white truncate mt-1">{s.current}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                {gridItems.slice(0, 4).map(([k, v], i) => {
+                  const isPrimary = i === 0;
+                  const highlightColor = isPrimary ? '#f43f5e' : accent.hex;
+                  return (
+                    <div 
+                      key={k} 
+                      className="flex flex-col justify-center p-3 rounded-xl border border-zinc-850 bg-[#141620] shadow-[0_4px_12px_rgba(0,0,0,0.5)] transition-all duration-200"
+                      style={{ borderTopWidth: '3.5px', borderTopColor: highlightColor }}
+                    >
+                      <span className="text-[8px] uppercase tracking-widest font-black text-zinc-550 mb-1 leading-none">{getLabel(k)}</span>
+                      <span className="text-xs font-black text-white truncate">{String(v)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Bento Footer Panel */}
+          <div className="flex justify-between items-center border-t border-zinc-850 pt-2.5 mt-1">
+            <span className="text-[8.5px] text-[#71717a] font-bold uppercase tracking-wider">MODULAR_GRID_07 // DIRECT RECORD</span>
+            {watermark}
+          </div>
+        </div>
+      </div>
+    );
   };
 
-  const layout = getSizeStyles(exportSize);
+  // ==========================================
+  // TEMPLATE 08: NEON EDGE (Futuristic Cyberpunk Edge Rail Mode)
+  // ==========================================
+  const renderNeonEdgeTemplate = () => {
+    const showMap = componentName === 'RoutePosterGenerator' && !!extraData?.parsedData;
 
-  // 04 Carbon Grid
-  if (template === 'carbon grid') {
-    return (
-      <div className={`${layout.wrapper} flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none overflow-hidden bg-[#181a1f] border border-[#22252a] text-[#f2f4f7] font-mono`}>
-         <div className="absolute inset-0 bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:12px_12px] opacity-80 z-0"></div>
-         <div className="relative z-10 p-1 flex flex-col h-full justify-between">
-            <div className={`mb-4 pb-3 border-b border-[#22252a] ${exportSize === 'compact' ? 'mb-2 pb-1' : ''}`}>
-              <h1 className={`${layout.title} font-black uppercase tracking-tighter leading-tight text-white mb-1 break-words`}>{title}</h1>
-              <div className={`${layout.subtitle} uppercase tracking-widest font-bold`} style={{ color: accent.hex }}>{dateStr}</div>
-            </div>
-            {renderContent({
-               card: 'border border-[#22252a] bg-[#121316]',
-               label: 'text-primary-coral',
-               value: 'text-white',
-               border: 'border-[#22252a]',
-               borderDashed: 'border-[#22252a]/50'
-            })}
-            {watermark}
-         </div>
-      </div>
-    );
-  }
-
-  // 05 Race Poster Pro
-  if (template === 'race poster pro') {
-    return (
-      <div className={`${layout.wrapper} flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none overflow-hidden bg-[#0f1012] border-2 border-[#181a1f] text-white`}>
-         <div className="h-2 w-full" style={{ backgroundColor: accent.hex }}></div>
-         <div className="p-4 flex flex-col h-full font-sans justify-between">
-            <div>
-              <h1 className={`${layout.title} font-black uppercase tracking-tighter leading-none mb-1 break-words`}>{title}</h1>
-              <div className={`${layout.subtitle} uppercase tracking-widest font-bold mb-4`} style={{ color: accent.hex }}>{dateStr}</div>
-            </div>
-            {renderContent({
-               card: 'border-l-2 border-primary-coral pl-3 bg-[#181a1f]/50',
-               label: 'text-gray-400',
-               value: 'text-white font-bold',
-               border: 'border-[#22252a]',
-               borderDashed: 'border-[#22252a]/50'
-            })}
-            {watermark}
-         </div>
-      </div>
-    );
-  }
-
-  // 06 Minimal White
-  if (template === 'minimal white') {
-    return (
-      <div className={`${layout.wrapper} flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none overflow-hidden bg-[#f4f4f5] border border-[#e4e4e7] text-[#18181b]`}>
-         <div className="p-4 flex flex-col h-full font-sans justify-between">
-            <div className={`mb-4 border-b-2 border-[#18181b] pb-3 ${exportSize === 'compact' ? 'mb-2 pb-1' : ''}`}>
-              <h1 className={`${layout.title} font-black uppercase tracking-tight leading-tight text-black break-words`}>{title}</h1>
-              <div className={`${layout.subtitle} uppercase tracking-widest font-bold mt-1`} style={{ color: accent.hex }}>{dateStr}</div>
-            </div>
-            {renderContent({
-               card: 'border border-[#e4e4e7] bg-white',
-               label: 'text-gray-500',
-               value: 'text-black',
-               border: 'border-[#e4e4e7]',
-               borderDashed: 'border-[#e4e4e7]/50'
-            })}
-            {watermark}
-         </div>
-      </div>
-    );
-  }
-
-  // 07 Split Panel
-  if (template === 'split panel') {
-    return (
-      <div className={`${layout.wrapper} flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none overflow-hidden bg-[#111316] text-[#f2f4f7] font-mono justify-between`}>
-         <div className={`bg-[#181a1f] rounded text-center p-3 border border-[#22252a] mb-3 ${exportSize === 'compact' ? 'p-1.5 mb-1.5' : ''}`}>
-           <h1 className={`${layout.title} font-black uppercase tracking-tighter leading-tight break-words`} style={{ color: accent.hex }}>{title}</h1>
-           <div className="text-[9px] uppercase tracking-widest text-gray-400 mt-1">{dateStr}</div>
-         </div>
-         <div className="flex-1 flex flex-col justify-center">
-            {renderContent({
-               card: 'border border-[#22252a] bg-[#181a1f]/50',
-               label: 'text-primary-coral',
-               value: 'text-white',
-               border: 'border-[#22252a]',
-               borderDashed: 'border-[#22252a]/50'
-            })}
-         </div>
-         {watermark}
-      </div>
-    );
-  }
-
-  // 08 Neon Edge
-  if (template === 'neon edge') {
     return (
       <div 
-        className={`${layout.wrapper} flex flex-col relative transition-all duration-300 select-none overflow-hidden bg-[#0a0b0d] border text-white justify-between`}
-        style={{ borderColor: accent.hex, boxShadow: `0 0 20px ${accent.hex}26` }}
+        className={`${layout.wrapper} flex flex-col relative transition-all duration-300 select-none overflow-hidden bg-[#03060a] border border-zinc-950 text-white justify-between`}
       >
-         <div className="absolute top-0 right-0 w-48 h-48 blur-3xl rounded-full pointer-events-none" style={{ backgroundColor: accent.hex + '1a' }}></div>
-         <div className="absolute bottom-0 left-0 w-32 h-32 blur-3xl rounded-full pointer-events-none" style={{ backgroundColor: accent.hex + '0d' }}></div>
-         <div className="flex flex-col h-full relative z-10 font-sans justify-between">
-            <div className={`mb-4 ${exportSize === 'compact' ? 'mb-2' : ''}`}>
-              <h1 className={`${layout.title} font-black uppercase tracking-tighter leading-tight mb-1 break-words`} style={{ color: accent.hex }}>{title}</h1>
-              <div className={`${layout.subtitle} uppercase tracking-widest text-gray-300 border-l-2 pl-3`} style={{ borderLeftColor: accent.hex }}>{dateStr}</div>
+        {/* Glowing cyber backdrops behind text */}
+        <div className="absolute top-0 right-[-30px] w-48 h-48 blur-[80px] rounded-full opacity-35 pointer-events-none" style={{ backgroundColor: accent.hex }}></div>
+        <div className="absolute bottom-[-20px] left-[-20px] w-36 h-36 blur-[60px] rounded-full opacity-25 pointer-events-none" style={{ backgroundColor: accent.hex }}></div>
+
+        {/* Asymmetrical Layout: Left Neon Edge Bar and right primary content area */}
+        <div className="flex h-full w-full relative z-10 font-mono">
+          {/* Active Vertical Glowing Neon Edge Rail */}
+          <div className="w-[12px] md:w-[14px] shrink-0 h-full flex flex-col justify-between items-center py-3 relative border-r border-[#1a2230]" style={{ backgroundColor: '#070c14' }}>
+            <div className="absolute top-0 bottom-0 left-[4px] w-[3px] shadow-[0_0_12px_rgba(255,255,255,0.8)] opacity-90 rounded" style={{ backgroundColor: accent.hex, boxShadow: `0 0 10px ${accent.hex}, 0 0 20px ${accent.hex}` }}></div>
+            <span className="text-[6px] tracking-widest text-[#71717a] rotate-270 font-black whitespace-nowrap block mt-6">MODE_08 // ACTIVE</span>
+            <span className="text-[6px] text-emerald-400 font-bold block mb-4 animate-ping">●</span>
+          </div>
+
+          {/* Right Primary Content (Asymmetric Layout) */}
+          <div className="flex-1 flex flex-col justify-between p-3.5 pl-4 gap-3.5">
+            {/* Header Area */}
+            <div>
+              <div className="flex justify-between items-baseline opacity-35 text-[7px] tracking-wider mb-0.5">
+                <span>CYBER_RECORD_SYSTEM</span>
+                <span>STATUS_STABLE_08</span>
+              </div>
+              <h1 className="text-sm md:text-base font-black uppercase tracking-tight text-white mb-1.5 break-words" style={{ textShadow: `0 0 8px ${accent.hex}40` }}>{title}</h1>
+              <div className="inline-block text-[8px] uppercase tracking-widest font-black border-b pb-0.5" style={{ borderColor: accent.hex, color: accent.hex }}>
+                {dateStr || 'ATHLETE_PORT'}
+              </div>
             </div>
-            {renderContent({
-               card: 'border-l-2 border-secondary-lime bg-black/50',
-               label: 'text-primary-coral',
-               value: 'text-white',
-               border: 'border-secondary-lime/30',
-               borderDashed: 'border-secondary-lime/20'
-            })}
-            {watermark}
-         </div>
+
+            {/* Content Body Area */}
+            <div className="flex-grow flex flex-col justify-center">
+              {componentName === 'RaceChecklistGenerator' ? (
+                <div className="grid grid-cols-2 gap-2 text-white">
+                  {getChecklistItems().slice(0, 6).map((it, i) => (
+                    <div key={i} className="flex items-center gap-2.5 p-2 bg-zinc-950/75 border border-zinc-900 rounded relative">
+                      <div className="w-1.5 h-1.5 rounded-full inline-block shrink-0" style={{ backgroundColor: accent.hex }} />
+                      <span className="text-[9px] font-bold tracking-tight truncate uppercase text-zinc-300">{it}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : componentName === 'RoutePosterGenerator' ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-center">
+                  <div className="p-2.5 bg-[#070c14]/90 border border-zinc-900 rounded flex items-center justify-center min-h-[120px] relative overflow-hidden">
+                    {showMap ? (
+                      <svg viewBox="0 0 360 360" className="w-[100px] h-[100px] overflow-visible" style={{ stroke: accent.hex, filter: `drop-shadow(0 0 6px ${accent.hex}cc)` }}>
+                        <path d={extraData.parsedData.path} fill="none" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    ) : (
+                      <Compass className="w-8 h-8 opacity-25" style={{ color: accent.hex }} />
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-1 text-xs text-zinc-300">
+                    <span className="text-[7px] text-zinc-550 uppercase tracking-widest">GPX VECTOR DIS</span>
+                    <div className="text-xl font-black" style={{ color: accent.hex, textShadow: `0 0 10px ${accent.hex}80` }}>{formData.distance || '—'}</div>
+                  </div>
+                </div>
+              ) : componentName === 'PaceBandGenerator' && extraData && extraData.splits ? (
+                <div className="grid grid-cols-2 gap-1.5 font-mono text-zinc-300">
+                  {extraData.splits?.slice(0, 6).map((s: any, i: number) => (
+                    <div key={i} className="flex justify-between items-center p-2 bg-[#070c14]/80 border border-zinc-900 rounded">
+                      <span className="text-[8px] text-zinc-500 font-extrabold">{s.km ?? s.marker ?? ''}</span>
+                      <span className="text-[10px] font-black" style={{ color: accent.hex }}>{s.current}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2 text-white">
+                  {gridItems.slice(0, 4).map(([k, v], i) => {
+                    const isEven = i % 2 === 0;
+                    return (
+                      <div key={k} className="flex flex-col justify-center p-2.5 bg-zinc-950/80 border border-zinc-900 rounded relative shadow">
+                        <div className="absolute top-0 right-0 w-1.5 h-1.5 rounded-full" style={{ backgroundColor: isEven ? accent.hex : '#f43f5e' }} />
+                        <span className="text-[7px] uppercase tracking-wider text-zinc-500 font-black leading-none mb-1.5">{getLabel(k)}</span>
+                        <span className="text-xs font-black truncate block text-neutral-250">{String(v)}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Footer with Symmetrical Watermark */}
+            <div className="flex justify-between items-center mt-auto border-t border-zinc-900 pt-2 text-[8px] text-zinc-650 tracking-wider font-semibold">
+              <span>CYBER_EDGE_MODE_ACTIVE</span>
+              {watermark}
+            </div>
+          </div>
+        </div>
       </div>
     );
-  }
+  };
 
-  // 09 Print Utility
-  if (template === 'print utility') {
+  // ==========================================
+  // TEMPLATE 09: PRINT UTILITY (Classic Receipt timing spreadsheet format)
+  // ==========================================
+  const renderPrintUtilityTemplate = () => {
     return (
-      <div className={`${layout.wrapper} flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none overflow-hidden bg-white text-black border border-gray-300 font-sans justify-between`}>
-         <div className="flex flex-col h-full justify-between">
-            <div className={`mb-4 ${exportSize === 'compact' ? 'mb-2' : ''}`}>
-              <h1 className={`${layout.title} font-bold uppercase tracking-tight text-black mb-0.5 break-words`}>{title}</h1>
-              <div className={`${layout.subtitle} uppercase tracking-widest text-gray-600 border-b-2 border-black pb-1`}>{dateStr}</div>
+      <div className={`${layout.wrapper} flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none overflow-hidden bg-[#fafafa] text-zinc-900 border-2 border-zinc-950 font-mono justify-between p-2.5`}>
+        <div className="flex flex-col h-full justify-between">
+          
+          {/* Header Area Receipt Style */}
+          <div className="border-b-2 border-zinc-950 pb-3 mb-2 flex justify-between items-baseline">
+            <div className="flex-1 min-w-0 pr-3">
+              <span className="text-[7px] text-zinc-400 block font-black uppercase tracking-widest">SYSTEM PRINTOUT TIMING SHEET</span>
+              <h1 className="text-base md:text-lg font-black uppercase tracking-tight text-neutral-950 leading-none mt-1 break-words">{title}</h1>
             </div>
-            <div className="flex-1 flex flex-col justify-center">
-               {renderContent({
-                  card: 'border-b border-gray-200 rounded-none bg-transparent',
-                  label: 'text-gray-500',
-                  value: 'text-black',
-                  border: 'border-gray-200',
-                  borderDashed: 'border-gray-200'
-               })}
+            <div className="shrink-0 text-right">
+              <span className="inline-block px-1.5 py-0.5 border border-zinc-950 rounded text-[8px] font-black tracking-tighter uppercase text-zinc-850 bg-white shadow-sm">
+                {dateStr || 'LOG_SYS_09'}
+              </span>
             </div>
+          </div>
+
+          {/* Receipt Info Section */}
+          <div className="grid grid-cols-2 text-[7px] border-b border-dashed border-zinc-300 py-2.5 text-zinc-400 gap-1 uppercase font-semibold">
+            <div>DEVICE_MODEL_ID: RC_PRINT_D9</div>
+            <div className="text-right">CALIBRATION_STANDARD: NIST_ATHL</div>
+          </div>
+
+          {/* Table list core area */}
+          <div className="flex-grow flex flex-col justify-center text-xs py-3">
+            {componentName === 'RaceChecklistGenerator' ? (
+              <div className="w-full">
+                <div className="grid grid-cols-3 border-b-2 border-zinc-950 pb-1 text-zinc-500 font-black text-[8px] uppercase tracking-wider">
+                  <span className="col-span-2">DOCKET CHECKLIST ITEM</span>
+                  <span className="text-right">STATUS</span>
+                </div>
+                <div className="divide-y divide-[#cfcfcf]/55 font-mono text-[10px] uppercase font-bold text-zinc-850">
+                  {getChecklistItems().slice(0, 6).map((it, i) => (
+                    <div key={i} className="grid grid-cols-3 py-2 items-baseline">
+                      <span className="col-span-2 truncate pr-2">0{i+1} [X] {it}</span>
+                      <span className="text-right text-emerald-600 font-extrabold">[PASS]</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : componentName === 'RoutePosterGenerator' ? (
+              <div className="space-y-1">
+                <div className="grid grid-cols-2 border-b-2 border-zinc-950 pb-1 font-black text-[#71717a] text-[8px] uppercase tracking-wider">
+                  <span>GEOGRAPHIC PARAMETER</span>
+                  <span className="text-right">MEASURED METRIC</span>
+                </div>
+                <div className="divide-y divide-[#cfcfcf]/55 font-mono text-[10px] uppercase font-bold text-zinc-850">
+                  {formData.distance && (
+                    <div className="flex justify-between py-2">
+                      <span className="text-zinc-500">DISTANCE TRACKED</span>
+                      <span className="font-black text-zinc-950" style={{ color: accent.hex !== '#FFFFFF' && accent.hex !== 'clean white' ? accent.hex : '#000000' }}>{formData.distance}</span>
+                    </div>
+                  )}
+                  {formData.showElevation && extraData?.parsedData?.eleInfo?.valid && (
+                    <>
+                      <div className="flex justify-between py-2">
+                        <span className="text-zinc-500">ALT_MIN_METERS</span>
+                        <span className="font-extrabold text-zinc-900">{Math.round(extraData.parsedData.eleInfo.min)}m</span>
+                      </div>
+                      <div className="flex justify-between py-2">
+                        <span className="text-zinc-500">ALT_MAX_METERS</span>
+                        <span className="font-extrabold text-zinc-900">{Math.round(extraData.parsedData.eleInfo.max)}m</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            ) : componentName === 'PaceBandGenerator' ? (
+              <div className="w-full">
+                <div className="grid grid-cols-3 border-b-2 border-zinc-950 pb-1 text-zinc-500 font-black text-[8px] uppercase tracking-widest">
+                  <span>MARKER</span>
+                  <span>LAP_PACE</span>
+                  <span className="text-right">ACCUMULATIVE</span>
+                </div>
+                <div className="divide-y divide-dashed divide-[#cfcfcf]/55 font-mono text-[10px] text-zinc-850">
+                  {extraData.splits?.slice(0, 5).map((s: any, i: number) => (
+                    <div key={i} className="grid grid-cols-3 py-2 font-black">
+                      <span className="text-zinc-500">0{i+1} MARKER</span>
+                      <span className="text-zinc-900">{s.current}</span>
+                      <span className="text-zinc-500 text-right">{(s.total) || '—'}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="w-full">
+                <div className="grid grid-cols-2 border-b-2 border-zinc-950 pb-1 text-zinc-500 font-black text-[8px] uppercase tracking-wider">
+                  <span>DOCKET METRIC</span>
+                  <span className="text-right">CALIBRATED FIELD VALUE</span>
+                </div>
+                <div className="divide-y divide-dashed divide-[#cfcfcf]/60 mt-1 font-mono text-[10px] text-zinc-850 uppercase font-bold">
+                  {gridItems.slice(0, 6).map(([k, v]) => (
+                    <div key={k} className="flex justify-between items-baseline py-2">
+                      <span className="text-zinc-500">{getLabel(k)}</span>
+                      <span className="font-black text-neutral-900 pr-1">{String(v)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Print Watermark Footer */}
+          <div className="flex justify-between items-end border-t-2 border-dashed border-zinc-950 pt-2.5 text-[7px] text-zinc-400 mt-2">
+            <span>EXPORT REPLICABLE DOCUMENT CARD // SYSTEM DEVIATION 0.00ms</span>
             {watermark}
-         </div>
+          </div>
+
+        </div>
       </div>
     );
-  }
+  };
 
-  // 10 Compact Story
-  if (template === 'compact story') {
+  // ==========================================
+  // TEMPLATE 10: COMPACT STORY (Mobile Portrait lockscreen storytelling perspective)
+  // ==========================================
+  const renderCompactStoryTemplate = () => {
+    const showMap = componentName === 'RoutePosterGenerator' && !!extraData?.parsedData;
+
     return (
-      <div className={`${layout.wrapper} flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none overflow-hidden bg-gradient-to-b from-[#181a1f] to-[#07080a] border border-[#22252a] text-white font-sans justify-between`}>
-         <div className="absolute top-0 right-0 w-full h-40 pointer-events-none" style={{ background: `linear-gradient(to bottom, ${accent.hex}1a, transparent)` }}></div>
-         <div className="relative z-10 flex flex-col h-full justify-between">
-            <div className={`mb-4 text-center ${exportSize === 'compact' ? 'mb-2' : ''}`}>
-              <h1 className={`${layout.title} font-black uppercase tracking-tighter leading-none mb-1 break-words`} style={{ color: accent.hex }}>{title}</h1>
-              <div className={`${layout.subtitle} uppercase tracking-widest text-gray-400 font-bold`}>{dateStr}</div>
+      <div className={`${layout.wrapper} flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none overflow-hidden bg-gradient-to-b from-[#0b0c10] via-[#12141c] to-[#040507] border border-zinc-900 text-white font-sans justify-between p-3 pb-6`}>
+        {/* Floating gradient highlights to enrich locked story style */}
+        <div className="absolute top-[-30px] left-1/2 -translate-x-1/2 w-48 h-36 pointer-events-none opacity-45 rounded-full blur-[40px]" style={{ background: `radial-gradient(ellipse at top, ${accent.hex}, transparent)` }}></div>
+        <div className="absolute bottom-2 left-6 w-24 h-24 pointer-events-none opacity-15 rounded-full blur-[30px]" style={{ backgroundColor: accent.hex }}></div>
+
+        {/* Story Status Indicators */}
+        <div className="absolute top-3 left-4 right-4 flex justify-between items-center text-[7px] font-mono tracking-widest opacity-35 z-10 uppercase text-zinc-400">
+          <span>STORY_SYS_10_ACTIVE</span>
+          <span>9:16 LOCKSCREEN EXPORT</span>
+        </div>
+
+        <div className="relative z-10 flex flex-col h-full justify-between gap-2.5 mt-2.5">
+          {/* Header layout aligned nicely */}
+          <div className="text-center pt-3">
+            <span className="text-[7.5px] uppercase tracking-[0.25em] text-[#71717a] font-extrabold block mb-1">RUNCARD STORY SERIES</span>
+            <h1 className="text-base md:text-lg font-black uppercase tracking-tight text-white break-words px-1" style={{ textShadow: `0 0 12px ${accent.hex}40` }}>{title}</h1>
+            <div className="inline-block px-2 py-0.5 mt-1 border border-zinc-800 rounded text-[7.5px] font-mono text-zinc-400 uppercase tracking-tight bg-zinc-950/70">
+              {dateStr || 'ST_COMP_10'}
             </div>
-            
-            <div className="bg-[#121316]/80 rounded-xl border border-[#22252a] p-4 flex-1 flex flex-col backdrop-blur-sm justify-center mb-2">
-               {renderContent({
-                  card: 'border-b border-[#22252a] bg-transparent',
-                  label: 'text-secondary-lime',
-                  value: 'text-white',
-                  border: 'border-[#22252a]',
-                  borderDashed: 'border-[#22252a]/50'
-               })}
+          </div>
+
+          {/* Focal Central Premium Card Container */}
+          <div className="flex-1 flex flex-col justify-center items-center my-1.5">
+            <div className="bg-[#10121a]/90 border border-zinc-850 p-4 rounded-2xl w-full max-w-[290px] flex flex-col justify-center shadow-2xl backdrop-blur-md relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ backgroundColor: accent.hex }}></div>
+              
+              {componentName === 'RaceChecklistGenerator' ? (
+                <div className="flex flex-col gap-2.5 py-1">
+                  {getChecklistItems().slice(0, 4).map((it, i) => (
+                    <div key={i} className="flex justify-between items-center border-b border-zinc-900 pb-1.5 last:border-0 last:pb-0 font-sans">
+                      <span className="text-[11px] font-bold text-zinc-350 uppercase tracking-tight">{it}</span>
+                      <CheckCircle className="w-3.5 h-3.5" style={{ color: accent.hex }} />
+                    </div>
+                  ))}
+                </div>
+              ) : componentName === 'RoutePosterGenerator' ? (
+                <div className="flex flex-col items-center justify-center gap-2.5 py-1">
+                  <div className="h-[95px] flex items-center justify-center w-full relative overflow-hidden">
+                    {showMap ? (
+                      <svg viewBox="0 0 360 360" className="w-[85px] h-[85px] overflow-visible" style={{ stroke: accent.hex, filter: `drop-shadow(0 0 5px ${accent.hex}80)` }}>
+                        <path d={extraData.parsedData.path} fill="none" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    ) : (
+                      <Compass className="w-8 h-8 opacity-25" style={{ color: accent.hex }} />
+                    )}
+                  </div>
+                  {formData.distance && (
+                    <div className="text-center">
+                      <span className="text-[7px] uppercase tracking-wider text-zinc-500 font-bold block leading-none">DISTANCE SPAN</span>
+                      <span className="text-lg font-black block mt-0.5" style={{ color: accent.hex }}>{formData.distance}</span>
+                    </div>
+                  )}
+                </div>
+              ) : componentName === 'PaceBandGenerator' ? (
+                <div className="flex flex-col gap-2 py-1">
+                  {extraData.splits?.slice(0, 3).map((s: any, i: number) => (
+                    <div key={i} className="flex justify-between text-[11px] font-mono border-b border-zinc-900 pb-1.5 last:border-0 last:pb-0">
+                      <span className="text-[#71717a] font-extrabold">LAP_0{i+1}</span>
+                      <span className="font-black text-white">{s.current}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : primaryItem ? (
+                <div className="text-center py-2 relative">
+                  <span className="text-[7.5px] uppercase tracking-[0.2em] text-[#71717a] font-black block leading-none mb-1">{getLabel(primaryItem[0])}</span>
+                  <span className="text-2xl font-black uppercase tracking-tighter block" style={{ color: accent.hex, textShadow: `0 0 8px ${accent.hex}40` }}>{String(primaryItem[1])}</span>
+                </div>
+              ) : (
+                <span className="text-[10px] opacity-20 text-center uppercase tracking-widest block py-2.5 font-mono">NO RECORDED VALUE</span>
+              )}
             </div>
+          </div>
+
+          {/* Social Media Styled horizontal tags/capsules */}
+          {secondaryItems.length > 0 && componentName !== 'RoutePosterGenerator' && (
+            <div className="space-y-1.5 w-full max-w-[270px] mx-auto">
+              {secondaryItems?.slice(0, 3).map(([k, v], idx) => {
+                const isFirst = idx === 0;
+                return (
+                  <div key={k} className="flex justify-between items-center py-1 px-3.5 rounded-full bg-zinc-950/75 border border-zinc-850 text-xs text-white">
+                    <span className="text-[7px] uppercase tracking-wider text-zinc-500 font-black">{getLabel(k)}</span>
+                    <span className="font-extrabold truncate max-w-[65%]" style={{ color: isFirst ? accent.hex : '#f43f5e' }}>{String(v)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Locked status social footprint row */}
+          <div className="flex flex-col items-center border-t border-zinc-900 pt-2 text-[7.5px] font-mono uppercase tracking-widest text-[#52525b]">
+            <span className="font-semibold block mb-0.5 text-center">MADE SPECIAL FOR DEPRESSION PRESERVATION</span>
             {watermark}
-         </div>
+          </div>
+
+        </div>
       </div>
     );
-  }
+  };
 
-  return null;
+  // Switch to correct template renderer representation
+  switch (normalizedTemplate) {
+    case 'original':
+      return renderOriginalTemplate();
+    case 'sport':
+      return renderSportTemplate();
+    case 'carbon':
+      return renderCarbonTemplate();
+    case 'carbon-grid':
+      return renderCarbonGridTemplate();
+    case 'race-poster':
+      return renderRacePosterTemplate();
+    case 'minimal-white':
+      return renderMinimalWhiteTemplate();
+    case 'split-panel':
+      return renderSplitPanelTemplate();
+    case 'neon-edge':
+      return renderNeonEdgeTemplate();
+    case 'print-utility':
+      return renderPrintUtilityTemplate();
+    case 'compact-story':
+      return renderCompactStoryTemplate();
+    default:
+      return renderOriginalTemplate();
+  }
+}
+
+// Implement and export the requested central TemplateRenderer component
+export function TemplateRenderer({
+  templateId,
+  cardType,
+  data,
+  exportSize,
+  accent,
+  extraData
+}: {
+  templateId: string;
+  cardType: string;
+  data: any;
+  exportSize: string;
+  accent: string;
+  extraData?: any;
+}) {
+  return (
+    <SharedTemplates
+      template={templateId}
+      formData={data}
+      componentName={cardType}
+      extraData={extraData}
+    />
+  );
 }
