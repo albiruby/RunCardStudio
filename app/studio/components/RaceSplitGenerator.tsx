@@ -1,3 +1,4 @@
+import StudioPageShell from './StudioPageShell';
 /* eslint-disable react-hooks/set-state-in-effect */
 import SharedTemplates, { useExportSize, getExportSizeClasses } from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
@@ -297,13 +298,10 @@ export default function RaceSplitGenerator({ previewRef, showToast }: RaceSplitP
   }, []);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
-      {/* LEFT: FORM (4 cols) */}
-      <div className="lg:col-span-4 flex flex-col gap-6 w-full">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Race Configuration</h2>
-        </div>
-
+    <StudioPageShell
+      inputTitle="RACE CONFIGURATION"
+      inputSubtitle="Log details"
+      inputContent={
         <div className="bg-surface border border-brand-border p-5 rounded-lg flex flex-col gap-4 shadow-xl">
           <div>
             <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-1">Race Distance</label>
@@ -397,122 +395,88 @@ export default function RaceSplitGenerator({ previewRef, showToast }: RaceSplitP
           <button onClick={handleCopySplits} className="w-full mt-4 py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY SPLITS
 </button>
         </div>
-      </div>
-
-      {/* RIGHT: PREVIEW (8 cols) */}
-      <div className="lg:col-span-8 flex flex-col gap-6 lg:sticky lg:top-[128px] lg:self-start mb-24 lg:mb-0 animate-fade-in">
-        <div className="flex flex-col gap-1 w-full">
-          <h2 className="text-xl font-bold uppercase tracking-tight text-[#f2f4f7]">Live Preview</h2>
-          <p className="text-xs text-text-muted">Adjust template, accent, and export ratios below.</p>
-        </div>
-
-        <TemplateSelector 
-          activeTemplate={template}
-          onSelectTemplate={setTemplate}
-          localTemplates={[
-            {
-              "id": "table",
-              "label": "Performance Table"
-            },
-            {
-              "id": "plan",
-              "label": "Race Plan"
-            },
-            {
-              "id": "carbon",
-              "label": "Dark Carbon"
-            }
-          ]}
-        />
-
-        {/* Scalable Container for preview */}
-        <div ref={containerRef} className="w-full bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:16px_16px] bg-[#07080a] border border-brand-border rounded-xl p-4 md:p-8 flex items-center justify-center min-h-[600px] overflow-hidden relative">
-          
-          <div 
-            style={{ 
-              transform: `scale(${scale})`, 
-              transformOrigin: "center",
-              transition: "transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)" 
-            }}
-            className="shrink-0"
+      }
+      containerRef={containerRef}
+      scale={scale}
+      exportSize={exportSize}
+      previewContent={
+        <div
+          ref={previewRef}
+            className={`${getExportSizeClasses(exportSize, template)}` + `  flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none
+              ${template === 'carbon' ? 'bg-[#121316] border border-[#22252a] text-[#f2f4f7] p-6 rounded-lg' : ''}
+              ${template === 'table' ? 'bg-[#0f1012] border border-[#22252a] p-0 rounded-lg overflow-hidden' : ''}
+              ${template === 'plan' ? 'bg-[#fafafa] text-black p-8 font-sans border border-[#e4e4e7] rounded-xl' : ''}
+            `}
           >
-            <div 
-              ref={previewRef}
-              className={`${getExportSizeClasses(exportSize, template)}` + `  flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none
-                ${template === 'carbon' ? 'bg-[#121316] border border-[#22252a] text-[#f2f4f7] p-6 rounded-lg' : ''}
-                ${template === 'table' ? 'bg-[#0f1012] border border-[#22252a] p-0 rounded-lg overflow-hidden' : ''}
-                ${template === 'plan' ? 'bg-[#fafafa] text-black p-8 font-sans border border-[#e4e4e7] rounded-xl' : ''}
-              `}
-            >
-               {/* Header */}
-               <div className={`${template === 'table' ? 'bg-[#16181c] p-6 border-b border-[#22252a]' : (template === 'carbon' ? 'mb-6 pb-4 border-b border-[#22252a]' : 'mb-6 pb-4 border-b border-[#e4e4e7]')}`}>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h1 className={`text-2xl font-black uppercase tracking-tight leading-tight ${template === 'plan' ? 'text-black' : 'text-text-primary'}`}>
-                        {formData.distanceChoice === 'Custom' ? (formData.customDistance || '21.1') + ' ' + unit : formData.distanceChoice}
-                      </h1>
-                      <p className={`font-mono text-xs uppercase tracking-widest ${template === 'plan' ? 'text-[#71717a]' : 'text-secondary-lime'}`}>
-                        {formData.strategy}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className={`font-mono text-xs uppercase tracking-widest ${template === 'plan' ? 'text-[#71717a]' : 'opacity-70'}`}>Target Time</p>
-                      <p className={`font-mono text-xl font-black uppercase ${template === 'plan' ? 'text-black' : 'text-primary-coral'}`}>
-                        {(formData.hr.padStart(2, '0'))}:{(formData.min.padStart(2, '0'))}:{(formData.sec.padStart(2, '0'))}
-                      </p>
-                    </div>
+             {/* Header */}
+             <div className={`${template === 'table' ? 'bg-[#16181c] p-6 border-b border-[#22252a]' : (template === 'carbon' ? 'mb-6 pb-4 border-b border-[#22252a]' : 'mb-6 pb-4 border-b border-[#e4e4e7]')}`}>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h1 className={`text-2xl font-black uppercase tracking-tight leading-tight ${template === 'plan' ? 'text-black' : 'text-text-primary'}`}>
+                      {formData.distanceChoice === 'Custom' ? (formData.customDistance || '21.1') + ' ' + unit : formData.distanceChoice}
+                    </h1>
+                    <p className={`font-mono text-xs uppercase tracking-widest ${template === 'plan' ? 'text-[#71717a]' : 'text-secondary-lime'}`}>
+                      {formData.strategy}
+                    </p>
                   </div>
-               </div>
-
-               {/* Table Content */}
-               <div className={`flex flex-col ${template === 'table' ? 'p-0' : ''}`}>
-                  <div className={`grid grid-cols-3 gap-2 px-6 py-2.5 font-mono text-[10px] uppercase tracking-widest border-b ${template === 'plan' ? 'border-[#e4e4e7] opacity-60' : 'border-[#22252a] opacity-70'}`}>
-                    <div>Marker ({unit.toUpperCase()})</div>
-                    <div className="text-center">Interval Pace</div>
-                    <div className="text-right">Cumulative</div>
+                  <div className="text-right">
+                    <p className={`font-mono text-xs uppercase tracking-widest ${template === 'plan' ? 'text-[#71717a]' : 'opacity-70'}`}>Target Time</p>
+                    <p className={`font-mono text-xl font-black uppercase ${template === 'plan' ? 'text-black' : 'text-primary-coral'}`}>
+                      {(formData.hr.padStart(2, '0'))}:{(formData.min.padStart(2, '0'))}:{(formData.sec.padStart(2, '0'))}
+                    </p>
                   </div>
+                </div>
+             </div>
 
-                  {splits.length === 0 ? (
-                    <div className="p-6 text-center font-mono text-sm opacity-50">Invalid Inputs</div>
-                  ) : (
-                    <div className="flex flex-col">
-                      {splits.map((split, i) => {
-                        const isFaster = split.splitPace < avgPaceSecs - 2; // threshold for visual highlight
-                        const isSlower = split.splitPace > avgPaceSecs + 2;
+             {/* Table Content */}
+             <div className={`flex flex-col ${template === 'table' ? 'p-0' : ''}`}>
+                <div className={`grid grid-cols-3 gap-2 px-6 py-2.5 font-mono text-[10px] uppercase tracking-widest border-b ${template === 'plan' ? 'border-[#e4e4e7] opacity-60' : 'border-[#22252a] opacity-70'}`}>
+                  <div>Marker ({unit.toUpperCase()})</div>
+                  <div className="text-center">Interval Pace</div>
+                  <div className="text-right">Cumulative</div>
+                </div>
 
-                      
+                {splits.length === 0 ? (
+                  <div className="p-6 text-center font-mono text-sm opacity-50">Invalid Inputs</div>
+                ) : (
+                  <div className="flex flex-col">
+                    {splits.map((split, i) => {
+                      const isFaster = split.splitPace < avgPaceSecs - 2; // threshold for visual highlight
+                      const isSlower = split.splitPace > avgPaceSecs + 2;
+
+                    
 
   return (
-                          <div key={i} className={`grid grid-cols-3 gap-2 px-6 py-3.2 font-mono text-sm border-b transition-colors ${template === 'plan' ? 'border-[#e4e4e7]' : 'border-[#22252a] border-opacity-30'}`}>
-                            <div className={`font-black ${template === 'plan' ? 'text-black' : 'text-text-primary'}`}>
-                              {split.marker === dist ? (Number.isInteger(dist) ? dist : dist.toFixed(2)) : split.marker}
-                            </div>
-                            <div className={`text-center font-bold
-                              ${template === 'plan' ? 'text-black' : (isFaster ? 'text-secondary-lime' : isSlower ? 'text-primary-coral font-black' : 'text-text-primary')}
-                            `}>
-                              {formatPace(split.splitPace)}</div>
-                            <div className={`text-right font-black ${template === 'plan' ? 'text-[#18181b]' : (i === splits.length - 1 ? 'text-secondary-lime font-black' : 'text-text-primary')}`}>
-                              {formatTime(split.cumTime)}</div>
+                        <div key={i} className={`grid grid-cols-3 gap-2 px-6 py-3.2 font-mono text-sm border-b transition-colors ${template === 'plan' ? 'border-[#e4e4e7]' : 'border-[#22252a] border-opacity-30'}`}>
+                          <div className={`font-black ${template === 'plan' ? 'text-black' : 'text-text-primary'}`}>
+                            {split.marker === dist ? (Number.isInteger(dist) ? dist : dist.toFixed(2)) : split.marker}
                           </div>
-                        );
-                      })}
-                    </div>
-                  )}
-               </div>
+                          <div className={`text-center font-bold
+                            ${template === 'plan' ? 'text-black' : (isFaster ? 'text-secondary-lime' : isSlower ? 'text-primary-coral font-black' : 'text-text-primary')}
+                          `}>
+                            {formatPace(split.splitPace)}</div>
+                          <div className={`text-right font-black ${template === 'plan' ? 'text-[#18181b]' : (i === splits.length - 1 ? 'text-secondary-lime font-black' : 'text-text-primary')}`}>
+                            {formatTime(split.cumTime)}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+             </div>
 
-               {/* Footer */}
-               <div className={`mt-4 ${template === 'table' ? 'bg-[#121316] p-4 border-t border-[#22252a]' : 'px-6 pt-4'} flex justify-between font-mono text-[9px] tracking-widest uppercase opacity-50`}>
-                  <span>Avg Pace: {formatPace(avgPaceSecs)}/{unit}</span>
+             {/* Footer */}
+             <div className={`mt-4 ${template === 'table' ? 'bg-[#121316] p-4 border-t border-[#22252a]' : 'px-6 pt-4'} flex justify-between font-mono text-[9px] tracking-widest uppercase opacity-50`}>
+                <span>Avg Pace: {formatPace(avgPaceSecs)}/{unit}</span>
+             </div>
+             
+             {template === 'table' && (
+               <div className="h-1 w-full flex">
+                  <div className="h-full bg-primary-coral flex-1"></div>
+                  <div className="h-full bg-secondary-lime flex-1"></div>
+                  <div className="h-full bg-[#00f0ff] flex-1"></div>
                </div>
-               
-               {template === 'table' && (
-                 <div className="h-1 w-full flex">
-                    <div className="h-full bg-primary-coral flex-1"></div>
-                    <div className="h-full bg-secondary-lime flex-1"></div>
-                    <div className="h-full bg-[#00f0ff] flex-1"></div>
-                 </div>
-               )}
-           {!['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(template) && (
+             )}
+         {!['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(template) && (
   <div className={`mt-auto text-center font-mono text-[9px] tracking-[0.25em] uppercase pt-4 border-t ${
     ['community challenge', 'weekly board', 'clean white', 'minimal award', 'minimal nutrition', 'minimal gear', 'classic', 'elite', 'receipt', 'white', 'table', 'minimal'].includes(template) 
       ? 'border-dashed border-gray-400 text-gray-400' 
@@ -523,12 +487,30 @@ export default function RaceSplitGenerator({ previewRef, showToast }: RaceSplitP
 )}
 
 {['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(template) && (
-             <SharedTemplates template={template} formData={formData} componentName="RaceSplitGenerator"  />
-           )}
-            </div>
+           <SharedTemplates template={template} formData={formData} componentName="RaceSplitGenerator"  />
+         )}
           </div>
-        </div>
-      </div>
-    </div>
+      }
+      templateSelector={
+        <TemplateSelector 
+        activeTemplate={template}
+        onSelectTemplate={setTemplate}
+        localTemplates={[
+          {
+            "id": "table",
+            "label": "Performance Table"
+          },
+          {
+            "id": "plan",
+            "label": "Race Plan"
+          },
+          {
+            "id": "carbon",
+            "label": "Dark Carbon"
+          }
+        ]}
+        />
+      }
+    />
   );
 }

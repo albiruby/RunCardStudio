@@ -1,3 +1,4 @@
+import StudioPageShell from './StudioPageShell';
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useState, MutableRefObject, useRef, useEffect } from "react";
 import TemplateSelector from './TemplateSelector';
@@ -254,12 +255,10 @@ export default function RoutePosterGenerator({ previewRef, showToast }: RoutePos
   }, []);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
-      <div className="lg:col-span-4 flex flex-col gap-6 w-full">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Poster Data</h2>
-        </div>
-
+    <StudioPageShell
+      inputTitle="POSTER DATA"
+      inputSubtitle="Log details"
+      inputContent={
         <div className="bg-surface border border-brand-border p-5 rounded-lg flex flex-col gap-4 shadow-xl">
           <div>
             <label className="block text-[11px] font-mono text-primary-coral font-bold uppercase tracking-wider mb-2">Upload GPX</label>
@@ -352,192 +351,161 @@ export default function RoutePosterGenerator({ previewRef, showToast }: RoutePos
           <button onClick={() => saveCurrentDraft()} className="w-full mt-2 lg:mt-4 py-2 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-4 h-4 text-primary-action" /> SAVE DRAFT</button>
           <button onClick={handleCopy} className="w-full py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY ROUTE INFO</button>
         </div>
-      </div>
-
-      <div className="lg:col-span-8 flex flex-col gap-6 lg:sticky lg:top-[128px] lg:self-start mb-24 lg:mb-0">
-        <div className="flex flex-col gap-1 w-full">
-          <h2 className="text-xl font-bold uppercase tracking-tight text-[#f2f4f7]">Live Preview</h2>
-          <p className="text-xs text-text-muted">Adjust template, accent, and export ratios below.</p>
-        </div>
-
-        <TemplateSelector 
-          activeTemplate={template}
-          onSelectTemplate={setTemplate}
-          localTemplates={[
-            {
-              "id": "minimal line",
-              "label": "Minimal Line"
-            },
-            {
-              "id": "dark route",
-              "label": "Dark Route"
-            },
-            {
-              "id": "race route",
-              "label": "Race Route"
-            }
-          ]}
-        />
-
-        <div ref={containerRef} className="w-full bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:16px_16px] bg-[#07080a] border border-brand-border rounded-xl p-4 md:p-8 flex items-center justify-center min-h-[600px] overflow-hidden relative">
-          <div 
-            style={{ 
-              transform: `scale(${scale})`, 
-              transformOrigin: "center",
-              transition: "transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)" 
-            }}
-            className="shrink-0"
+      }
+      containerRef={containerRef}
+      scale={scale}
+      exportSize={exportSize}
+      previewContent={
+        <div
+          ref={previewRef}
+            className={`${getExportSizeClasses(exportSize, template)}` + `  flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none overflow-hidden
+              ${template === 'minimal line' ? 'bg-[#f4f4f5] border border-[#e4e4e7] text-[#18181b]' : ''}
+              ${template === 'dark route' ? 'bg-[#181a1f] border border-[#22252a] text-[#f2f4f7]' : ''}
+              ${template === 'race route' ? 'bg-[#111316] border-2 border-primary-action text-white' : ''}
+            `}
+            style={{ minHeight: '550px' }}
           >
-            <div 
-              ref={previewRef}
-              className={`${getExportSizeClasses(exportSize, template)}` + `  flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none overflow-hidden
-                ${template === 'minimal line' ? 'bg-[#f4f4f5] border border-[#e4e4e7] text-[#18181b]' : ''}
-                ${template === 'dark route' ? 'bg-[#181a1f] border border-[#22252a] text-[#f2f4f7]' : ''}
-                ${template === 'race route' ? 'bg-[#111316] border-2 border-primary-action text-white' : ''}
-              `}
-              style={{ minHeight: '550px' }}
-            >
-                {template === 'minimal line' && (
-                  <div className="flex-1 flex flex-col p-8 font-sans">
-                     <div className="flex-1 border p-2 flex items-center justify-center">
-                        {parsedData ? (
-                           <svg viewBox="0 0 360 360" className="w-[320px] h-[320px] stroke-[#18181b] overflow-visible">
-                              <path d={parsedData.path} fill="none" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-                              {formData.showStartEnd && parsedData.points.length > 0 && (
-                                <>
-                                  <circle cx={parsedData.points[0].x} cy={parsedData.points[0].y} r="6" fill="#a0cc00" stroke="#18181b" strokeWidth="2" />
-                                  <circle cx={parsedData.points[parsedData.points.length-1].x} cy={parsedData.points[parsedData.points.length-1].y} r="6" fill="#ff0055" stroke="#18181b" strokeWidth="2" />
-                                </>
-                              )}
-                           </svg>
-                        ) : (
-                          <div className="text-gray-400 font-bold uppercase tracking-widest text-xs opacity-50">Upload GPX</div>
-                        )}
+              {template === 'minimal line' && (
+                <div className="flex-1 flex flex-col p-8 font-sans">
+                   <div className="flex-1 border p-2 flex items-center justify-center">
+                      {parsedData ? (
+                         <svg viewBox="0 0 360 360" className="w-[320px] h-[320px] stroke-[#18181b] overflow-visible">
+                            <path d={parsedData.path} fill="none" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+                            {formData.showStartEnd && parsedData.points.length > 0 && (
+                              <>
+                                <circle cx={parsedData.points[0].x} cy={parsedData.points[0].y} r="6" fill="#a0cc00" stroke="#18181b" strokeWidth="2" />
+                                <circle cx={parsedData.points[parsedData.points.length-1].x} cy={parsedData.points[parsedData.points.length-1].y} r="6" fill="#ff0055" stroke="#18181b" strokeWidth="2" />
+                              </>
+                            )}
+                         </svg>
+                      ) : (
+                        <div className="text-gray-400 font-bold uppercase tracking-widest text-xs opacity-50">Upload GPX</div>
+                      )}
+                   </div>
+                   <div className="mt-8">
+                     <h1 className="text-3xl font-black uppercase tracking-tighter leading-none mb-1">{formData.title || 'ROUTE TITLE'}</h1>
+                     <div className="flex items-center gap-4 text-xs font-bold uppercase tracking-widest text-gray-500">
+                        {formData.location && <span>{formData.location}</span>}
+                        {formData.date && <span>{formData.date}</span>}
                      </div>
-                     <div className="mt-8">
-                       <h1 className="text-3xl font-black uppercase tracking-tighter leading-none mb-1">{formData.title || 'ROUTE TITLE'}</h1>
-                       <div className="flex items-center gap-4 text-xs font-bold uppercase tracking-widest text-gray-500">
-                          {formData.location && <span>{formData.location}</span>}
-                          {formData.date && <span>{formData.date}</span>}
-                       </div>
-                       
-                       <div className="flex justify-between items-end mt-4 pt-4 border-t border-gray-300">
-                         {formData.distance ? (
-                           <div className="text-4xl font-black uppercase text-secondary-lime">{formData.distance}</div>
-                         ) : <div></div>}
-                         
-                         {formData.showElevation && parsedData?.eleInfo.valid && (
-                            <div className="text-right">
-                               <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Max Ele</div>
-                               <div className="text-sm font-black text-gray-600">{Math.round(parsedData.eleInfo.max)}m</div>
-                            </div>
-                         )}
-                       </div>
-                     </div>
-                  </div>
-                  )}
-
-                {template === 'dark route' && (
-                  <div className="flex-1 flex flex-col p-8 font-mono relative">
-                     <div className="absolute top-0 right-0 bg-[#22252a] text-[#a0cc00] text-[9px] uppercase tracking-widest px-3 py-1 font-bold">ROUTE DATA</div>
                      
-                     <div className="mb-6 z-10 pt-4">
-                       <h1 className="text-3xl font-black text-[#f2f4f7] tracking-tight uppercase leading-none mb-2">{formData.title || 'UNKNOWN ROUTE'}</h1>
-                       <div className="text-xs text-gray-500 uppercase tracking-widest flex flex-col gap-1">
-                          {formData.location && <span>LOC: {formData.location}</span>}
-                          {formData.date && <span>DAT: {formData.date}</span>}
-                       </div>
-                     </div>
-
-                     <div className="flex-1 flex items-center justify-center relative">
-                        <div className="absolute w-[240px] h-[240px] border border-[#22252a] rounded-full opacity-30"></div>
-                        <div className="absolute w-[360px] h-[360px] border-l border-r border-[#22252a] opacity-20"></div>
-                        <div className="absolute w-[360px] h-[360px] border-t border-b border-[#22252a] opacity-20"></div>
-                        {parsedData ? (
-                           <svg viewBox="0 0 360 360" className="w-[340px] h-[340px] stroke-[#a0cc00] drop-shadow-[0_0_8px_rgba(160,204,0,0.5)] z-10 overflow-visible">
-                              <path d={parsedData.path} fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                              {formData.showStartEnd && parsedData.points.length > 0 && (
-                                <>
-                                  <circle cx={parsedData.points[0].x} cy={parsedData.points[0].y} r="5" fill="#f2f4f7" stroke="#181a1f" strokeWidth="2" />
-                                  <circle cx={parsedData.points[parsedData.points.length-1].x} cy={parsedData.points[parsedData.points.length-1].y} r="5" fill="#ff0055" stroke="#181a1f" strokeWidth="2" />
-                                </>
-                              )}
-                           </svg>
-                        ) : (
-                          <div className="text-[#22252a] font-bold uppercase tracking-widest text-xs z-10">NO DATA</div>
-                        )}
-                     </div>
-
-                     <div className="mt-8 flex justify-between items-end border-t border-[#22252a] pt-4">
-                       <div>
-                         <div className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">TOTAL DST</div>
-                         <div className="text-2xl font-black text-white">{formData.distance || '-'}</div>
-                       </div>
+                     <div className="flex justify-between items-end mt-4 pt-4 border-t border-gray-300">
+                       {formData.distance ? (
+                         <div className="text-4xl font-black uppercase text-secondary-lime">{formData.distance}</div>
+                       ) : <div></div>}
                        
                        {formData.showElevation && parsedData?.eleInfo.valid && (
                           <div className="text-right">
-                             <div className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">ELEVATION MAX</div>
-                             <div className="text-xl font-bold font-sans text-white">{Math.round(parsedData.eleInfo.max)}m</div>
+                             <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Max Ele</div>
+                             <div className="text-sm font-black text-gray-600">{Math.round(parsedData.eleInfo.max)}m</div>
                           </div>
                        )}
                      </div>
-                  </div>
-               )}
+                   </div>
+                </div>
+                )}
 
-                {template === 'race route' && (
-                  <div className="flex-1 flex flex-col relative bg-[#111316]">
-                     <div className="h-4 bg-[#ff0055] w-full"></div>
-                     <div className="p-8 flex-1 flex flex-col font-sans">
-                       
-                       <div className="flex justify-between items-start mb-6">
-                         <div>
-                            <h1 className="text-3xl font-black uppercase tracking-tighter leading-none mb-1 text-white">{formData.title || 'RACE ROUTE'}</h1>
-                            <div className="text-xs font-bold uppercase tracking-widest text-primary-coral">
-                               {formData.location || 'UNKNOWN LOCATION'} {formData.date ? ` // ${formData.date}` : ''}
-                            </div>
-                         </div>
-                         <div className="bg-[#22252a] border border-[#3f3f46] p-2 text-center rounded w-20">
-                           <div className="text-[9px] uppercase tracking-widest text-gray-400 font-bold mb-1">DST</div>
-                           <div className="text-sm font-black uppercase text-secondary-lime">{formData.distance || '-'}</div>
-                         </div>
-                       </div>
-
-                       <div className="flex-1 flex items-center justify-center bg-[#07080a] border border-[#22252a] rounded overflow-hidden">
-                          {parsedData ? (
-                             <svg viewBox="0 0 360 360" className="w-[320px] h-[320px] stroke-[#ff0055] overflow-visible">
-                                <path d={parsedData.path} fill="none" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
-                                {formData.showStartEnd && parsedData.points.length > 0 && (
-                                  <>
-                                    <circle cx={parsedData.points[0].x} cy={parsedData.points[0].y} r="6" fill="#a0cc00" stroke="#07080a" strokeWidth="3" />
-                                    <circle cx={parsedData.points[parsedData.points.length-1].x} cy={parsedData.points[parsedData.points.length-1].y} r="6" fill="white" stroke="#07080a" strokeWidth="3" />
-                                  </>
-                                )}
-                             </svg>
-                          ) : (
-                            <div className="text-[#3f3f46] font-black uppercase tracking-widest text-sm opacity-50">Upload GPX</div>
-                          )}
-                       </div>
-
-                       {formData.showElevation && parsedData?.eleInfo.valid && (
-                         <div className="mt-4 flex gap-4 border-t border-[#22252a] pt-4">
-                           <div className="flex-1 text-center">
-                              <div className="text-[10px] uppercase text-gray-500 font-bold mb-1 tracking-widest">Min Ele</div>
-                              <div className="text-sm font-black">{Math.round(parsedData.eleInfo.min)}m</div>
-                           </div>
-                           <div className="flex-1 text-center border-l border-[#22252a]">
-                              <div className="text-[10px] uppercase text-gray-500 font-bold mb-1 tracking-widest">Max Ele</div>
-                              <div className="text-sm font-black">{Math.round(parsedData.eleInfo.max)}m</div>
-                           </div>
-                         </div>
-                       )}
-
-                       <div className="mt-8 text-center text-[9px] font-mono tracking-widest text-gray-600 uppercase opacity-50">
-                       </div>
-
+              {template === 'dark route' && (
+                <div className="flex-1 flex flex-col p-8 font-mono relative">
+                   <div className="absolute top-0 right-0 bg-[#22252a] text-[#a0cc00] text-[9px] uppercase tracking-widest px-3 py-1 font-bold">ROUTE DATA</div>
+                   
+                   <div className="mb-6 z-10 pt-4">
+                     <h1 className="text-3xl font-black text-[#f2f4f7] tracking-tight uppercase leading-none mb-2">{formData.title || 'UNKNOWN ROUTE'}</h1>
+                     <div className="text-xs text-gray-500 uppercase tracking-widest flex flex-col gap-1">
+                        {formData.location && <span>LOC: {formData.location}</span>}
+                        {formData.date && <span>DAT: {formData.date}</span>}
                      </div>
-                  </div>
-                  )}
-              {!['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(template) && (
+                   </div>
+
+                   <div className="flex-1 flex items-center justify-center relative">
+                      <div className="absolute w-[240px] h-[240px] border border-[#22252a] rounded-full opacity-30"></div>
+                      <div className="absolute w-[360px] h-[360px] border-l border-r border-[#22252a] opacity-20"></div>
+                      <div className="absolute w-[360px] h-[360px] border-t border-b border-[#22252a] opacity-20"></div>
+                      {parsedData ? (
+                         <svg viewBox="0 0 360 360" className="w-[340px] h-[340px] stroke-[#a0cc00] drop-shadow-[0_0_8px_rgba(160,204,0,0.5)] z-10 overflow-visible">
+                            <path d={parsedData.path} fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                            {formData.showStartEnd && parsedData.points.length > 0 && (
+                              <>
+                                <circle cx={parsedData.points[0].x} cy={parsedData.points[0].y} r="5" fill="#f2f4f7" stroke="#181a1f" strokeWidth="2" />
+                                <circle cx={parsedData.points[parsedData.points.length-1].x} cy={parsedData.points[parsedData.points.length-1].y} r="5" fill="#ff0055" stroke="#181a1f" strokeWidth="2" />
+                              </>
+                            )}
+                         </svg>
+                      ) : (
+                        <div className="text-[#22252a] font-bold uppercase tracking-widest text-xs z-10">NO DATA</div>
+                      )}
+                   </div>
+
+                   <div className="mt-8 flex justify-between items-end border-t border-[#22252a] pt-4">
+                     <div>
+                       <div className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">TOTAL DST</div>
+                       <div className="text-2xl font-black text-white">{formData.distance || '-'}</div>
+                     </div>
+                     
+                     {formData.showElevation && parsedData?.eleInfo.valid && (
+                        <div className="text-right">
+                           <div className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">ELEVATION MAX</div>
+                           <div className="text-xl font-bold font-sans text-white">{Math.round(parsedData.eleInfo.max)}m</div>
+                        </div>
+                     )}
+                   </div>
+                </div>
+             )}
+
+              {template === 'race route' && (
+                <div className="flex-1 flex flex-col relative bg-[#111316]">
+                   <div className="h-4 bg-[#ff0055] w-full"></div>
+                   <div className="p-8 flex-1 flex flex-col font-sans">
+                     
+                     <div className="flex justify-between items-start mb-6">
+                       <div>
+                          <h1 className="text-3xl font-black uppercase tracking-tighter leading-none mb-1 text-white">{formData.title || 'RACE ROUTE'}</h1>
+                          <div className="text-xs font-bold uppercase tracking-widest text-primary-coral">
+                             {formData.location || 'UNKNOWN LOCATION'} {formData.date ? ` // ${formData.date}` : ''}
+                          </div>
+                       </div>
+                       <div className="bg-[#22252a] border border-[#3f3f46] p-2 text-center rounded w-20">
+                         <div className="text-[9px] uppercase tracking-widest text-gray-400 font-bold mb-1">DST</div>
+                         <div className="text-sm font-black uppercase text-secondary-lime">{formData.distance || '-'}</div>
+                       </div>
+                     </div>
+
+                     <div className="flex-1 flex items-center justify-center bg-[#07080a] border border-[#22252a] rounded overflow-hidden">
+                        {parsedData ? (
+                           <svg viewBox="0 0 360 360" className="w-[320px] h-[320px] stroke-[#ff0055] overflow-visible">
+                              <path d={parsedData.path} fill="none" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+                              {formData.showStartEnd && parsedData.points.length > 0 && (
+                                <>
+                                  <circle cx={parsedData.points[0].x} cy={parsedData.points[0].y} r="6" fill="#a0cc00" stroke="#07080a" strokeWidth="3" />
+                                  <circle cx={parsedData.points[parsedData.points.length-1].x} cy={parsedData.points[parsedData.points.length-1].y} r="6" fill="white" stroke="#07080a" strokeWidth="3" />
+                                </>
+                              )}
+                           </svg>
+                        ) : (
+                          <div className="text-[#3f3f46] font-black uppercase tracking-widest text-sm opacity-50">Upload GPX</div>
+                        )}
+                     </div>
+
+                     {formData.showElevation && parsedData?.eleInfo.valid && (
+                       <div className="mt-4 flex gap-4 border-t border-[#22252a] pt-4">
+                         <div className="flex-1 text-center">
+                            <div className="text-[10px] uppercase text-gray-500 font-bold mb-1 tracking-widest">Min Ele</div>
+                            <div className="text-sm font-black">{Math.round(parsedData.eleInfo.min)}m</div>
+                         </div>
+                         <div className="flex-1 text-center border-l border-[#22252a]">
+                            <div className="text-[10px] uppercase text-gray-500 font-bold mb-1 tracking-widest">Max Ele</div>
+                            <div className="text-sm font-black">{Math.round(parsedData.eleInfo.max)}m</div>
+                         </div>
+                       </div>
+                     )}
+
+                     <div className="mt-8 text-center text-[9px] font-mono tracking-widest text-gray-600 uppercase opacity-50">
+                     </div>
+
+                   </div>
+                </div>
+                )}
+            {!['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(template) && (
   <div className={`mt-auto text-center font-mono text-[9px] tracking-[0.25em] uppercase pt-4 border-t ${
     ['community challenge', 'weekly board', 'clean white', 'minimal award', 'minimal nutrition', 'minimal gear', 'classic', 'elite', 'receipt', 'white', 'table', 'minimal'].includes(template) 
       ? 'border-dashed border-gray-400 text-gray-400' 
@@ -548,12 +516,30 @@ export default function RoutePosterGenerator({ previewRef, showToast }: RoutePos
 )}
 
 {['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(template) && (
-                <SharedTemplates template={template} formData={formData} componentName="RoutePosterGenerator" extraData={{ parsedData }} />
-              )}
-            </div>
+              <SharedTemplates template={template} formData={formData} componentName="RoutePosterGenerator" extraData={{ parsedData }} />
+            )}
           </div>
-        </div>
-      </div>
-    </div>
+      }
+      templateSelector={
+        <TemplateSelector 
+        activeTemplate={template}
+        onSelectTemplate={setTemplate}
+        localTemplates={[
+          {
+            "id": "minimal line",
+            "label": "Minimal Line"
+          },
+          {
+            "id": "dark route",
+            "label": "Dark Route"
+          },
+          {
+            "id": "race route",
+            "label": "Race Route"
+          }
+        ]}
+        />
+      }
+    />
   );
 }

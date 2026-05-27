@@ -1,3 +1,4 @@
+import StudioPageShell from './StudioPageShell';
 /* eslint-disable react-hooks/set-state-in-effect */
 import SharedTemplates, { useExportSize, getExportSizeClasses } from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
@@ -209,13 +210,10 @@ export default function RaceBibGenerator({ previewRef, showToast }: RaceBibProps
   }, []);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
-      {/* LEFT: FORM (4 cols) */}
-      <div className="lg:col-span-4 flex flex-col gap-6 w-full">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Bib Data</h2>
-        </div>
-
+    <StudioPageShell
+      inputTitle="BIB DATA"
+      inputSubtitle="Log details"
+      inputContent={
         <div className="bg-surface border border-brand-border p-5 rounded-lg flex flex-col gap-4 shadow-xl">
           <div>
              <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-1">Runner Name</label>
@@ -310,170 +308,135 @@ export default function RaceBibGenerator({ previewRef, showToast }: RaceBibProps
           <button onClick={handleCopy} className="w-full mt-4 py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY BIB
 </button>
         </div>
-      </div>
-
-      {/* RIGHT: PREVIEW (8 cols) */}
-      <div className="lg:col-span-8 flex flex-col gap-6 lg:sticky lg:top-[128px] lg:self-start mb-24 lg:mb-0">
-        <div className="flex flex-col gap-1 w-full">
-          <h2 className="text-xl font-bold uppercase tracking-tight text-[#f2f4f7]">Live Preview</h2>
-          <p className="text-xs text-text-muted">Adjust template, accent, and export ratios below.</p>
-        </div>
-
-        <TemplateSelector 
-          activeTemplate={template}
-          onSelectTemplate={setTemplate}
-          localTemplates={[
-            {
-              "id": "classic",
-              "label": "Classic Bib"
-            },
-            {
-              "id": "elite",
-              "label": "Elite Bib"
-            },
-            {
-              "id": "minimal",
-              "label": "Minimal Bib"
-            }
-          ]}
-        />
-
-        {/* Scalable Container for preview */}
-        <div ref={containerRef} className="w-full bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:16px_16px] bg-[#07080a] border border-brand-border rounded-xl p-4 md:p-8 flex items-center justify-center min-h-[600px] overflow-hidden relative">
-          
-          <div 
-            style={{ 
-              transform: `scale(${scale})`, 
-              transformOrigin: "center",
-              transition: "transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)" 
-            }}
-            className="shrink-0"
-          >
-            {/* The Bibs */}
-            <div 
-              ref={previewRef}
-              className={`${getExportSizeClasses(exportSize, template)}` + ` relative flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] transition-all duration-300 select-none overflow-hidden
+      }
+      containerRef={containerRef}
+      scale={scale}
+      exportSize={exportSize}
+      previewContent={
+        <div
+          ref={previewRef}
+            className={`${getExportSizeClasses(exportSize, template)}` + ` relative flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] transition-all duration-300 select-none overflow-hidden
       ${template === 'classic' ? ' bg-[#f8f9fa] text-black rounded px-8 py-6 border-2 border-gray-300' : ''}
-                ${template === 'elite' ? 'w-[480px] h-[380px] bg-white text-black p-0 rounded-md border border-gray-200' : ''}
-                ${template === 'minimal' ? 'w-[440px] h-[440px] bg-[#121316] text-[#f2f4f7] rounded-xl border border-[#22252a] p-8' : ''}
-              `}
-            >
-              
-               {template === 'classic' && (
-                 <>
-                   {/* Safety Pin Holes */}
-                   <div className="absolute top-4 left-4 w-3 h-3 rounded-full bg-[#e2e4e7] shadow-inner inset-0 m-auto mt-1 ml-1" style={{ width: '12px', height: '12px', right: 'auto', bottom: 'auto' }}></div>
-                   <div className="absolute top-4 right-4 w-3 h-3 rounded-full bg-[#e2e4e7] shadow-inner"></div>
-                   <div className="absolute bottom-4 left-4 w-3 h-3 rounded-full bg-[#e2e4e7] shadow-inner"></div>
-                   <div className="absolute bottom-4 right-4 w-3 h-3 rounded-full bg-[#e2e4e7] shadow-inner"></div>
-                   
-                   {/* Top Header */}
-                   <div className={`w-full h-12 mb-4 flex items-center justify-between px-4 text-white font-black uppercase tracking-wider rounded-sm ${colorMap[formData.themeColor] || 'bg-[#2040ff]'}`}>
-                     <span className="text-sm truncate mr-4">{formData.eventName || 'EVENT NAME'}</span>
-                     <span className="text-xl font-mono shrink-0">{formData.date || '2026'}</span>
+              ${template === 'elite' ? 'w-[480px] h-[380px] bg-white text-black p-0 rounded-md border border-gray-200' : ''}
+              ${template === 'minimal' ? 'w-[440px] h-[440px] bg-[#121316] text-[#f2f4f7] rounded-xl border border-[#22252a] p-8' : ''}
+            `}
+          >
+            
+             {template === 'classic' && (
+               <>
+                 {/* Safety Pin Holes */}
+                 <div className="absolute top-4 left-4 w-3 h-3 rounded-full bg-[#e2e4e7] shadow-inner inset-0 m-auto mt-1 ml-1" style={{ width: '12px', height: '12px', right: 'auto', bottom: 'auto' }}></div>
+                 <div className="absolute top-4 right-4 w-3 h-3 rounded-full bg-[#e2e4e7] shadow-inner"></div>
+                 <div className="absolute bottom-4 left-4 w-3 h-3 rounded-full bg-[#e2e4e7] shadow-inner"></div>
+                 <div className="absolute bottom-4 right-4 w-3 h-3 rounded-full bg-[#e2e4e7] shadow-inner"></div>
+                 
+                 {/* Top Header */}
+                 <div className={`w-full h-12 mb-4 flex items-center justify-between px-4 text-white font-black uppercase tracking-wider rounded-sm ${colorMap[formData.themeColor] || 'bg-[#2040ff]'}`}>
+                   <span className="text-sm truncate mr-4">{formData.eventName || 'EVENT NAME'}</span>
+                   <span className="text-xl font-mono shrink-0">{formData.date || '2026'}</span>
+                 </div>
+
+                 {/* Number Area */}
+                 <div className="flex-1 flex flex-col items-center justify-center -mt-2">
+                    <div className="text-[110px] font-black font-mono leading-none tracking-tighter text-black w-full text-center truncate px-4">
+                      {formData.bibNumber || '0000'}
+                    </div>
+                 </div>
+
+                 {/* Bottom Area */}
+                 <div className={`w-full flex justify-between items-end border-t-4 pt-2 -mb-2 ${borderMap[formData.themeColor] || 'border-[#2040ff]'}`}>
+                   <div>
+                     <div className="font-extrabold text-2xl uppercase tracking-tighter leading-none mb-1">{formData.runnerName || 'NAME'}</div>
+                     <div className="text-xs font-bold font-mono text-gray-500 uppercase">{formData.teamCountry || 'TEAM/COUNTRY'}</div>
+                   </div>
+                   <div className="text-right">
+                     <div className="font-black text-xl font-mono">{formData.distance || 'DIST'}</div>
+                     {formData.targetTime && <div className="text-[10px] font-bold text-gray-400 uppercase">Target: {formData.targetTime}</div>}
+                   </div>
+                 </div>
+               </>
+             )}
+
+             {template === 'elite' && (
+               <>
+                 {/* Safety Pin Holes */}
+                 <div className="absolute top-3 left-3 w-4 h-4 rounded-full border-4 border-gray-200 bg-white"></div>
+                 <div className="absolute top-3 right-3 w-4 h-4 rounded-full border-4 border-gray-200 bg-white"></div>
+                 <div className="absolute bottom-3 left-3 w-4 h-4 rounded-full border-4 border-gray-200 bg-white"></div>
+                 <div className="absolute bottom-3 right-3 w-4 h-4 rounded-full border-4 border-gray-200 bg-white"></div>
+
+                 {/* Background Elements */}
+                 <div className="absolute inset-0 opacity-[0.03] overflow-hidden pointer-events-none flex items-center justify-center">
+                    <div className="w-[150%] h-[150%] flex flex-wrap -m-4">
+                       {Array(100).fill(0).map((_, i) => (
+                          <div key={i} className="text-9xl font-black leading-none transform -rotate-45">ELITE</div>
+                       ))}
+                    </div>
+                 </div>
+
+                 {/* Header Stripe */}
+                 <div className={`absolute left-0 top-0 w-8 h-full ${colorMap[formData.themeColor] || 'bg-black'}`}></div>
+
+                 <div className="pl-12 pr-6 py-6 h-full flex flex-col w-full relative z-10">
+                   <div className="flex justify-between items-start mb-auto">
+                      <div className={`font-black text-xl uppercase ${textMap[formData.themeColor] || 'text-black'} tracking-widest`}>{formData.eventName || 'EVENT NAME'} {formData.date}</div>
+                      {(formData.distance || formData.targetTime) && (
+                        <div className={`px-3 py-1 text-xs font-black uppercase text-white ${colorMap[formData.themeColor] || 'bg-black'} rounded-sm`}>
+                          {formData.distance} {formData.targetTime && ` // ${formData.targetTime}`}
+                        </div>
+                      )}
                    </div>
 
-                   {/* Number Area */}
-                   <div className="flex-1 flex flex-col items-center justify-center -mt-2">
-                      <div className="text-[110px] font-black font-mono leading-none tracking-tighter text-black w-full text-center truncate px-4">
-                        {formData.bibNumber || '0000'}
-                      </div>
+                   <div className="flex flex-col items-center justify-center my-6">
+                      <span className="text-[130px] leading-none font-black tracking-tighter text-black w-full text-center truncate">
+                        {formData.bibNumber || '000'}
+                      </span>
                    </div>
 
-                   {/* Bottom Area */}
-                   <div className={`w-full flex justify-between items-end border-t-4 pt-2 -mb-2 ${borderMap[formData.themeColor] || 'border-[#2040ff]'}`}>
-                     <div>
-                       <div className="font-extrabold text-2xl uppercase tracking-tighter leading-none mb-1">{formData.runnerName || 'NAME'}</div>
-                       <div className="text-xs font-bold font-mono text-gray-500 uppercase">{formData.teamCountry || 'TEAM/COUNTRY'}</div>
-                     </div>
-                     <div className="text-right">
-                       <div className="font-black text-xl font-mono">{formData.distance || 'DIST'}</div>
-                       {formData.targetTime && <div className="text-[10px] font-bold text-gray-400 uppercase">Target: {formData.targetTime}</div>}
-                     </div>
+                   <div className="mt-auto border-t-2 border-dashed border-gray-300 pt-3 flex justify-between items-end">
+                      <div className="text-4xl font-extrabold uppercase tracking-tight truncate max-w-[70%]">{formData.runnerName || 'NAME'}</div>
+                      {formData.teamCountry && <div className="text-lg font-black uppercase bg-gray-100 px-3 py-1 border border-gray-300">{formData.teamCountry}</div>}
                    </div>
-                 </>
-               )}
+                 </div>
+               </>
+             )}
 
-               {template === 'elite' && (
-                 <>
-                   {/* Safety Pin Holes */}
-                   <div className="absolute top-3 left-3 w-4 h-4 rounded-full border-4 border-gray-200 bg-white"></div>
-                   <div className="absolute top-3 right-3 w-4 h-4 rounded-full border-4 border-gray-200 bg-white"></div>
-                   <div className="absolute bottom-3 left-3 w-4 h-4 rounded-full border-4 border-gray-200 bg-white"></div>
-                   <div className="absolute bottom-3 right-3 w-4 h-4 rounded-full border-4 border-gray-200 bg-white"></div>
+             {template === 'minimal' && (
+               <>
+                 {/* Safety Pin Holes */}
+                 <div className="absolute top-4 left-4 w-2 h-2 rounded-full border border-[#22252a] bg-[#090a0c]"></div>
+                 <div className="absolute top-4 right-4 w-2 h-2 rounded-full border border-[#22252a] bg-[#090a0c]"></div>
+                 <div className="absolute bottom-4 left-4 w-2 h-2 rounded-full border border-[#22252a] bg-[#090a0c]"></div>
+                 <div className="absolute bottom-4 right-4 w-2 h-2 rounded-full border border-[#22252a] bg-[#090a0c]"></div>
 
-                   {/* Background Elements */}
-                   <div className="absolute inset-0 opacity-[0.03] overflow-hidden pointer-events-none flex items-center justify-center">
-                      <div className="w-[150%] h-[150%] flex flex-wrap -m-4">
-                         {Array(100).fill(0).map((_, i) => (
-                            <div key={i} className="text-9xl font-black leading-none transform -rotate-45">ELITE</div>
-                         ))}
-                      </div>
-                   </div>
+                 <div className="flex justify-between items-start mb-6">
+                    <div>
+                      <div className="text-white font-black text-2xl uppercase tracking-tighter">{formData.distance}</div>
+                      <div className="text-[10px] text-gray-500 font-mono uppercase tracking-widest">Distance</div>
+                    </div>
+                    <div className={`text-right ${textMap[formData.themeColor] || 'text-white'}`}>
+                      <div className="font-black text-2xl uppercase tracking-tighter">{formData.targetTime}</div>
+                      <div className="text-[10px] font-mono uppercase tracking-widest opacity-60">Target Time</div>
+                    </div>
+                 </div>
 
-                   {/* Header Stripe */}
-                   <div className={`absolute left-0 top-0 w-8 h-full ${colorMap[formData.themeColor] || 'bg-black'}`}></div>
+                 <div className="flex flex-col items-center justify-center flex-1 my-4 bg-black/40 rounded-xl border border-white/5 py-4">
+                    <div className={`text-[120px] font-mono font-black leading-none drop-shadow-[0_0_20px_rgba(255,255,255,0.1)] w-full text-center truncate ${textMap[formData.themeColor] || 'text-white'}`}>
+                       {formData.bibNumber || '-'}
+                    </div>
+                 </div>
 
-                   <div className="pl-12 pr-6 py-6 h-full flex flex-col w-full relative z-10">
-                     <div className="flex justify-between items-start mb-auto">
-                        <div className={`font-black text-xl uppercase ${textMap[formData.themeColor] || 'text-black'} tracking-widest`}>{formData.eventName || 'EVENT NAME'} {formData.date}</div>
-                        {(formData.distance || formData.targetTime) && (
-                          <div className={`px-3 py-1 text-xs font-black uppercase text-white ${colorMap[formData.themeColor] || 'bg-black'} rounded-sm`}>
-                            {formData.distance} {formData.targetTime && ` // ${formData.targetTime}`}
-                          </div>
-                        )}
-                     </div>
+                 <div className="mt-4">
+                   <h2 className="text-3xl font-black text-white uppercase tracking-tight truncate leading-none mb-1">{formData.runnerName || 'NAME'}</h2>
+                   <p className="font-mono text-xs uppercase opacity-50 flex items-center justify-between">
+                     <span>{formData.eventName} {formData.date}</span>
+                     <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${colorMap[formData.themeColor] || 'bg-white'} text-black`}>{formData.teamCountry}</span>
+                   </p>
+                 </div>
+               </>               
+             )}
 
-                     <div className="flex flex-col items-center justify-center my-6">
-                        <span className="text-[130px] leading-none font-black tracking-tighter text-black w-full text-center truncate">
-                          {formData.bibNumber || '000'}
-                        </span>
-                     </div>
-
-                     <div className="mt-auto border-t-2 border-dashed border-gray-300 pt-3 flex justify-between items-end">
-                        <div className="text-4xl font-extrabold uppercase tracking-tight truncate max-w-[70%]">{formData.runnerName || 'NAME'}</div>
-                        {formData.teamCountry && <div className="text-lg font-black uppercase bg-gray-100 px-3 py-1 border border-gray-300">{formData.teamCountry}</div>}
-                     </div>
-                   </div>
-                 </>
-               )}
-
-               {template === 'minimal' && (
-                 <>
-                   {/* Safety Pin Holes */}
-                   <div className="absolute top-4 left-4 w-2 h-2 rounded-full border border-[#22252a] bg-[#090a0c]"></div>
-                   <div className="absolute top-4 right-4 w-2 h-2 rounded-full border border-[#22252a] bg-[#090a0c]"></div>
-                   <div className="absolute bottom-4 left-4 w-2 h-2 rounded-full border border-[#22252a] bg-[#090a0c]"></div>
-                   <div className="absolute bottom-4 right-4 w-2 h-2 rounded-full border border-[#22252a] bg-[#090a0c]"></div>
-
-                   <div className="flex justify-between items-start mb-6">
-                      <div>
-                        <div className="text-white font-black text-2xl uppercase tracking-tighter">{formData.distance}</div>
-                        <div className="text-[10px] text-gray-500 font-mono uppercase tracking-widest">Distance</div>
-                      </div>
-                      <div className={`text-right ${textMap[formData.themeColor] || 'text-white'}`}>
-                        <div className="font-black text-2xl uppercase tracking-tighter">{formData.targetTime}</div>
-                        <div className="text-[10px] font-mono uppercase tracking-widest opacity-60">Target Time</div>
-                      </div>
-                   </div>
-
-                   <div className="flex flex-col items-center justify-center flex-1 my-4 bg-black/40 rounded-xl border border-white/5 py-4">
-                      <div className={`text-[120px] font-mono font-black leading-none drop-shadow-[0_0_20px_rgba(255,255,255,0.1)] w-full text-center truncate ${textMap[formData.themeColor] || 'text-white'}`}>
-                         {formData.bibNumber || '-'}
-                      </div>
-                   </div>
-
-                   <div className="mt-4">
-                     <h2 className="text-3xl font-black text-white uppercase tracking-tight truncate leading-none mb-1">{formData.runnerName || 'NAME'}</h2>
-                     <p className="font-mono text-xs uppercase opacity-50 flex items-center justify-between">
-                       <span>{formData.eventName} {formData.date}</span>
-                       <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${colorMap[formData.themeColor] || 'bg-white'} text-black`}>{formData.teamCountry}</span>
-                     </p>
-                   </div>
-                 </>               
-               )}
-
-           {!['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(template) && (
+         {!['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(template) && (
   <div className={`mt-auto text-center font-mono text-[9px] tracking-[0.25em] uppercase pt-4 border-t ${
     ['community challenge', 'weekly board', 'clean white', 'minimal award', 'minimal nutrition', 'minimal gear', 'classic', 'elite', 'receipt', 'white', 'table', 'minimal'].includes(template) 
       ? 'border-dashed border-gray-400 text-gray-400' 
@@ -484,12 +447,30 @@ export default function RaceBibGenerator({ previewRef, showToast }: RaceBibProps
 )}
 
 {['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(template) && (
-             <SharedTemplates template={template} formData={formData} componentName="RaceBibGenerator"  />
-           )}
-            </div>
+           <SharedTemplates template={template} formData={formData} componentName="RaceBibGenerator"  />
+         )}
           </div>
-        </div>
-      </div>
-    </div>
+      }
+      templateSelector={
+        <TemplateSelector 
+        activeTemplate={template}
+        onSelectTemplate={setTemplate}
+        localTemplates={[
+          {
+            "id": "classic",
+            "label": "Classic Bib"
+          },
+          {
+            "id": "elite",
+            "label": "Elite Bib"
+          },
+          {
+            "id": "minimal",
+            "label": "Minimal Bib"
+          }
+        ]}
+        />
+      }
+    />
   );
 }

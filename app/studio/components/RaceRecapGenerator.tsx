@@ -2,7 +2,7 @@
 import SharedTemplates, { useExportSize, getExportSizeClasses } from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
 import TemplateSelector from './TemplateSelector';
-import { Copy, Save, AlertCircle } from "lucide-react";
+import { Copy, Save, AlertCircle, Eye, FileText } from "lucide-react";
 
 interface RaceRecapProps {
   previewRef: MutableRefObject<HTMLDivElement | null>;
@@ -30,7 +30,6 @@ export default function RaceRecapGenerator({ previewRef, showToast }: RaceRecapP
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
   const exportSize = useExportSize();
-
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -62,13 +61,13 @@ export default function RaceRecapGenerator({ previewRef, showToast }: RaceRecapP
 
   const getPaceValue = () => {
     if (formData.manualPaceToggle) {
-       return formData.avgPace || "4:38/{unit}";
+       return formData.avgPace || `4:38/${unit}`;
     }
 
     const distStr = formData.distance || "42.2";
     const dist = parseFloat(distStr);
     const timeStr = formData.finishTime || "03:15:24";
-    if (isNaN(dist) || dist <= 0 || !timeStr) return "4:38/{unit}";
+    if (isNaN(dist) || dist <= 0 || !timeStr) return `4:38/${unit}`;
     
     const parts = timeStr.split(":");
     let totalSeconds = 0;
@@ -87,12 +86,13 @@ export default function RaceRecapGenerator({ previewRef, showToast }: RaceRecapP
     const secondsPerKm = totalSeconds / dist;
     const mins = Math.floor(secondsPerKm / 60);
     const secs = Math.floor(secondsPerKm % 60).toString().padStart(2, "0");
-    return `${mins}:${secs}/{unit}`;
+    return `${mins}:${secs}/${unit}`;
   };
 
   const handleChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+
   const handleCopyRecap = () => {
     const lines = [];
     if (formData.raceName !== undefined && formData.raceName !== null && (formData.raceName as any) !== false && (formData.raceName as any) !== "—" && (formData.raceName as any) !== "Input required" && String(formData.raceName).trim() !== "") {
@@ -169,7 +169,6 @@ export default function RaceRecapGenerator({ previewRef, showToast }: RaceRecapP
 
   const currentPace = getPaceValue();
 
-
   const getPlainFormDataForCurrentCard = () => {
     return { ...formData };
   };
@@ -224,8 +223,6 @@ export default function RaceRecapGenerator({ previewRef, showToast }: RaceRecapP
              if (draft && draft.cardType === "race-recap") {
                 if (draft.formData) setFormData(draft.formData);
                 if (draft.template && typeof setTemplate === "function") setTemplate(draft.template);
-                // Template is loaded if the form has a template state.
-                // We'll just check if setTemplate exists in this code.
              }
           }
        }
@@ -233,14 +230,15 @@ export default function RaceRecapGenerator({ previewRef, showToast }: RaceRecapP
   }, []);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-      {/* LEFT: FORM (4 cols) */}
-      <div className="lg:col-span-4 flex flex-col gap-6 w-full">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Race Data</h2>
+    <div className="grid grid-cols-1 xl:grid-cols-[minmax(320px,380px)_1fr_minmax(280px,340px)] gap-6 w-full">
+      {/* COLUMN 1: INPUT */}
+      <div className="flex flex-col gap-4 w-full">
+        <div className="flex items-center gap-2 px-1">
+          <FileText className="w-3.5 h-3.5 text-secondary-lime" />
+          <h2 className="text-[11px] font-bold uppercase tracking-widest text-[#f2f4f7] font-mono">INPUT PARAMETERS</h2>
         </div>
 
-        <div className="bg-surface border border-brand-border p-5 rounded-lg flex flex-col gap-4 shadow-xl">
+        <div className="bg-surface border border-brand-border p-5 rounded-xl flex flex-col gap-4 shadow-xl">
           <div>
              <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-1">Race Name</label>
              <input 
@@ -254,13 +252,13 @@ export default function RaceRecapGenerator({ previewRef, showToast }: RaceRecapP
 
           <div className="grid grid-cols-2 gap-4">
              <div>
-               <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-1">Distance</label>
+               <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-1">Distance ({unit})</label>
                <input 
                  type="text" 
                  value={formData.distance}
                  onChange={e => handleChange("distance", e.target.value)}
                  className={`w-full bg-surface-lowest border p-2 rounded text-sm text-text-primary outline-none transition-colors ${isDistanceInvalid ? 'border-primary-coral focus:border-primary-coral' : 'border-brand-border focus:border-secondary-lime'}`}
-                 placeholder="42.2 KM"
+                 placeholder="42.2"
                />
                {isDistanceInvalid && ( <p className="text-primary-coral text-[10px] font-mono mt-1 flex items-center gap-1"> <AlertCircle className="w-3 h-3" /> Parseable number required </p> )}
              </div>
@@ -296,7 +294,7 @@ export default function RaceRecapGenerator({ previewRef, showToast }: RaceRecapP
                 value={formData.avgPace}
                 onChange={e => handleChange("avgPace", e.target.value)}
                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none font-mono"
-                placeholder="e.g. 4:38 /{unit}"
+                placeholder={`e.g. 4:38 /${unit}`}
               />
             )}
           </div>
@@ -356,38 +354,22 @@ export default function RaceRecapGenerator({ previewRef, showToast }: RaceRecapP
           </div>
 
           <button onClick={() => saveCurrentDraft()} className="w-full mt-2 lg:mt-4 py-2 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-4 h-4 text-primary-action" /> SAVE DRAFT</button>
-          <button onClick={handleCopyRecap} className="w-full py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY RECAP
-</button>
+          <button onClick={handleCopyRecap} className="w-full py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY RECAP</button>
         </div>
-            {/* RIGHT: PREVIEW (8 cols) */}
-      <div className="lg:col-span-8 flex flex-col gap-6 lg:sticky lg:top-[128px] lg:self-start mb-24 lg:mb-0">
-        <div className="flex flex-col gap-1 w-full">
-          <h2 className="text-xl font-bold uppercase tracking-tight text-[#f2f4f7]">Live Preview</h2>
-          <p className="text-xs text-text-muted">Adjust template, accent, and export ratios below.</p>
-        </div>
+      </div>
 
-        <TemplateSelector 
-          activeTemplate={template}
-          onSelectTemplate={setTemplate}
-          localTemplates={[
-            {
-              "id": "carbon",
-              "label": "Dark Carbon"
-            },
-            {
-              "id": "white",
-              "label": "Clean White"
-            },
-            {
-              "id": "poster",
-              "label": "Race Poster"
-            }
-          ]}
-        />
+      {/* COLUMN 2: LIVE PREVIEW */}
+      <div className="flex flex-col gap-4 xl:sticky xl:top-[128px] xl:self-start">
+        <div className="flex flex-col gap-1 px-1">
+          <div className="flex items-center gap-1.5">
+            <Eye className="w-3.5 h-3.5 text-secondary-lime" />
+            <h2 className="text-[11px] font-bold uppercase tracking-widest text-[#f2f4f7] font-mono">LIVE PREVIEW</h2>
+          </div>
+          <p className="text-[10px] text-text-muted font-mono uppercase tracking-wider">REPRESENTS COMPLETED CANVAS</p>
+        </div>
 
         {/* Scalable Container for preview */}
-        <div ref={containerRef} className="w-full bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:16px_16px] bg-[#07080a] border border-brand-border rounded-xl p-4 md:p-8 flex items-center justify-center min-h-[600px] overflow-hidden relative">
-          {/* Card Component matching selected template */}
+        <div ref={containerRef} className="w-full bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:16px_16px] bg-[#07080a] border border-brand-border rounded-xl p-4 md:p-8 flex items-center justify-center min-h-[500px] xl:min-h-[550px] overflow-hidden relative shadow-inner">
           <div 
             style={{ 
               transform: `scale(${scale})`, 
@@ -398,91 +380,64 @@ export default function RaceRecapGenerator({ previewRef, showToast }: RaceRecapP
           >
             <div 
               ref={previewRef}
-              className={`${getExportSizeClasses(exportSize, template)}` + `  flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none
-                ${template === 'carbon' ? 'bg-[#121316] border border-[#22252a] text-[#f2f4f7] p-8 rounded-lg' : ''}
-                ${template === 'white' ? 'bg-[#fafafa] text-[#09090b] p-8 border border-[#e4e4e7] rounded-xl shadow-lg' : ''}
-                ${template === 'poster' ? 'bg-primary-action text-white p-8 rounded-none' : ''}
-              `}
+              className={`${getExportSizeClasses(exportSize, template)}`}
             >
-               <div className="mb-6 flex justify-between items-start">
-                 <div>
-                   <h1 className="text-3xl font-black uppercase tracking-tighter mb-1 leading-tight text-text-primary">{formData.raceName.trim() || 'CHICAGO MARATHON'}</h1>
-                   <p className="font-mono text-xs opacity-75 uppercase tracking-widest text-[#ccff00]">
-                     {[formData.date || new Date().toISOString().split('T')[0], formData.location.trim() || 'CHICAGO, IL'].filter(Boolean).join(' // ') || 'Date | Location'}
-                   </p>
-                 </div>
-                 {(formData.rank.trim() || "PR (#246)") && (
-                   <div className={`font-mono text-base font-black px-3 py-1 border rounded uppercase whitespace-nowrap transition-all
-                      ${template === 'carbon' ? 'text-[#ccff00] border-[#ccff00] bg-surface bg-opacity-40' : ''}
-                      ${template === 'white' ? 'bg-[#18181b] text-white border-[#18181b]' : ''}
-                      ${template === 'poster' ? 'bg-white text-primary-action border-transparent font-black' : ''}
-                   `}>
-                     {formData.rank.trim() || 'PR (#246)'}
-                               </div>
-)}
-               </div>
-
-               <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className={`p-4 border rounded flex flex-col items-center justify-center text-center transition-all
-                    ${template === 'carbon' ? 'bg-[#1c1d22] border-[#22252a]' : ''}
-                    ${template === 'white' ? 'bg-white border-[#e4e4e7] shadow-sm' : ''}
-                    ${template === 'poster' ? 'bg-white/10 border-white/20' : ''}
-                  `}>
-                    <p className="font-mono text-[10px] opacity-60 uppercase tracking-widest mb-1">Distance</p>
-                    <p className={`font-mono text-3xl font-black uppercase ${template === 'carbon' ? 'text-text-primary' : template === 'white' ? 'text-black' : 'text-white'}`}>{formData.distance.trim() || '42.2 KM'}</p>
-                  </div>
-                  <div className={`p-4 border rounded flex flex-col items-center justify-center text-center transition-all
-                    ${template === 'carbon' ? 'bg-[#1c1d22] border-[#22252a]' : ''}
-                    ${template === 'white' ? 'bg-white border-[#e4e4e7] shadow-sm' : ''}
-                    ${template === 'poster' ? 'bg-white/10 border-white/20' : ''}
-                  `}>
-                    <p className="font-mono text-[10px] opacity-60 uppercase tracking-widest mb-1">Time</p>
-                    <p className={`font-mono text-3xl font-black uppercase text-primary-coral`}>{formData.finishTime.trim() || '03:15:24'}</p>
-                  </div>
-                  <div className={`col-span-2 p-4 border rounded flex flex-col items-center justify-center text-center transition-all
-                    ${template === 'carbon' ? 'bg-[#1c1d22] border-[#22252a]' : ''}
-                    ${template === 'white' ? 'bg-white border-[#e4e4e7] shadow-sm' : ''}
-                    ${template === 'poster' ? 'bg-white/10 border-white/20' : ''}
-                  `}>
-                    <p className="font-mono text-[10px] opacity-60 uppercase tracking-widest mb-1">Avg Pace</p>
-                    <p className={`font-mono text-3xl font-black uppercase ${template === 'carbon' ? 'text-[#ccff00]' : template === 'white' ? 'text-black' : 'text-white'}`}>{currentPace}</p>
-                  </div>
-               </div>
-
-               {(formData.bestMoment.trim() || "CROWD YELLING AT MILE 20 GAVE ME A SECOND WIND.") && (
-                 <div className={`mb-6 p-4 border-l-4 transition-all
-                   ${template === 'carbon' ? 'border-[#ccff00] bg-[#181a1f]' : ''}
-                   ${template === 'white' ? 'border-[#09090b] bg-[#f4f4f5]' : ''}
-                   ${template === 'poster' ? 'border-white bg-white/10' : ''}
-                 `}>
-                   <p className="font-mono text-[10px] opacity-60 uppercase tracking-widest mb-1.5">Moment of the Match</p>
-                   <p className="italic font-serif text-base leading-relaxed">&ldquo;{formData.bestMoment.trim() || 'CROWD YELLING AT MILE 20 GAVE ME A SECOND WIND.'}&rdquo;</p>
-                             </div>
-              )}
-{(formData.nextTarget.trim() || "SUB 3:10 AT BOSTON") && (
-                 <div className="flex justify-between items-center py-4 border-t border-b border-opacity-20 mb-8 font-mono text-xs uppercase tracking-wider">
-                   <span className="opacity-60">Next Mission Target</span>
-                   <span className="font-black text-primary-coral">{formData.nextTarget.trim() || 'SUB 3:10 AT BOSTON'}</span>
-                             </div>
-              )}
-
-</div>
-           {['carbon', 'white', 'poster'].includes(template) && (
-  <div className={`mt-auto text-center font-mono text-[9px] tracking-[0.25em] uppercase pt-4 border-t ${
-    ['community challenge', 'weekly board', 'clean white', 'minimal award', 'minimal nutrition', 'minimal gear', 'classic', 'elite', 'receipt', 'white', 'table', 'minimal'].includes(template) 
-      ? 'border-dashed border-gray-400 text-gray-400' 
-      : 'border-dashed border-brand-border opacity-40 text-white'
-  }`}>
-    {typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'made with RunCard Studio'}
-  </div>
-)}
-
-{!['carbon', 'white', 'poster'].includes(template) && (
-             <SharedTemplates template={template} formData={formData} componentName="RaceRecapGenerator"  />
-           )}
+              <SharedTemplates 
+                template={template} 
+                formData={{ 
+                  ...formData, 
+                  averagePace: currentPace, 
+                  unit
+                }}
+                componentName="RaceRecapGenerator" 
+              />
             </div>
           </div>
+
+          {/* Centered Ratio Dock */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-[#090b0e]/95 backdrop-blur border border-brand-border/85 px-2 py-1.5 rounded-full flex items-center gap-1 shadow-[0_8px_24px_rgba(0,0,0,0.6)] z-10 hover:border-brand-border-strong transition-all">
+            {[
+              { id: "square", label: "1:1 Feed" },
+              { id: "story", label: "9:16 Story" },
+              { id: "landscape", label: "16:9 Classic" },
+              { id: "compact", label: "Fit" },
+              { id: "printable", label: "PDF/A4" }
+            ].map((ratio) => {
+              const isActive = exportSize === ratio.id;
+              return (
+                <button
+                  key={ratio.id}
+                  onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      localStorage.setItem('runcard-default-export-size', ratio.id);
+                      window.dispatchEvent(new CustomEvent('export-size-changed', { detail: ratio.id }));
+                    }
+                  }}
+                  className={`px-2.5 py-1 rounded-full text-[9px] font-mono font-bold uppercase transition-all cursor-pointer outline-none focus:outline-none whitespace-nowrap
+                    ${isActive 
+                      ? 'bg-secondary-lime text-black shadow-[0_0_8px_rgba(160,204,0,0.4)] font-extrabold' 
+                      : 'text-text-muted hover:text-text-primary hover:bg-surface-lowest/50'}`}
+                >
+                  {ratio.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
+      </div>
+
+      {/* COLUMN 3: STYLE CONTROLS */}
+      <div className="flex flex-col gap-4 xl:sticky xl:top-[128px]">
+        <div className="flex flex-col gap-0.5 px-1">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-[#f2f4f7] font-mono">STYLE CONTROLS</span>
+          <p className="text-[10px] text-text-muted font-mono uppercase tracking-wider">Tweak appearance</p>
+        </div>
+        
+        <TemplateSelector 
+          activeTemplate={template}
+          onSelectTemplate={setTemplate}
+          localTemplates={[]}
+        />
       </div>
     </div>
   );

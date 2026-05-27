@@ -1,3 +1,4 @@
+import StudioPageShell from './StudioPageShell';
 /* eslint-disable react-hooks/set-state-in-effect */
 import SharedTemplates, { useExportSize, getExportSizeClasses } from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
@@ -181,12 +182,10 @@ export default function GoalCardGenerator({ previewRef, showToast }: GoalCardPro
   }, []);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
-      <div className="lg:col-span-4 flex flex-col gap-6 w-full">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Goal Data</h2>
-        </div>
-
+    <StudioPageShell
+      inputTitle="GOAL DATA"
+      inputSubtitle="Log details"
+      inputContent={
         <div className="bg-surface border border-brand-border p-5 rounded-lg flex flex-col gap-4 shadow-xl">
           <div>
              <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-1">Goal Title</label>
@@ -285,172 +284,141 @@ export default function GoalCardGenerator({ previewRef, showToast }: GoalCardPro
           <button onClick={handleCopy} className="w-full py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY GOAL
 </button>
         </div>
-      </div>
-
-      <div className="lg:col-span-8 flex flex-col gap-6 lg:sticky lg:top-[128px] lg:self-start mb-24 lg:mb-0">
-        <div className="flex flex-col gap-1 w-full">
-          <h2 className="text-xl font-bold uppercase tracking-tight text-[#f2f4f7]">Live Preview</h2>
-          <p className="text-xs text-text-muted">Adjust template, accent, and export ratios below.</p>
-        </div>
-
-        <TemplateSelector 
-          activeTemplate={template}
-          onSelectTemplate={setTemplate}
-          localTemplates={[
-            {
-              "id": "target board",
-              "label": "Target Board"
-            },
-            {
-              "id": "countdown card",
-              "label": "Countdown Card"
-            },
-            {
-              "id": "minimal goal",
-              "label": "Minimal Goal"
-            }
-          ]}
-        />
-
-        <div ref={containerRef} className="w-full bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:16px_16px] bg-[#07080a] border border-brand-border rounded-xl p-4 md:p-8 flex items-center justify-center min-h-[600px] overflow-hidden relative">
-          <div 
-            style={{ 
-              transform: `scale(${scale})`, 
-              transformOrigin: "center",
-              transition: "transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)" 
-            }}
-            className="shrink-0"
+      }
+      containerRef={containerRef}
+      scale={scale}
+      exportSize={exportSize}
+      previewContent={
+        <div
+          ref={previewRef}
+            className={`${getExportSizeClasses(exportSize, template)}` + `  flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none overflow-hidden
+              ${template === 'target board' ? 'bg-[#0f1012] border-t-8 border-secondary-lime text-white p-8 rounded font-mono' : ''}
+              ${template === 'countdown card' ? 'bg-[#121316] border border-primary-coral p-8 text-[#f2f4f7] rounded-xl' : ''}
+              ${template === 'minimal goal' ? 'bg-white border border-gray-200 text-black p-8 px-10 rounded-sm font-sans' : ''}
+            `}
+            style={{ minHeight: '440px' }}
           >
-            <div 
-              ref={previewRef}
-              className={`${getExportSizeClasses(exportSize, template)}` + `  flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none overflow-hidden
-                ${template === 'target board' ? 'bg-[#0f1012] border-t-8 border-secondary-lime text-white p-8 rounded font-mono' : ''}
-                ${template === 'countdown card' ? 'bg-[#121316] border border-primary-coral p-8 text-[#f2f4f7] rounded-xl' : ''}
-                ${template === 'minimal goal' ? 'bg-white border border-gray-200 text-black p-8 px-10 rounded-sm font-sans' : ''}
-              `}
-              style={{ minHeight: '440px' }}
-            >
-               
-               {template === 'target board' && (
-                 <>
-                   <div className="flex justify-between items-start mb-6">
-                     <span className="text-[10px] text-gray-500 uppercase tracking-widest px-2 py-1 bg-[#1a1c23]">{formData.status || 'STATUS'}</span>
-                     <span className="text-[10px] text-secondary-lime uppercase tracking-widest">{formData.targetDate || 'DATE'}</span>
+             
+             {template === 'target board' && (
+               <>
+                 <div className="flex justify-between items-start mb-6">
+                   <span className="text-[10px] text-gray-500 uppercase tracking-widest px-2 py-1 bg-[#1a1c23]">{formData.status || 'STATUS'}</span>
+                   <span className="text-[10px] text-secondary-lime uppercase tracking-widest">{formData.targetDate || 'DATE'}</span>
+                 </div>
+                 
+                 <div className="mb-8">
+                   <h1 className="text-3xl font-black uppercase tracking-widest mb-2 leading-tight text-white">{formData.title || 'GOAL TITLE'}</h1>
+                   <div className="text-sm uppercase tracking-widest text-gray-400 border-b border-[#22252a] pb-4">{formData.targetEvent || 'EVENT'}</div>
+                 </div>
+
+                 <div className="flex-1 grid grid-cols-2 gap-4 mb-6">
+                    <div className="bg-black p-4 border border-[#22252a] flex flex-col justify-center text-center">
+                      <span className="text-[10px] uppercase text-gray-500 mb-1">Target Time</span>
+                      <span className="text-2xl font-black">{formData.targetTime || '-'}</span>
+                    </div>
+                    <div className="bg-black p-4 border border-[#22252a] flex flex-col justify-center text-center">
+                      <span className="text-[10px] uppercase text-gray-500 mb-1">Current Best</span>
+                      <span className="text-xl font-bold text-gray-300">{formData.currentBest || '-'}</span>
+                    </div>
+                 </div>
+
+                 <div className="mt-auto flex flex-col pt-4">
+                   <div className="mb-4">
+                     <span className="text-[9px] uppercase tracking-widest text-gray-600 block mb-1">Primary Focus</span>
+                     <span className="text-sm font-bold uppercase">{formData.mainFocus || '-'}</span>
                    </div>
+                   {formData.motivation && (
+                     <div className="text-xs italic text-gray-500 border-l-[3px] border-secondary-lime pl-3">
+                       &quot;{formData.motivation}&quot;
+                     </div>
+                   )}
+                 </div>
+               </>
+             )}
+
+             {template === 'countdown card' && (
+               <>
+                 <div className="absolute top-0 right-0 bg-primary-coral text-black font-black uppercase text-[10px] tracking-widest px-3 py-1 rounded-bl-xl">MISSION</div>
+                 
+                 <div className="mb-8 pt-4">
+                   <div className="text-primary-coral font-mono text-[10px] uppercase tracking-widest mb-1">Target Set // {formData.status || 'STATUS'}</div>
+                   <h1 className="text-5xl font-black uppercase tracking-tighter leading-none mb-4">{formData.title || 'GOAL'}</h1>
                    
-                   <div className="mb-8">
-                     <h1 className="text-3xl font-black uppercase tracking-widest mb-2 leading-tight text-white">{formData.title || 'GOAL TITLE'}</h1>
-                     <div className="text-sm uppercase tracking-widest text-gray-400 border-b border-[#22252a] pb-4">{formData.targetEvent || 'EVENT'}</div>
+                   <div className="bg-[#1c1d22] border border-[#2a2d35] p-3 rounded flex justify-between items-center font-mono">
+                      <span className="text-xs uppercase text-gray-400">T-Date</span>
+                      <span className="text-sm font-bold text-white">{formData.targetDate || '-'}</span>
+                   </div>
+                 </div>
+
+                 <div className="flex-1 space-y-4 mb-8">
+                   <div className="flex justify-between border-b border-[#22252a] pb-2">
+                     <span className="font-mono text-[10px] uppercase text-gray-500">Event</span>
+                     <span className="font-bold uppercase tracking-wide">{formData.targetEvent || '-'}</span>
+                   </div>
+                   <div className="flex justify-between border-b border-[#22252a] pb-2">
+                     <span className="font-mono text-[10px] uppercase text-gray-500">Target Time</span>
+                     <span className="font-bold font-mono text-lg text-primary-coral">{formData.targetTime || '-'}</span>
+                   </div>
+                   <div className="flex justify-between border-b border-[#22252a] pb-2">
+                     <span className="font-mono text-[10px] uppercase text-gray-500">Focus</span>
+                     <span className="font-bold uppercase text-sm truncate max-w-[60%]">{formData.mainFocus || '-'}</span>
+                   </div>
+                 </div>
+
+                 <div className="mt-auto pt-4 flex items-end justify-between">
+                   {formData.motivation && (
+                     <div className="text-xs italic text-gray-400 font-serif text-right max-w-[70%]">
+                       &quot;{formData.motivation}&quot;
+                     </div>
+                   )}
+                 </div>
+               </>
+             )}
+
+             {template === 'minimal goal' && (
+               <>
+                 <div className="h-full flex flex-col py-2">
+                   <div className="flex justify-between items-baseline mb-8">
+                     <h1 className="text-2xl font-black uppercase tracking-widest border-b-2 border-black pb-2">{formData.title || 'GOAL'}</h1>
+                     <span className="text-[10px] font-mono tracking-widest uppercase text-gray-500">{formData.targetDate}</span>
                    </div>
 
-                   <div className="flex-1 grid grid-cols-2 gap-4 mb-6">
-                      <div className="bg-black p-4 border border-[#22252a] flex flex-col justify-center text-center">
-                        <span className="text-[10px] uppercase text-gray-500 mb-1">Target Time</span>
-                        <span className="text-2xl font-black">{formData.targetTime || '-'}</span>
+                   <div className="flex-1 flex flex-col justify-center gap-6">
+                      <div>
+                        <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Target Event</div>
+                        <div className="text-xl font-bold text-black">{formData.targetEvent || '-'}</div>
                       </div>
-                      <div className="bg-black p-4 border border-[#22252a] flex flex-col justify-center text-center">
-                        <span className="text-[10px] uppercase text-gray-500 mb-1">Current Best</span>
-                        <span className="text-xl font-bold text-gray-300">{formData.currentBest || '-'}</span>
-                      </div>
-                   </div>
 
-                   <div className="mt-auto flex flex-col pt-4">
-                     <div className="mb-4">
-                       <span className="text-[9px] uppercase tracking-widest text-gray-600 block mb-1">Primary Focus</span>
-                       <span className="text-sm font-bold uppercase">{formData.mainFocus || '-'}</span>
-                     </div>
-                     {formData.motivation && (
-                       <div className="text-xs italic text-gray-500 border-l-[3px] border-secondary-lime pl-3">
-                         &quot;{formData.motivation}&quot;
-                       </div>
-                     )}
-                   </div>
-                 </>
-               )}
-
-               {template === 'countdown card' && (
-                 <>
-                   <div className="absolute top-0 right-0 bg-primary-coral text-black font-black uppercase text-[10px] tracking-widest px-3 py-1 rounded-bl-xl">MISSION</div>
-                   
-                   <div className="mb-8 pt-4">
-                     <div className="text-primary-coral font-mono text-[10px] uppercase tracking-widest mb-1">Target Set // {formData.status || 'STATUS'}</div>
-                     <h1 className="text-5xl font-black uppercase tracking-tighter leading-none mb-4">{formData.title || 'GOAL'}</h1>
-                     
-                     <div className="bg-[#1c1d22] border border-[#2a2d35] p-3 rounded flex justify-between items-center font-mono">
-                        <span className="text-xs uppercase text-gray-400">T-Date</span>
-                        <span className="text-sm font-bold text-white">{formData.targetDate || '-'}</span>
-                     </div>
-                   </div>
-
-                   <div className="flex-1 space-y-4 mb-8">
-                     <div className="flex justify-between border-b border-[#22252a] pb-2">
-                       <span className="font-mono text-[10px] uppercase text-gray-500">Event</span>
-                       <span className="font-bold uppercase tracking-wide">{formData.targetEvent || '-'}</span>
-                     </div>
-                     <div className="flex justify-between border-b border-[#22252a] pb-2">
-                       <span className="font-mono text-[10px] uppercase text-gray-500">Target Time</span>
-                       <span className="font-bold font-mono text-lg text-primary-coral">{formData.targetTime || '-'}</span>
-                     </div>
-                     <div className="flex justify-between border-b border-[#22252a] pb-2">
-                       <span className="font-mono text-[10px] uppercase text-gray-500">Focus</span>
-                       <span className="font-bold uppercase text-sm truncate max-w-[60%]">{formData.mainFocus || '-'}</span>
-                     </div>
-                   </div>
-
-                   <div className="mt-auto pt-4 flex items-end justify-between">
-                     {formData.motivation && (
-                       <div className="text-xs italic text-gray-400 font-serif text-right max-w-[70%]">
-                         &quot;{formData.motivation}&quot;
-                       </div>
-                     )}
-                   </div>
-                 </>
-               )}
-
-               {template === 'minimal goal' && (
-                 <>
-                   <div className="h-full flex flex-col py-2">
-                     <div className="flex justify-between items-baseline mb-8">
-                       <h1 className="text-2xl font-black uppercase tracking-widest border-b-2 border-black pb-2">{formData.title || 'GOAL'}</h1>
-                       <span className="text-[10px] font-mono tracking-widest uppercase text-gray-500">{formData.targetDate}</span>
-                     </div>
-
-                     <div className="flex-1 flex flex-col justify-center gap-6">
+                      <div className="flex gap-12">
                         <div>
-                          <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Target Event</div>
-                          <div className="text-xl font-bold text-black">{formData.targetEvent || '-'}</div>
+                          <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Target Time</div>
+                          <div className="text-3xl font-black tracking-tighter text-black">{formData.targetTime || '-'}</div>
                         </div>
-
-                        <div className="flex gap-12">
+                        {formData.currentBest && (
                           <div>
-                            <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Target Time</div>
-                            <div className="text-3xl font-black tracking-tighter text-black">{formData.targetTime || '-'}</div>
+                            <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Current Best</div>
+                            <div className="text-xl font-semibold text-gray-600 mt-2">{formData.currentBest}</div>
                           </div>
-                          {formData.currentBest && (
-                            <div>
-                              <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Current Best</div>
-                              <div className="text-xl font-semibold text-gray-600 mt-2">{formData.currentBest}</div>
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div>
-                          <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Focus & Status</div>
-                          <div className="text-sm font-medium mb-1">{formData.mainFocus || '-'}</div>
-                          <div className="inline-block px-2 py-0.5 bg-gray-100 text-[10px] uppercase tracking-widest font-bold mt-1 text-gray-600">{formData.status}</div>
-                        </div>
-                     </div>
-
-                     {formData.motivation && (
-                       <div className="mt-6 pt-6 border-t border-gray-200">
-                         <p className="text-sm font-serif italic text-gray-700">&quot;{formData.motivation}&quot;</p>
-                       </div>
-                     )}
+                        )}
+                      </div>
+                      
+                      <div>
+                        <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Focus & Status</div>
+                        <div className="text-sm font-medium mb-1">{formData.mainFocus || '-'}</div>
+                        <div className="inline-block px-2 py-0.5 bg-gray-100 text-[10px] uppercase tracking-widest font-bold mt-1 text-gray-600">{formData.status}</div>
+                      </div>
                    </div>
-                 </>
-               )}
 
-           {!['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(template) && (
+                   {formData.motivation && (
+                     <div className="mt-6 pt-6 border-t border-gray-200">
+                       <p className="text-sm font-serif italic text-gray-700">&quot;{formData.motivation}&quot;</p>
+                     </div>
+                   )}
+                 </div>
+               </>
+             )}
+
+         {!['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(template) && (
   <div className={`mt-auto text-center font-mono text-[9px] tracking-[0.25em] uppercase pt-4 border-t ${
     ['community challenge', 'weekly board', 'clean white', 'minimal award', 'minimal nutrition', 'minimal gear', 'classic', 'elite', 'receipt', 'white', 'table', 'minimal'].includes(template) 
       ? 'border-dashed border-gray-400 text-gray-400' 
@@ -461,12 +429,30 @@ export default function GoalCardGenerator({ previewRef, showToast }: GoalCardPro
 )}
 
 {['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(template) && (
-             <SharedTemplates template={template} formData={formData} componentName="GoalCardGenerator"  />
-           )}
-            </div>
+           <SharedTemplates template={template} formData={formData} componentName="GoalCardGenerator"  />
+         )}
           </div>
-        </div>
-      </div>
-    </div>
+      }
+      templateSelector={
+        <TemplateSelector 
+        activeTemplate={template}
+        onSelectTemplate={setTemplate}
+        localTemplates={[
+          {
+            "id": "target board",
+            "label": "Target Board"
+          },
+          {
+            "id": "countdown card",
+            "label": "Countdown Card"
+          },
+          {
+            "id": "minimal goal",
+            "label": "Minimal Goal"
+          }
+        ]}
+        />
+      }
+    />
   );
 }

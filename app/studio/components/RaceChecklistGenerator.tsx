@@ -1,3 +1,4 @@
+import StudioPageShell from './StudioPageShell';
 /* eslint-disable react-hooks/set-state-in-effect */
 import SharedTemplates, { useExportSize, getExportSizeClasses } from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
@@ -272,13 +273,10 @@ export default function RaceChecklistGenerator({ previewRef, showToast }: RaceCh
   }, []);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
-      {/* LEFT: FORM (4 cols) */}
-      <div className="lg:col-span-4 flex flex-col gap-6 w-full">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Checklist Configuration</h2>
-        </div>
-
+    <StudioPageShell
+      inputTitle="CHECKLIST CONFIGURATION"
+      inputSubtitle="Log details"
+      inputContent={
         <div className="bg-surface border border-brand-border p-5 rounded-lg flex flex-col gap-4 shadow-xl">
           <div>
              <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-1">Checklist Title</label>
@@ -336,124 +334,94 @@ export default function RaceChecklistGenerator({ previewRef, showToast }: RaceCh
           <button onClick={handleCopy} className="w-full mt-2 py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY CHECKLIST
 </button>
         </div>
-      </div>
-
-      {/* RIGHT: PREVIEW (8 cols) */}
-      <div className="lg:col-span-8 flex flex-col gap-6 lg:sticky lg:top-[128px] lg:self-start mb-24 lg:mb-0">
-        <div className="flex flex-col gap-1 w-full">
-          <h2 className="text-xl font-bold uppercase tracking-tight text-[#f2f4f7]">Live Preview</h2>
-          <p className="text-xs text-text-muted">Adjust template, accent, and export ratios below.</p>
-        </div>
-
-        <TemplateSelector 
-          activeTemplate={template}
-          onSelectTemplate={setTemplate}
-          localTemplates={[]}
-        />
-
-        {/* Scalable Container for preview */}
-        <div ref={containerRef} className="w-full bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:16px_16px] bg-[#07080a] border border-brand-border rounded-xl p-4 md:p-8 flex items-center justify-center min-h-[600px] overflow-hidden relative">
-          
-          <div 
-            style={{ 
-              transform: `scale(${scale})`, 
-              transformOrigin: "center",
-              transition: "transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)" 
-            }}
-            className="shrink-0"
+      }
+      containerRef={containerRef}
+      scale={scale}
+      exportSize={exportSize}
+      previewContent={
+        <div
+          ref={previewRef}
+            className={`${getExportSizeClasses(exportSize, template)}`}
           >
-            <div 
-              ref={previewRef}
-              className={`${getExportSizeClasses(exportSize, template)}`}
-            >
-               {/* Header */}
-               <div className={`mb-6 flex flex-col
-                  ${template === 'race day' ? 'border-b-4 border-black pb-4' : ''}
-                  ${template === 'minimal' ? 'border-b border-gray-200 pb-6 mb-8 text-center' : ''}
-                  ${template === 'dark utility' ? 'border-b-2 border-primary-coral pb-4 border-dashed' : ''}
+             {/* Header */}
+             <div className={`mb-6 flex flex-col
+                ${template === 'race day' ? 'border-b-4 border-black pb-4' : ''}
+                ${template === 'minimal' ? 'border-b border-gray-200 pb-6 mb-8 text-center' : ''}
+                ${template === 'dark utility' ? 'border-b-2 border-primary-coral pb-4 border-dashed' : ''}
+             `}>
+               <h1 className={`text-3xl font-black uppercase tracking-tighter leading-tight
+                  ${template === 'dark utility' ? 'text-secondary-lime' : ''}
+                  ${template === 'minimal' ? 'font-serif tracking-normal' : ''}
                `}>
-                 <h1 className={`text-3xl font-black uppercase tracking-tighter leading-tight
-                    ${template === 'dark utility' ? 'text-secondary-lime' : ''}
-                    ${template === 'minimal' ? 'font-serif tracking-normal' : ''}
-                 `}>
-                   {formData.title.trim() || 'CHECKLIST'}
-                 </h1>
-                 {template === 'dark utility' && <p className="text-[10px] uppercase tracking-widest opacity-50 mt-1">Status: Pending Verification</p>}
-               </div>
+                 {formData.title.trim() || 'CHECKLIST'}
+               </h1>
+               {template === 'dark utility' && <p className="text-[10px] uppercase tracking-widest opacity-50 mt-1">Status: Pending Verification</p>}
+             </div>
 
-               {/* Checklist Items Area */}
-               <div className={`flex-1 ${template === 'race day' ? 'grid grid-cols-2 gap-x-6 gap-y-1' : 'flex flex-col gap-4'}`}>
-                  {template === 'race day' ? (
-                     <>
-                        <div className="flex flex-col gap-3">
-                           {leftItems.map((item, i) => (
-                             <div key={`l-${i}`} className="flex items-start gap-3">
-                               <div className="w-5 h-5 shrink-0 border-2 border-black rounded-sm mt-0.5"></div>
-                               <span className="font-bold uppercase text-sm leading-tight pt-0.5">{item}</span>
-                             </div>
-                           ))}
+             {/* Checklist Items Area */}
+             <div className={`flex-1 ${template === 'race day' ? 'grid grid-cols-2 gap-x-6 gap-y-1' : 'flex flex-col gap-4'}`}>
+                {template === 'race day' ? (
+                   <>
+                      <div className="flex flex-col gap-3">
+                         {leftItems.map((item, i) => (
+                           <div key={`l-${i}`} className="flex items-start gap-3">
+                             <div className="w-5 h-5 shrink-0 border-2 border-black rounded-sm mt-0.5"></div>
+                             <span className="font-bold uppercase text-sm leading-tight pt-0.5">{item}</span>
+                           </div>
+                         ))}
         </div>
-                        <div className="flex flex-col gap-3">
-                           {rightItems.map((item, i) => (
-                             <div key={`r-${i}`} className="flex items-start gap-3">
-                               <div className="w-5 h-5 shrink-0 border-2 border-black rounded-sm mt-0.5"></div>
-                               <span className="font-bold uppercase text-sm leading-tight pt-0.5">{item}</span>
-                             </div>
-                           ))}
+                      <div className="flex flex-col gap-3">
+                         {rightItems.map((item, i) => (
+                           <div key={`r-${i}`} className="flex items-start gap-3">
+                             <div className="w-5 h-5 shrink-0 border-2 border-black rounded-sm mt-0.5"></div>
+                             <span className="font-bold uppercase text-sm leading-tight pt-0.5">{item}</span>
+                           </div>
+                         ))}
         </div>
-                     </>
-                  ) : template === 'minimal' ? (
-                     <div className="flex flex-col gap-4 px-2">
-                        {itemsList.map((item, i) => (
-                          <div key={i} className="flex items-center gap-4">
-                            <div className="w-3 h-3 shrink-0 rounded-full border border-gray-400"></div>
-                            <span className="text-sm border-b border-gray-200 border-dotted flex-1 pb-1">{item}</span>
+                   </>
+                ) : template === 'minimal' ? (
+                   <div className="flex flex-col gap-4 px-2">
+                      {itemsList.map((item, i) => (
+                        <div key={i} className="flex items-center gap-4">
+                          <div className="w-3 h-3 shrink-0 rounded-full border border-gray-400"></div>
+                          <span className="text-sm border-b border-gray-200 border-dotted flex-1 pb-1">{item}</span>
+                        </div>
+                      ))}
+        </div>
+                ) : (
+                   // Dark Utility
+                   <div className="flex flex-col gap-2">
+                      {itemsList.map((item, i) => (
+                        <div key={i} className="flex items-center gap-3 bg-[#111316] p-2.5 rounded border border-[#22252a]">
+                          <div className="w-4 h-4 shrink-0 bg-[#0b0c0e] border border-[#22252a] flex items-center justify-center">
+                            {/* Empty box */}
                           </div>
-                        ))}
-        </div>
-                  ) : (
-                     // Dark Utility
-                     <div className="flex flex-col gap-2">
-                        {itemsList.map((item, i) => (
-                          <div key={i} className="flex items-center gap-3 bg-[#111316] p-2.5 rounded border border-[#22252a]">
-                            <div className="w-4 h-4 shrink-0 bg-[#0b0c0e] border border-[#22252a] flex items-center justify-center">
-                              {/* Empty box */}
-                            </div>
-                            <span className="text-xs uppercase tracking-wider text-gray-300 truncate">{item}</span>
-                          </div>
-                        ))}
+                          <span className="text-xs uppercase tracking-wider text-gray-300 truncate">{item}</span>
+                        </div>
+                      ))}
         </div>
 )}
-               </div>
+             </div>
 
-               {/* Footer */}
-               <div className={`mt-8 pt-4 flex justify-between items-end
-                   ${template === 'race day' ? 'border-t-4 border-black' : ''}
-                   ${template === 'minimal' ? 'border-t border-gray-200 opacity-50' : ''}
-                   ${template === 'dark utility' ? 'border-t border-[#22252a] opacity-40' : ''}
-               `}>
-                 <span className={`text-[9px] uppercase tracking-widest ${template === 'minimal' ? 'font-sans' : 'font-mono uppercase'}`}>
-                   Packing Protocol
-                 </span>
-               </div>
-            </div>
-
-           {!['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
-  <div className={`mt-auto text-center font-mono text-[9px] tracking-[0.25em] uppercase pt-4 border-t ${
-    ['community challenge', 'weekly board', 'clean white', 'minimal award', 'minimal nutrition', 'minimal gear', 'classic', 'elite', 'receipt', 'white', 'table', 'minimal'].includes(template) 
-      ? 'border-dashed border-gray-400 text-gray-400' 
-      : 'border-dashed border-brand-border opacity-40 text-white'
-  }`}>
-    {typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'made with RunCard Studio'}
-  </div>
-)}
-
-{['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
-             <SharedTemplates template={template} formData={formData} componentName="RaceChecklistGenerator"  />
-           )}
-            </div>
+             {/* Footer */}
+             <div className={`mt-8 pt-4 flex justify-between items-end
+                 ${template === 'race day' ? 'border-t-4 border-black' : ''}
+                 ${template === 'minimal' ? 'border-t border-gray-200 opacity-50' : ''}
+                 ${template === 'dark utility' ? 'border-t border-[#22252a] opacity-40' : ''}
+             `}>
+               <span className={`text-[9px] uppercase tracking-widest ${template === 'minimal' ? 'font-sans' : 'font-mono uppercase'}`}>
+                 Packing Protocol
+               </span>
+             </div>
           </div>
-        </div>
-      </div>
+      }
+      templateSelector={
+        <TemplateSelector 
+        activeTemplate={template}
+        onSelectTemplate={setTemplate}
+        localTemplates={[]}
+        />
+      }
+    />
   );
 }

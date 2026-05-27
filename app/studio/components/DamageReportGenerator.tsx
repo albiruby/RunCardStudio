@@ -1,3 +1,4 @@
+import StudioPageShell from './StudioPageShell';
 /* eslint-disable react-hooks/set-state-in-effect */
 import SharedTemplates, { useExportSize, getExportSizeClasses } from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
@@ -196,13 +197,10 @@ export default function DamageReportGenerator({ previewRef, showToast }: DamageR
   }, []);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
-      {/* LEFT: FORM (4 cols) */}
-      <div className="lg:col-span-4 flex flex-col gap-6 w-full">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Session Data</h2>
-        </div>
-
+    <StudioPageShell
+      inputTitle="SESSION DATA"
+      inputSubtitle="Log details"
+      inputContent={
         <div className="bg-surface border border-brand-border p-5 rounded-lg flex flex-col gap-4 shadow-xl">
           <div className="grid grid-cols-2 gap-4">
              <div className="col-span-2">
@@ -342,109 +340,75 @@ export default function DamageReportGenerator({ previewRef, showToast }: DamageR
           <button onClick={handleCopy} className="w-full py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY REPORT
 </button>
         </div>
-      </div>
-
-      {/* RIGHT: PREVIEW (8 cols) */}
-      <div className="lg:col-span-8 flex flex-col gap-6 lg:sticky lg:top-[128px] lg:self-start mb-24 lg:mb-0">
-        <div className="flex flex-col gap-1 w-full">
-          <h2 className="text-xl font-bold uppercase tracking-tight text-[#f2f4f7]">Live Preview</h2>
-          <p className="text-xs text-text-muted">Adjust template, accent, and export ratios below.</p>
-        </div>
-
-        <TemplateSelector 
-          activeTemplate={template}
-          onSelectTemplate={setTemplate}
-          localTemplates={[
-            {
-              "id": "brutal",
-              "label": "Brutal Report"
-            },
-            {
-              "id": "receipt",
-              "label": "Dark Receipt"
-            },
-            {
-              "id": "neon",
-              "label": "Neon Damage"
-            }
-          ]}
-        />
-
-        {/* Scalable Container for preview */}
-        <div ref={containerRef} className="w-full bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:16px_16px] bg-[#07080a] border border-brand-border rounded-xl p-4 md:p-8 flex items-center justify-center min-h-[600px] overflow-hidden relative">
-          
-          <div 
-            style={{ 
-              transform: `scale(${scale})`, 
-              transformOrigin: "center",
-              transition: "transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)" 
-            }}
-            className="shrink-0"
+      }
+      containerRef={containerRef}
+      scale={scale}
+      exportSize={exportSize}
+      previewContent={
+        <div
+          ref={previewRef}
+            className={`${getExportSizeClasses(exportSize, template)}` + `  flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none
+              ${template === 'brutal' ? 'bg-[#121316] border border-[#22252a] p-8 text-[#f2f4f7] rounded-lg' : ''}
+              ${template === 'receipt' ? 'bg-[#fafafa] text-black border border-[#e4e4e7] p-8 rounded-none' : ''}
+              ${template === 'neon' ? 'bg-[#020203] border border-[#ff0055]/30 p-8 text-[#fafafa] rounded-xl shadow-[0_0_30px_rgba(255,0,85,0.15)]' : ''}
+            `}
           >
-            <div 
-              ref={previewRef}
-              className={`${getExportSizeClasses(exportSize, template)}` + `  flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none
-                ${template === 'brutal' ? 'bg-[#121316] border border-[#22252a] p-8 text-[#f2f4f7] rounded-lg' : ''}
-                ${template === 'receipt' ? 'bg-[#fafafa] text-black border border-[#e4e4e7] p-8 rounded-none' : ''}
-                ${template === 'neon' ? 'bg-[#020203] border border-[#ff0055]/30 p-8 text-[#fafafa] rounded-xl shadow-[0_0_30px_rgba(255,0,85,0.15)]' : ''}
-              `}
-            >
-               {/* Header */}
-               <div className={`mb-6 pb-4 border-b ${template === 'neon' ? 'border-[#ff0055]/30' : (template === 'receipt' ? 'border-dashed border-gray-400' : 'border-[#22252a]')}`}>
-                  <h1 className={`text-3xl font-black uppercase tracking-tighter leading-none mb-1 ${template === 'neon' ? 'text-[#ff0055] drop-shadow-[0_0_8px_rgba(255,0,85,0.5)]' : ''}`}>Damage Report</h1>
-                  <p className={`font-mono text-sm uppercase tracking-widest ${template === 'receipt' ? 'text-gray-500' : 'text-primary-coral'}`}>
-                    {formData.sessionType || 'SESSION'} {formData.distance && `// ${formData.distance}`} {formData.duration && `// ${formData.duration}`}
-                  </p>
-               </div>
+             {/* Header */}
+             <div className={`mb-6 pb-4 border-b ${template === 'neon' ? 'border-[#ff0055]/30' : (template === 'receipt' ? 'border-dashed border-gray-400' : 'border-[#22252a]')}`}>
+                <h1 className={`text-3xl font-black uppercase tracking-tighter leading-none mb-1 ${template === 'neon' ? 'text-[#ff0055] drop-shadow-[0_0_8px_rgba(255,0,85,0.5)]' : ''}`}>Damage Report</h1>
+                <p className={`font-mono text-sm uppercase tracking-widest ${template === 'receipt' ? 'text-gray-500' : 'text-primary-coral'}`}>
+                  {formData.sessionType || 'SESSION'} {formData.distance && `// ${formData.distance}`} {formData.duration && `// ${formData.duration}`}
+                </p>
+             </div>
 
-               {/* Metrics */}
-               <div className="grid grid-cols-2 gap-4 mb-6">
-                 <div className={`p-4 rounded-md border ${template === 'neon' ? 'bg-black border-[#ff0055]/20' : (template === 'receipt' ? 'border-gray-200' : 'bg-[#1c1d22] border-[#22252a]')}`}>
-                    <div className="font-mono text-[10px] uppercase opacity-60 mb-1">Effort (RPE)</div>
-                    <div className={`text-2xl font-black font-mono ${template === 'neon' ? 'text-white' : ''}`}>{formData.rpe}/10</div>
-                 </div>
-                 <div className={`p-4 rounded-md border ${template === 'neon' ? 'bg-black border-[#ff0055]/20' : (template === 'receipt' ? 'border-gray-200' : 'bg-[#1c1d22] border-[#22252a]')}`}>
-                    <div className="font-mono text-[10px] uppercase opacity-60 mb-1">Ego Status</div>
-                    <div className={`text-xl font-bold uppercase truncate ${template === 'neon' ? 'text-white' : ''}`}>{formData.egoStatus || '-'}</div>
-                 </div>
+             {/* Metrics */}
+             <div className="grid grid-cols-2 gap-4 mb-6">
+               <div className={`p-4 rounded-md border ${template === 'neon' ? 'bg-black border-[#ff0055]/20' : (template === 'receipt' ? 'border-gray-200' : 'bg-[#1c1d22] border-[#22252a]')}`}>
+                  <div className="font-mono text-[10px] uppercase opacity-60 mb-1">Effort (RPE)</div>
+                  <div className={`text-2xl font-black font-mono ${template === 'neon' ? 'text-white' : ''}`}>{formData.rpe}/10</div>
                </div>
-
-               {/* List */}
-               <div className={`space-y-3 mb-6 p-4 rounded border ${template === 'neon' ? 'bg-[#ff0055]/5 border-[#ff0055]/20 text-[#ff0055]' : (template === 'receipt' ? 'border-gray-200 bg-gray-50' : 'bg-[#16181c] border-[#22252a] text-secondary-lime')}`}>
-                 <div className="flex justify-between font-mono text-sm border-b border-opacity-20 pb-2 border-inherit">
-                    <span className="uppercase opacity-70">Legs</span>
-                    <span className="font-bold">{formData.legStatus || '-'}</span>
-                 </div>
-                 <div className="flex justify-between font-mono text-sm border-b border-opacity-20 pb-2 border-inherit">
-                    <span className="uppercase opacity-70">Breathing</span>
-                    <span className="font-bold">{formData.breathingStatus || '-'}</span>
-                 </div>
-                 <div className="flex justify-between font-mono text-sm border-b border-opacity-20 pb-2 border-inherit">
-                    <span className="uppercase opacity-70">Weather</span>
-                    <span className="font-bold">{formData.weatherExcuse || '-'}</span>
-                 </div>
-                 <div className="flex justify-between font-mono text-sm pt-1">
-                    <span className="uppercase opacity-70">Recovery</span>
-                    <span className="font-bold">{formData.recoveryNeed || '-'}</span>
-                 </div>
+               <div className={`p-4 rounded-md border ${template === 'neon' ? 'bg-black border-[#ff0055]/20' : (template === 'receipt' ? 'border-gray-200' : 'bg-[#1c1d22] border-[#22252a]')}`}>
+                  <div className="font-mono text-[10px] uppercase opacity-60 mb-1">Ego Status</div>
+                  <div className={`text-xl font-bold uppercase truncate ${template === 'neon' ? 'text-white' : ''}`}>{formData.egoStatus || '-'}</div>
                </div>
+             </div>
 
-               {(formData.finalVerdict || formData.notes) && (
-                 <>
-                 <div className={`mb-6 p-4 rounded-md border ${template === 'neon' ? 'bg-black border-[#ff0055]/40 text-white' : (template === 'receipt' ? 'border-gray-300' : 'bg-[#1c1d22] border-primary-coral')}`}>
-                   {formData.finalVerdict && (
-                      <div className="mb-2">
-                        <span className={`font-mono text-[10px] uppercase block mb-1 ${template === 'neon' ? 'text-[#ff0055]' : 'text-primary-coral'}`}>Final Verdict</span>
-                        <span className="font-black text-xl uppercase tracking-wide">{formData.finalVerdict}</span>
-                      </div>
-                    )}
-                    {formData.notes && (
-                      <div className={`text-sm italic font-serif ${template === 'receipt' ? 'text-gray-600' : 'text-gray-400'}`}>&quot;{formData.notes}&quot;</div>
-                    )}
-                  </div>
-                 </>
-                )}
-           {!['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(template) && (
+             {/* List */}
+             <div className={`space-y-3 mb-6 p-4 rounded border ${template === 'neon' ? 'bg-[#ff0055]/5 border-[#ff0055]/20 text-[#ff0055]' : (template === 'receipt' ? 'border-gray-200 bg-gray-50' : 'bg-[#16181c] border-[#22252a] text-secondary-lime')}`}>
+               <div className="flex justify-between font-mono text-sm border-b border-opacity-20 pb-2 border-inherit">
+                  <span className="uppercase opacity-70">Legs</span>
+                  <span className="font-bold">{formData.legStatus || '-'}</span>
+               </div>
+               <div className="flex justify-between font-mono text-sm border-b border-opacity-20 pb-2 border-inherit">
+                  <span className="uppercase opacity-70">Breathing</span>
+                  <span className="font-bold">{formData.breathingStatus || '-'}</span>
+               </div>
+               <div className="flex justify-between font-mono text-sm border-b border-opacity-20 pb-2 border-inherit">
+                  <span className="uppercase opacity-70">Weather</span>
+                  <span className="font-bold">{formData.weatherExcuse || '-'}</span>
+               </div>
+               <div className="flex justify-between font-mono text-sm pt-1">
+                  <span className="uppercase opacity-70">Recovery</span>
+                  <span className="font-bold">{formData.recoveryNeed || '-'}</span>
+               </div>
+             </div>
+
+             {(formData.finalVerdict || formData.notes) && (
+               <>
+               <div className={`mb-6 p-4 rounded-md border ${template === 'neon' ? 'bg-black border-[#ff0055]/40 text-white' : (template === 'receipt' ? 'border-gray-300' : 'bg-[#1c1d22] border-primary-coral')}`}>
+                 {formData.finalVerdict && (
+                    <div className="mb-2">
+                      <span className={`font-mono text-[10px] uppercase block mb-1 ${template === 'neon' ? 'text-[#ff0055]' : 'text-primary-coral'}`}>Final Verdict</span>
+                      <span className="font-black text-xl uppercase tracking-wide">{formData.finalVerdict}</span>
+                    </div>
+                  )}
+                  {formData.notes && (
+                    <div className={`text-sm italic font-serif ${template === 'receipt' ? 'text-gray-600' : 'text-gray-400'}`}>&quot;{formData.notes}&quot;</div>
+                  )}
+                </div>
+               </>
+              )}
+         {!['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(template) && (
   <div className={`mt-auto text-center font-mono text-[9px] tracking-[0.25em] uppercase pt-4 border-t ${
     ['community challenge', 'weekly board', 'clean white', 'minimal award', 'minimal nutrition', 'minimal gear', 'classic', 'elite', 'receipt', 'white', 'table', 'minimal'].includes(template) 
       ? 'border-dashed border-gray-400 text-gray-400' 
@@ -455,12 +419,30 @@ export default function DamageReportGenerator({ previewRef, showToast }: DamageR
 )}
 
 {['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(template) && (
-             <SharedTemplates template={template} formData={formData} componentName="DamageReportGenerator"  />
-           )}
-            </div>
+           <SharedTemplates template={template} formData={formData} componentName="DamageReportGenerator"  />
+         )}
           </div>
-        </div>
-      </div>
-    </div>
+      }
+      templateSelector={
+        <TemplateSelector 
+        activeTemplate={template}
+        onSelectTemplate={setTemplate}
+        localTemplates={[
+          {
+            "id": "brutal",
+            "label": "Brutal Report"
+          },
+          {
+            "id": "receipt",
+            "label": "Dark Receipt"
+          },
+          {
+            "id": "neon",
+            "label": "Neon Damage"
+          }
+        ]}
+        />
+      }
+    />
   );
 }

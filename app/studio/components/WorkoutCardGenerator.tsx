@@ -1,3 +1,4 @@
+import StudioPageShell from './StudioPageShell';
 /* eslint-disable react-hooks/set-state-in-effect */
 import SharedTemplates, { useExportSize, getExportSizeClasses } from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
@@ -184,13 +185,10 @@ export default function WorkoutCardGenerator({ previewRef, showToast }: WorkoutC
   }, []);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-      {/* LEFT: FORM (4 cols) */}
-      <div className="lg:col-span-4 flex flex-col gap-6 w-full">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Workout Plan</h2>
-        </div>
-
+    <StudioPageShell
+      inputTitle="WORKOUT PLAN"
+      inputSubtitle="Log details"
+      inputContent={
         <div className="bg-surface border border-brand-border p-5 rounded-lg flex flex-col gap-4 shadow-xl">
           <div className="grid grid-cols-2 gap-4">
              <div className="col-span-2">
@@ -285,118 +283,89 @@ export default function WorkoutCardGenerator({ previewRef, showToast }: WorkoutC
           <button onClick={handleCopyWorkout} className="w-full py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY WORKOUT
 </button>
         </div>
-            {/* RIGHT: PREVIEW (8 cols) */}
-      <div className="lg:col-span-8 flex flex-col gap-6 lg:sticky lg:top-[128px] lg:self-start mb-24 lg:mb-0">
-        <div className="flex flex-col gap-1 w-full">
-          <h2 className="text-xl font-bold uppercase tracking-tight text-[#f2f4f7]">Live Preview</h2>
-          <p className="text-xs text-text-muted">Adjust template, accent, and export ratios below.</p>
-        </div>
-
-        <TemplateSelector 
-          activeTemplate={template}
-          onSelectTemplate={setTemplate}
-          localTemplates={[
-            {
-              "id": "coach",
-              "label": "Coach Board"
-            },
-            {
-              "id": "track",
-              "label": "Track Session"
-            },
-            {
-              "id": "minimal",
-              "label": "Minimal Program"
-            }
-          ]}
-        />
-
-        {/* Scalable Container for preview */}
-        <div ref={containerRef} className="w-full bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:16px_16px] bg-[#07080a] border border-brand-border rounded-xl p-4 md:p-8 flex items-center justify-center min-h-[600px] overflow-hidden relative">
-          {/* Card Component matching selected template */}
-          <div 
-            style={{ 
-              transform: `scale(${scale})`, 
-              transformOrigin: "center",
-              transition: "transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)" 
-            }}
-            className="shrink-0"
+      }
+      containerRef={containerRef}
+      scale={scale}
+      exportSize={exportSize}
+      previewContent={
+        <div
+          ref={previewRef}
+            className={`${getExportSizeClasses(exportSize, template)}` + `  flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none
+              ${template === 'coach' ? 'bg-[#121316] border border-[#22252a] text-[#f2f4f7] p-8 rounded-lg font-mono' : ''}
+              ${template === 'track' ? 'bg-primary-action text-white p-8 rounded-none' : ''}
+              ${template === 'minimal' ? 'bg-[#020203] border border-[#22252a] p-8 text-[#fafafa] rounded-md font-sans' : ''}
+            `}
           >
-            <div 
-              ref={previewRef}
-              className={`${getExportSizeClasses(exportSize, template)}` + `  flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none
-                ${template === 'coach' ? 'bg-[#121316] border border-[#22252a] text-[#f2f4f7] p-8 rounded-lg font-mono' : ''}
-                ${template === 'track' ? 'bg-primary-action text-white p-8 rounded-none' : ''}
-                ${template === 'minimal' ? 'bg-[#020203] border border-[#22252a] p-8 text-[#fafafa] rounded-md font-sans' : ''}
-              `}
-            >
-               {/* Header */}
-               <div className={`mb-6 pb-4 border-b ${template === 'track' ? 'border-white/30' : 'border-brand-border'}`}>
-                  <div className="flex justify-between items-start mb-2">
-                    <h1 className={`text-2xl font-black uppercase tracking-tight leading-tight ${template === 'coach' ? 'text-secondary-lime' : 'text-text-primary'}`}>
-                      {formData.title.trim() || '5X1K VO2MAX INTERVALS'}
-                    </h1>
-                  </div>
-                  <div className="flex justify-between items-center text-[10px] uppercase tracking-widest font-bold opacity-80 mt-2">
-                    <span className="text-secondary-lime">{formData.sport}</span>
-                    <span className={`px-2 py-1 rounded transition-colors ${template === 'coach' ? 'bg-surface border border-brand-border text-primary-coral' : template === 'track' ? 'bg-black text-white' : 'bg-surface-high border border-brand-border text-secondary-lime'}`}>
-                      Target: {formData.targetIntensity.trim() || 'ZONE 5 / VO2 MAX'}
-                    </span>
-                  </div>
+             {/* Header */}
+             <div className={`mb-6 pb-4 border-b ${template === 'track' ? 'border-white/30' : 'border-brand-border'}`}>
+                <div className="flex justify-between items-start mb-2">
+                  <h1 className={`text-2xl font-black uppercase tracking-tight leading-tight ${template === 'coach' ? 'text-secondary-lime' : 'text-text-primary'}`}>
+                    {formData.title.trim() || '5X1K VO2MAX INTERVALS'}
+                  </h1>
+                </div>
+                <div className="flex justify-between items-center text-[10px] uppercase tracking-widest font-bold opacity-80 mt-2">
+                  <span className="text-secondary-lime">{formData.sport}</span>
+                  <span className={`px-2 py-1 rounded transition-colors ${template === 'coach' ? 'bg-surface border border-brand-border text-primary-coral' : template === 'track' ? 'bg-black text-white' : 'bg-surface-high border border-brand-border text-secondary-lime'}`}>
+                    Target: {formData.targetIntensity.trim() || 'ZONE 5 / VO2 MAX'}
+                  </span>
+                </div>
+             </div>
+
+             {/* Sections */}
+             <div className="space-y-4 mb-8">
+               <div className={`p-4 rounded transition-all ${template === 'coach' ? 'bg-white/5 border border-white/10' : template === 'track' ? 'bg-black/10' : 'bg-[#121316] border border-[#22252a]'}`}>
+                  <h3 className={`text-[10px] uppercase font-bold tracking-widest mb-1.5 ${template === 'coach' ? 'text-[#ccff00]' : 'text-secondary-lime'}`}>Warm-up Run</h3>
+                  <p className={`text-sm ${template === 'coach' ? 'leading-relaxed' : 'font-mono uppercase leading-relaxed text-[13px] text-text-primary'}`}>
+                    {formData.warmup.trim() || '2km easy conversation-pace jog, dynamic leg swings, 3x100m strides'}
+                  </p>
                </div>
-
-               {/* Sections */}
-               <div className="space-y-4 mb-8">
-                 <div className={`p-4 rounded transition-all ${template === 'coach' ? 'bg-white/5 border border-white/10' : template === 'track' ? 'bg-black/10' : 'bg-[#121316] border border-[#22252a]'}`}>
-                    <h3 className={`text-[10px] uppercase font-bold tracking-widest mb-1.5 ${template === 'coach' ? 'text-[#ccff00]' : 'text-secondary-lime'}`}>Warm-up Run</h3>
-                    <p className={`text-sm ${template === 'coach' ? 'leading-relaxed' : 'font-mono uppercase leading-relaxed text-[13px] text-text-primary'}`}>
-                      {formData.warmup.trim() || '2km easy conversation-pace jog, dynamic leg swings, 3x100m strides'}
-                    </p>
-                 </div>
-                 <div className={`p-4 rounded transition-all ${template === 'coach' ? 'bg-[#ff5451]/10 border border-[#ff5451]/30' : template === 'track' ? 'bg-black/20 font-bold border border-black/10' : 'bg-[#121316] border-2 border-primary-coral shadow-[0_0_15px_rgba(255,84,81,0.1)]'}`}>
-                    <h3 className={`text-[10px] uppercase font-bold tracking-widest mb-1.5 ${template === 'coach' ? 'text-[#ff5451]' : 'text-primary-coral'}`}>Main Activity Set</h3>
-                    <p className={`text-sm leading-relaxed ${template === 'coach' ? 'text-[#f2f4f7]' : 'font-mono uppercase leading-relaxed text-[13px] text-text-primary'}`}>
-                      {formData.mainSet.trim() || '5 x 1000m @ 3:45 pace // 3 min active shuffle-recovery'}
-                    </p>
-                 </div>
-                 <div className={`p-4 rounded transition-all ${template === 'coach' ? 'bg-[#00f0ff]/10 border border-[#00f0ff]/30' : template === 'track' ? 'bg-black/5' : 'bg-[#121316] border border-[#22252a]'}`}>
-                    <h3 className={`text-[10px] uppercase font-bold tracking-widest mb-1.5 ${template === 'coach' ? 'text-[#00f0ff]' : 'text-tertiary-cyan'}`}>Rest & Recovery</h3>
-                    <p className={`text-sm ${template === 'coach' ? 'leading-relaxed' : 'font-mono uppercase leading-relaxed text-[13px] text-text-primary'}`}>
-                      {formData.rest.trim() || 'Walk the first 90s, stay hydrated, then light trot transition'}
-                    </p>
-                 </div>
-                 <div className={`p-4 rounded transition-all ${template === 'coach' ? 'bg-white/5 border border-white/10' : template === 'track' ? 'bg-black/10' : 'bg-[#121316] border border-[#22252a]'}`}>
-                    <h3 className="text-[10px] uppercase font-bold tracking-widest mb-1.5 opacity-70">Cooldown</h3>
-                    <p className={`text-sm ${template === 'coach' ? 'leading-relaxed' : 'font-mono uppercase leading-relaxed text-[13px] text-text-primary'}`}>
-                      {formData.cooldown.trim() || '1.5km recovery jog + light lower limb stretching'}
-                    </p>
-                 </div>
+               <div className={`p-4 rounded transition-all ${template === 'coach' ? 'bg-[#ff5451]/10 border border-[#ff5451]/30' : template === 'track' ? 'bg-black/20 font-bold border border-black/10' : 'bg-[#121316] border-2 border-primary-coral shadow-[0_0_15px_rgba(255,84,81,0.1)]'}`}>
+                  <h3 className={`text-[10px] uppercase font-bold tracking-widest mb-1.5 ${template === 'coach' ? 'text-[#ff5451]' : 'text-primary-coral'}`}>Main Activity Set</h3>
+                  <p className={`text-sm leading-relaxed ${template === 'coach' ? 'text-[#f2f4f7]' : 'font-mono uppercase leading-relaxed text-[13px] text-text-primary'}`}>
+                    {formData.mainSet.trim() || '5 x 1000m @ 3:45 pace // 3 min active shuffle-recovery'}
+                  </p>
                </div>
+               <div className={`p-4 rounded transition-all ${template === 'coach' ? 'bg-[#00f0ff]/10 border border-[#00f0ff]/30' : template === 'track' ? 'bg-black/5' : 'bg-[#121316] border border-[#22252a]'}`}>
+                  <h3 className={`text-[10px] uppercase font-bold tracking-widest mb-1.5 ${template === 'coach' ? 'text-[#00f0ff]' : 'text-tertiary-cyan'}`}>Rest & Recovery</h3>
+                  <p className={`text-sm ${template === 'coach' ? 'leading-relaxed' : 'font-mono uppercase leading-relaxed text-[13px] text-text-primary'}`}>
+                    {formData.rest.trim() || 'Walk the first 90s, stay hydrated, then light trot transition'}
+                  </p>
+               </div>
+               <div className={`p-4 rounded transition-all ${template === 'coach' ? 'bg-white/5 border border-white/10' : template === 'track' ? 'bg-black/10' : 'bg-[#121316] border border-[#22252a]'}`}>
+                  <h3 className="text-[10px] uppercase font-bold tracking-widest mb-1.5 opacity-70">Cooldown</h3>
+                  <p className={`text-sm ${template === 'coach' ? 'leading-relaxed' : 'font-mono uppercase leading-relaxed text-[13px] text-text-primary'}`}>
+                    {formData.cooldown.trim() || '1.5km recovery jog + light lower limb stretching'}
+                  </p>
+               </div>
+             </div>
 
-               {/* Notes */}
-               {(formData.notes.trim() || "Postural focus, bicycle stride on final intervals.") && (
-                 <div className="mb-6 text-xs leading-relaxed border-t border-brand-border pt-4">
-                   <p className="uppercase font-mono text-[9px] opacity-60 tracking-widest mb-1">Special Notes & Stratems</p>
-                   <p className="italic text-text-primary text-[11px]">{formData.notes.trim() || 'Postural focus, bicycle stride on final intervals.'}</p></div>)}
+             {/* Notes */}
+             {(formData.notes.trim() || "Postural focus, bicycle stride on final intervals.") && (
+               <div className="mb-6 text-xs leading-relaxed border-t border-brand-border pt-4">
+                 <p className="uppercase font-mono text-[9px] opacity-60 tracking-widest mb-1">Special Notes & Stratems</p>
+                 <p className="italic text-text-primary text-[11px]">{formData.notes.trim() || 'Postural focus, bicycle stride on final intervals.'}</p></div>)}
 </div>
-
-</div>
-           {['coach', 'track', 'minimal'].includes(template) && (
-  <div className={`mt-auto text-center font-mono text-[9px] tracking-[0.25em] uppercase pt-4 border-t ${
-    ['community challenge', 'weekly board', 'clean white', 'minimal award', 'minimal nutrition', 'minimal gear', 'classic', 'elite', 'receipt', 'white', 'table', 'minimal'].includes(template) 
-      ? 'border-dashed border-gray-400 text-gray-400' 
-      : 'border-dashed border-brand-border opacity-40 text-white'
-  }`}>
-    {typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'made with RunCard Studio'}
-  </div>
-)}
-
-{!['coach', 'track', 'minimal'].includes(template) && (
-             <SharedTemplates template={template} formData={formData} componentName="WorkoutCardGenerator"  />
-           )}
-       </div>
-     </div>
-      </div>
-    </div>
+      }
+      templateSelector={
+        <TemplateSelector 
+        activeTemplate={template}
+        onSelectTemplate={setTemplate}
+        localTemplates={[
+          {
+            "id": "coach",
+            "label": "Coach Board"
+          },
+          {
+            "id": "track",
+            "label": "Track Session"
+          },
+          {
+            "id": "minimal",
+            "label": "Minimal Program"
+          }
+        ]}
+        />
+      }
+    />
   );
 }
