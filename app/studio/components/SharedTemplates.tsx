@@ -243,6 +243,139 @@ export default function SharedTemplates({ template, formData, componentName, ext
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
+  const renderDetailedCardBody = (compName: string) => {
+    if (compName === 'RaceRecapGenerator') {
+      const distStr = String(formData.distanceChoice || formData.distance || '—').trim() || '—';
+      const finishTimeStr = String(formData.finishTime || '—').trim() || '—';
+      const avgPaceStr = String(formData.averagePace || '—').trim() || '—';
+      const rankStr = String(formData.rankCategory || formData.rank || '—').trim() || '—';
+      const momentStr = String(formData.bestMoment || '—').trim() || '—';
+      const targetStr = String(formData.nextTarget || '—').trim() || '—';
+
+      return (
+        <div className="flex flex-col gap-2 font-mono h-full justify-between">
+          <div className="grid grid-cols-3 gap-2">
+            <div className="p-2 bg-zinc-900/60 border border-zinc-850 rounded text-center">
+              <span className="text-[7.5px] text-zinc-500 block uppercase">Distance</span>
+              <span className="text-xs font-black text-white">{distStr}</span>
+            </div>
+            <div className="p-2 bg-zinc-900/60 border border-zinc-850 rounded text-center">
+              <span className="text-[7.5px] text-zinc-500 block uppercase">Time</span>
+              <span className="text-xs font-black text-rose-550" style={{ color: accent.hex !== '#ffffff' ? accent.hex : '#ff3330' }}>{finishTimeStr}</span>
+            </div>
+            <div className="p-2 bg-zinc-900/60 border border-zinc-850 rounded text-center">
+              <span className="text-[7.5px] text-zinc-500 block uppercase">Avg Pace</span>
+              <span className="text-xs font-black text-white">{avgPaceStr}</span>
+            </div>
+          </div>
+          {rankStr !== '—' && rankStr !== '' && (
+            <div className="p-2 bg-zinc-900/40 border border-zinc-850 rounded text-center text-[10px] font-bold">
+              Rank: <span style={{ color: accent.hex }}>{rankStr}</span>
+            </div>
+          )}
+          {momentStr !== '—' && momentStr !== '' && (
+            <div className="p-2 bg-zinc-950/40 border-l-2 rounded-r italic text-[9px] leading-relaxed text-zinc-300" style={{ borderLeftColor: accent.hex }}>
+              &ldquo;{momentStr}&rdquo;
+            </div>
+          )}
+          {targetStr !== '—' && targetStr !== '' && (
+            <div className="text-[9px] uppercase tracking-wider text-zinc-400 mt-1 flex justify-between border-t border-zinc-900/60 pt-1.5 leading-none">
+              <span className="opacity-50 font-semibold">Next Target:</span>
+              <span className="font-extrabold" style={{ color: accent.hex !== '#ffffff' ? accent.hex : '#ff3330' }}>{targetStr}</span>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    if (compName === 'WorkoutCardGenerator') {
+      const warmupStr = String(formData.warmUp || formData.warmup || '—').trim() || '—';
+      const mainSetStr = String(formData.mainSet || '—').trim() || '—';
+      const restStr = String(formData.rest || '—').trim() || '—';
+      const cooldownStr = String(formData.cooldown || '—').trim() || '—';
+      const targetIntensityStr = String(formData.targetIntensity || '—').trim() || '—';
+      const notesStr = String(formData.notes || '—').trim() || '—';
+
+      return (
+        <div className="flex flex-col gap-1.5 font-mono text-[9px] h-full justify-between leading-snug">
+          <div className="grid grid-cols-2 gap-1.5">
+            <div className="p-1.5 bg-zinc-900 border border-zinc-850 rounded">
+              <span className="text-[7px] text-zinc-550 block uppercase font-bold tracking-tight">Warmup</span>
+              <span className="text-zinc-200 block truncate font-semibold">{warmupStr}</span>
+            </div>
+            <div className="p-1.5 bg-zinc-900/80 border border-zinc-850 rounded">
+              <span className="text-[7px] block uppercase font-bold tracking-tight" style={{ color: accent.hex !== '#ffffff' ? accent.hex : '#ff3330' }}>Main Set</span>
+              <span className="text-white block font-bold truncate">{mainSetStr}</span>
+            </div>
+            <div className="p-1.5 bg-zinc-900 border border-zinc-850 rounded">
+              <span className="text-[7px] text-zinc-550 block uppercase font-bold tracking-tight">Rest</span>
+              <span className="text-zinc-200 block truncate font-semibold">{restStr}</span>
+            </div>
+            <div className="p-1.5 bg-zinc-900 border border-zinc-850 rounded">
+              <span className="text-[7px] text-zinc-550 block uppercase font-bold tracking-tight">Cooldown</span>
+              <span className="text-zinc-200 block truncate font-semibold">{cooldownStr}</span>
+            </div>
+          </div>
+          <div className="flex justify-between p-1.5 bg-zinc-950/40 border border-zinc-900 rounded font-bold text-[8px] uppercase">
+            <span className="text-zinc-400">Target Intensity:</span>
+            <span style={{ color: accent.hex !== '#ffffff' ? accent.hex : '#ff3330' }}>{targetIntensityStr}</span>
+          </div>
+          {notesStr !== '—' && notesStr !== '' && (
+            <div className="p-1.5 bg-zinc-950/60 border-l-2 rounded-r italic text-[8.5px] leading-relaxed text-zinc-300" style={{ borderLeftColor: accent.hex }}>
+              Notes: {notesStr}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    if (compName === 'PaceBandGenerator') {
+      const targetTimeStr = String(formData.targetTime || '—').trim() || '—';
+      const reqPaceStr = String(formData.requiredPace || '—').trim() || '—';
+
+      const listSplits = extraData?.splits || formData.paceBandRows || [];
+
+      return (
+        <div className="flex flex-col gap-1.5 font-mono h-full justify-between leading-snug">
+          <div className="grid grid-cols-2 gap-1.5 mb-1">
+            <div className="p-1.5 bg-zinc-900 border border-zinc-850 rounded">
+              <span className="text-[7px] text-zinc-550 block uppercase">Target Time</span>
+              <span className="text-xs font-black text-white">{targetTimeStr}</span>
+            </div>
+            <div className="p-1.5 bg-zinc-900 border border-zinc-850 rounded">
+              <span className="text-[7px] text-zinc-550 block uppercase">Req Pace</span>
+              <span className="text-xs font-black" style={{ color: accent.hex !== '#ffffff' ? accent.hex : '#ff3330' }}>{reqPaceStr}</span>
+            </div>
+          </div>
+          
+          <div className="flex-grow flex flex-col justify-center min-h-[70px]">
+            {listSplits.length > 0 ? (
+              <div className="grid grid-cols-2 gap-1 text-[9px]">
+                {listSplits.slice(0, 6).map((s: any, idx: number) => {
+                  const marker = s.marker ?? s.km ?? s.mi ?? (idx + 1);
+                  const cumTime = s.cumTime ? (typeof s.cumTime === 'number' ? formatTime(s.cumTime) : s.cumTime) : (s.current ?? '—');
+                  return (
+                    <div key={idx} className="flex justify-between items-center px-1.5 py-0.5 bg-zinc-900 border border-zinc-850 rounded">
+                      <span className="text-zinc-550 font-bold">{marker}</span>
+                      <span className="text-white font-extrabold">{cumTime}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center p-3 bg-zinc-950/40 border border-dashed border-red-500/30 rounded text-center">
+                <span className="text-[9px] font-black text-rose-500 uppercase tracking-widest mb-0.5">Input required</span>
+                <span className="text-[7px] text-zinc-500 leading-normal max-w-[140px]">Please input target finish time & distance</span>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
   // Finds the most important metric (e.g., Distance, Duration, Pace, Time) to make it oversized.
   const getPrimaryMetric = (): [string, any] | null => {
     const distKey = gridItems.find(([k]) => k.toLowerCase().includes('distance') || k.toLowerCase().includes('dist'));
@@ -408,15 +541,8 @@ export default function SharedTemplates({ template, formData, componentName, ext
                   <div className="text-xl font-black" style={{ color: accent.hex }}>{formData.distance || '—'}</div>
                 </div>
               </div>
-            ) : componentName === 'PaceBandGenerator' && extraData && extraData.splits ? (
-              <div className="grid grid-cols-2 gap-1.5 text-zinc-300">
-                {extraData.splits.slice(0, 6).map((s: any, i: number) => (
-                  <div key={i} className="flex justify-between items-center p-2 bg-zinc-900 border border-zinc-800 rounded text-[10px]">
-                    <span className="text-zinc-550">{s.km ?? s.marker ?? ''}</span>
-                    <span className="font-bold text-white">{s.current}</span>
-                  </div>
-                ))}
-              </div>
+            ) : ['RaceRecapGenerator', 'WorkoutCardGenerator', 'PaceBandGenerator'].includes(componentName) ? (
+              renderDetailedCardBody(componentName)
             ) : componentName === 'RaceSplitGenerator' ? (
               <div className="grid grid-cols-2 gap-2 mt-2">
                 {gridItems.slice(0, 6).map(([k, v]) => (
@@ -511,15 +637,8 @@ export default function SharedTemplates({ template, formData, componentName, ext
                   <span className="text-3xl font-black block mt-1" style={{ color: accent.hex }}>{formData.distance || '—'}</span>
                 </div>
               </div>
-            ) : componentName === 'PaceBandGenerator' && extraData && extraData.splits ? (
-              <div className="grid grid-cols-3 gap-1.5 text-zinc-200">
-                {extraData.splits.slice(0, 6).map((s: any, i: number) => (
-                  <div key={i} className="p-2 bg-zinc-900 border border-zinc-800 rounded text-center">
-                    <span className="text-[8px] text-zinc-500 block uppercase font-mono">{s.km ?? s.marker ?? ''}</span>
-                    <span className="text-xs font-black" style={{ color: accent.hex }}>{s.current}</span>
-                  </div>
-                ))}
-              </div>
+            ) : ['RaceRecapGenerator', 'WorkoutCardGenerator', 'PaceBandGenerator'].includes(componentName) ? (
+              renderDetailedCardBody(componentName)
             ) : primaryItem ? (
               <div>
                 <div className="bg-zinc-900/90 border border-zinc-800 p-3 px-4 rounded mb-2.5 flex justify-between items-center shadow-lg">
@@ -614,15 +733,8 @@ export default function SharedTemplates({ template, formData, componentName, ext
                   <div className="text-xl font-bold font-mono mt-1 text-white" style={{ color: accent.hex }}>{formData.distance || '—'}</div>
                 </div>
               </div>
-            ) : componentName === 'PaceBandGenerator' && extraData && extraData.splits ? (
-              <div className="space-y-1 w-full text-zinc-300 font-mono">
-                {extraData.splits.slice(0, 5).map((s: any, i: number) => (
-                  <div key={i} className="flex justify-between py-1 px-1.5 border border-zinc-900 bg-zinc-950/65 text-[10px]">
-                    <span className="text-zinc-550 font-bold">{s.km ?? s.marker ?? ''} MARK</span>
-                    <span className="font-extrabold text-white" style={{ color: accent.hex }}>{s.current}</span>
-                  </div>
-                ))}
-              </div>
+            ) : ['RaceRecapGenerator', 'WorkoutCardGenerator', 'PaceBandGenerator'].includes(componentName) ? (
+              renderDetailedCardBody(componentName)
             ) : primaryItem ? (
               <div>
                 <div className="bg-zinc-950 border border-zinc-850 p-3 px-3.5 text-center relative mb-2 shadow-[0_4px_20px_rgba(0,0,0,0.6)]">
@@ -746,19 +858,8 @@ export default function SharedTemplates({ template, formData, componentName, ext
                   )}
                 </div>
               </div>
-            ) : componentName === 'PaceBandGenerator' && extraData && extraData.splits ? (
-              <div className="grid grid-cols-2 gap-1.5 text-zinc-300">
-                {extraData.splits.slice(0, 6).map((s: any, i: number) => {
-                  const isEven = i % 2 === 0;
-                  return (
-                    <div key={i} className={`flex justify-between items-center p-2 border border-zinc-850 bg-zinc-950/85 relative`}>
-                      <div className="absolute top-0 left-0 w-1 h-1 border-t border-l" style={{ borderColor: isEven ? accent.hex : '#f87171' }}></div>
-                      <span className="text-[8px] text-zinc-550 font-extrabold">{s.km ?? s.marker ?? ''}</span>
-                      <span className="text-[10px] font-bold text-white tracking-tight font-mono">{s.current ?? (s.cumTime ? formatTime(s.cumTime) : '')}</span>
-                    </div>
-                  );
-                })}
-              </div>
+            ) : ['RaceRecapGenerator', 'WorkoutCardGenerator', 'PaceBandGenerator'].includes(componentName) ? (
+              renderDetailedCardBody(componentName)
             ) : componentName === 'RaceSplitGenerator' ? (
               <div className="grid grid-cols-2 gap-2 text-white">
                 {gridItems.slice(0, 6).map(([k, v]) => {
@@ -853,16 +954,8 @@ export default function SharedTemplates({ template, formData, componentName, ext
                   </div>
                 ))}
               </div>
-            ) : componentName === 'PaceBandGenerator' ? (
-              <div className="text-center flex flex-col gap-1.5 bg-neutral-950/50 p-3 rounded border border-neutral-900 w-[200px]">
-                <span className="text-[7px] text-zinc-400 uppercase font-bold tracking-[0.2em] mb-1.5 block">KEY METERS</span>
-                {extraData.splits?.slice(0, 3).map((s: any, i: number) => (
-                  <div key={i} className="flex justify-between items-baseline text-xs font-sans border-b border-neutral-900 last:border-0 pb-1 last:pb-0">
-                    <span className="text-zinc-500 uppercase text-[9px] font-bold font-mono">{s.km ?? s.marker ?? ''}</span>
-                    <span className="font-extrabold text-neutral-200">{s.current}</span>
-                  </div>
-                ))}
-              </div>
+            ) : ['RaceRecapGenerator', 'WorkoutCardGenerator', 'PaceBandGenerator'].includes(componentName) ? (
+              renderDetailedCardBody(componentName)
             ) : primaryItem ? (
               <div className="text-center">
                 <span className="text-[8px] uppercase tracking-[0.25em] text-[#a1a1aa] font-bold block mb-1">{getLabel(primaryItem[0])}</span>
@@ -963,19 +1056,8 @@ export default function SharedTemplates({ template, formData, componentName, ext
                   )}
                 </div>
               </div>
-            ) : componentName === 'PaceBandGenerator' && extraData && extraData.splits ? (
-              <div className="space-y-1 w-full text-zinc-900">
-                <div className="grid grid-cols-2 py-1 text-[8px] font-mono text-zinc-450 border-b border-zinc-200 uppercase font-black tracking-widest">
-                  <span>KM MARKER</span>
-                  <span className="text-right">INTERVAL SPLIT</span>
-                </div>
-                {extraData.splits.slice(0, 5).map((s: any, i: number) => (
-                  <div key={i} className="flex justify-between py-1 border-b border-zinc-100 text-xs font-mono">
-                    <span className="font-bold text-zinc-500">{(i + 1) + " - " + (s.km ?? s.marker ?? "")}</span>
-                    <span className="font-extrabold text-zinc-955">{s.current}</span>
-                  </div>
-                ))}
-              </div>
+            ) : ['RaceRecapGenerator', 'WorkoutCardGenerator', 'PaceBandGenerator'].includes(componentName) ? (
+              renderDetailedCardBody(componentName)
             ) : (
               <div className="space-y-1.5 w-full">
                 {gridItems.slice(0, 5).map(([k, v]) => (
@@ -1053,15 +1135,8 @@ export default function SharedTemplates({ template, formData, componentName, ext
                   )}
                 </div>
               </div>
-            ) : componentName === 'PaceBandGenerator' ? (
-              <div className="grid grid-cols-2 gap-2">
-                {extraData.splits?.slice(0, 4).map((s: any, i: number) => (
-                  <div key={i} className="flex flex-col p-2.5 rounded-lg border border-zinc-850 bg-[#141620] shadow">
-                    <span className="text-[8px] uppercase tracking-wider font-bold" style={{ color: accent.hex }}>{s.km ?? s.marker ?? ''}</span>
-                    <span className="text-xs font-black text-white truncate mt-1">{s.current}</span>
-                  </div>
-                ))}
-              </div>
+            ) : ['RaceRecapGenerator', 'WorkoutCardGenerator', 'PaceBandGenerator'].includes(componentName) ? (
+              renderDetailedCardBody(componentName)
             ) : (
               <div className="grid grid-cols-2 gap-2">
                 {gridItems.slice(0, 4).map(([k, v], i) => {
@@ -1156,15 +1231,8 @@ export default function SharedTemplates({ template, formData, componentName, ext
                     <div className="text-xl font-black" style={{ color: accent.hex, textShadow: `0 0 10px ${accent.hex}80` }}>{formData.distance || '—'}</div>
                   </div>
                 </div>
-              ) : componentName === 'PaceBandGenerator' && extraData && extraData.splits ? (
-                <div className="grid grid-cols-2 gap-1.5 font-mono text-zinc-300">
-                  {extraData.splits?.slice(0, 6).map((s: any, i: number) => (
-                    <div key={i} className="flex justify-between items-center p-2 bg-[#070c14]/80 border border-zinc-900 rounded">
-                      <span className="text-[8px] text-zinc-500 font-extrabold">{s.km ?? s.marker ?? ''}</span>
-                      <span className="text-[10px] font-black" style={{ color: accent.hex }}>{s.current}</span>
-                    </div>
-                  ))}
-                </div>
+              ) : ['RaceRecapGenerator', 'WorkoutCardGenerator', 'PaceBandGenerator'].includes(componentName) ? (
+                renderDetailedCardBody(componentName)
               ) : (
                 <div className="grid grid-cols-2 gap-2 text-white">
                   {gridItems.slice(0, 4).map(([k, v], i) => {
@@ -1263,23 +1331,8 @@ export default function SharedTemplates({ template, formData, componentName, ext
                   )}
                 </div>
               </div>
-            ) : componentName === 'PaceBandGenerator' ? (
-              <div className="w-full">
-                <div className="grid grid-cols-3 border-b-2 border-zinc-950 pb-1 text-zinc-500 font-black text-[8px] uppercase tracking-widest">
-                  <span>MARKER</span>
-                  <span>LAP_PACE</span>
-                  <span className="text-right">ACCUMULATIVE</span>
-                </div>
-                <div className="divide-y divide-dashed divide-[#cfcfcf]/55 font-mono text-[10px] text-zinc-850">
-                  {extraData.splits?.slice(0, 5).map((s: any, i: number) => (
-                    <div key={i} className="grid grid-cols-3 py-2 font-black">
-                      <span className="text-zinc-500">0{i+1} MARKER</span>
-                      <span className="text-zinc-900">{s.current}</span>
-                      <span className="text-zinc-500 text-right">{(s.total) || '—'}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+            ) : ['RaceRecapGenerator', 'WorkoutCardGenerator', 'PaceBandGenerator'].includes(componentName) ? (
+              renderDetailedCardBody(componentName)
             ) : (
               <div className="w-full">
                 <div className="grid grid-cols-2 border-b-2 border-zinc-950 pb-1 text-zinc-500 font-black text-[8px] uppercase tracking-wider">
@@ -1369,15 +1422,8 @@ export default function SharedTemplates({ template, formData, componentName, ext
                     </div>
                   )}
                 </div>
-              ) : componentName === 'PaceBandGenerator' ? (
-                <div className="flex flex-col gap-2 py-1">
-                  {extraData.splits?.slice(0, 3).map((s: any, i: number) => (
-                    <div key={i} className="flex justify-between text-[11px] font-mono border-b border-zinc-900 pb-1.5 last:border-0 last:pb-0">
-                      <span className="text-[#71717a] font-extrabold">LAP_0{i+1}</span>
-                      <span className="font-black text-white">{s.current}</span>
-                    </div>
-                  ))}
-                </div>
+              ) : ['RaceRecapGenerator', 'WorkoutCardGenerator', 'PaceBandGenerator'].includes(componentName) ? (
+                renderDetailedCardBody(componentName)
               ) : primaryItem ? (
                 <div className="text-center py-2 relative">
                   <span className="text-[7.5px] uppercase tracking-[0.2em] text-[#71717a] font-black block leading-none mb-1">{getLabel(primaryItem[0])}</span>
@@ -1463,6 +1509,54 @@ export function TemplateRenderer({
       template={templateId}
       formData={data}
       componentName={cardType}
+      extraData={extraData}
+    />
+  );
+}
+
+const VALID_TEMPLATES = [
+  "original",
+  "sport",
+  "carbon",
+  "carbon-grid",
+  "race-poster",
+  "minimal-white",
+  "split-panel",
+  "neon-edge",
+  "print-utility",
+  "compact-story"
+];
+
+export function isValidTemplate(t: string): boolean {
+  return VALID_TEMPLATES.includes(t);
+}
+
+export function StudioPreview({
+  activeCardType,
+  selectedTemplate,
+  currentCardData,
+  selectedExportSize,
+  selectedAccent,
+  extraData
+}: {
+  activeCardType: string;
+  selectedTemplate: string;
+  currentCardData: any;
+  selectedExportSize: string;
+  selectedAccent: string;
+  extraData?: any;
+}) {
+  const safeTemplate = isValidTemplate(selectedTemplate)
+    ? selectedTemplate
+    : "original";
+
+  return (
+    <TemplateRenderer
+      templateId={safeTemplate}
+      cardType={activeCardType}
+      data={currentCardData}
+      exportSize={selectedExportSize}
+      accent={selectedAccent}
       extraData={extraData}
     />
   );

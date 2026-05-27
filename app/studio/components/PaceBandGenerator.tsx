@@ -430,19 +430,13 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
                  </div>
                                )}
 
-            {!['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(template) && (
-  <div className={`mt-auto text-center font-mono text-[9px] tracking-[0.25em] uppercase pt-4 border-t ${
-    ['community challenge', 'weekly board', 'clean white', 'minimal award', 'minimal nutrition', 'minimal gear', 'classic', 'elite', 'receipt', 'white', 'table', 'minimal'].includes(template) 
-      ? 'border-dashed border-gray-400 text-gray-400' 
-      : 'border-dashed border-brand-border opacity-40 text-white'
-  }`}>
-    {typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'made with RunCard Studio'}
-  </div>
-)}
-
-{['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(template) && (
-             <SharedTemplates template={template} formData={formData} componentName="PaceBandGenerator" extraData={{ splits: typeof calculateSplits === "function" ? calculateSplits() : undefined }} />
-           )}
+            {['wristband', 'phone lockscreen', 'printable a4'].includes(template) ? (
+              <div className="absolute bottom-2 left-0 right-0 text-center font-mono text-[9px] tracking-[0.25em] uppercase opacity-40 text-gray-400">
+                {typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'made with RunCard Studio'}
+              </div>
+            ) : (
+              <SharedTemplates template={template} formData={formData} componentName="PaceBandGenerator" extraData={{ splits: typeof calculateSplits === "function" ? calculateSplits() : undefined }} />
+            )}
 </div>
 </div>
 </div>
