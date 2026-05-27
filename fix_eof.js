@@ -24,13 +24,13 @@ for (let file of files) {
   // some might be missing multiple closing divs.
   let suffixes = [
      '\n}',
-     '\n</div>\n}',
-     '\n</div>\n</div>\n}',
-     '\n</div>\n</div>\n</div>\n}',
-     '\n</div>\n</div>\n</div>\n</div>\n}',
-     '\n</div>\n</div>\n</div>\n</div>\n</div>\n}',
+     '\napp/studio/components/PaceBandGenerator.tsx\n}',
+     '\napp/studio/components/PaceBandGenerator.tsx\napp/studio/components/PaceBandGenerator.tsx\n}',
+     '\napp/studio/components/PaceBandGenerator.tsx\napp/studio/components/PaceBandGenerator.tsx\napp/studio/components/PaceBandGenerator.tsx\n}',
+     '\napp/studio/components/PaceBandGenerator.tsx\napp/studio/components/PaceBandGenerator.tsx\napp/studio/components/PaceBandGenerator.tsx\napp/studio/components/PaceBandGenerator.tsx\n}',
+     '\napp/studio/components/PaceBandGenerator.tsx\napp/studio/components/PaceBandGenerator.tsx\napp/studio/components/PaceBandGenerator.tsx\napp/studio/components/PaceBandGenerator.tsx\napp/studio/components/PaceBandGenerator.tsx\n}',
      '\n</>\n}',
-     '\n</div>\n</>\n}'
+     '\napp/studio/components/PaceBandGenerator.tsx\n</>\n}'
   ];
   let fixed = false;
   for (let suffix of suffixes) {

@@ -13,7 +13,7 @@ function forceClose(file) {
     
     // Instead, what if we just prepend `)}` before SharedTemplates?
     // If the template before it was missing `)}`, this will close it!
-    // But wait, what if that template was also missing `</div>`? 
+    // But wait, what if that template was also missing `app/studio/components/PaceBandGenerator.tsx`? 
     // If we just replace `           {['carbon grid'` with `               )}\n           {['carbon grid'` ?
     
     if (text.includes(")}") && !text.includes(")}\n           {['carbon grid'")) {

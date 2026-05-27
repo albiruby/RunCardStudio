@@ -4,10 +4,10 @@ function fixMap(content) {
   return content.replace(/\)<\/div>\s*\)\}/g, 'px-3 py-1.5 text-xs font-bold uppercase whitespace-nowrap transition-colors cursor-pointer border rounded-full shrink-0\n                  ${template === t.id ? \'border-secondary-lime text-secondary-lime bg-secondary-lime/10\' : \'border-brand-border text-text-muted hover:border-primary-coral hover:text-text-primary\'}`}\n              >\n                {t.label}\n              </button>\n            ))}');
 }
 function fixMapGeneric(content) {
-   // actually, the broken part is just `)</div>\n              )}` 
-   // It came from `))} \n </div>`.
-   // Let's just fix the `)</div>\s*)}` globally:
-   return content.replace(/\)<\/div>\s*\)\}/g, '))}\n        </div>');
+   // actually, the broken part is just `)app/studio/components/PaceBandGenerator.tsx\n              )}` 
+   // It came from `))} \n app/studio/components/PaceBandGenerator.tsx`.
+   // Let's just fix the `)app/studio/components/PaceBandGenerator.tsx\s*)}` globally:
+   return content.replace(/\)<\/div>\s*\)\}/g, '))}\n        app/studio/components/PaceBandGenerator.tsx');
 }
 
 let files = fs.readdirSync('app/studio/components').filter(f => f.endsWith('Generator.tsx') && f !== 'RoutePosterGenerator.tsx');
@@ -20,19 +20,19 @@ for (const file of files) {
 
   // 2. Fix DamageReportGenerator
   if (file === 'DamageReportGenerator.tsx') {
-      content = content.replace(/&quot;\{formData\.notes\}&quot;\s*<\/div>\s*<\/div>\s*\)\}\s*\)\}/, '&quot;{formData.notes}&quot;</div>\n)}</div>\n)}');
+      content = content.replace(/&quot;\{formData\.notes\}&quot;\s*<\/div>\s*<\/div>\s*\)\}\s*\)\}/, '&quot;{formData.notes}&quot;app/studio/components/PaceBandGenerator.tsx\n)}app/studio/components/PaceBandGenerator.tsx\n)}');
   }
   
   // 3. Fix FuelingPlanGenerator
   if (file === 'FuelingPlanGenerator.tsx') {
       // Error was: `486: Unterminated regexp literal`
       // `485: <SharedTemplates... />`
-      // `486:     </div>`
-      // Wait, 486 in FuelingPlan of the build log was `</div>` !
+      // `486:     app/studio/components/PaceBandGenerator.tsx`
+      // Wait, 486 in FuelingPlan of the build log was `app/studio/components/PaceBandGenerator.tsx` !
       // In FuelingPlan it was actually: 
       // `376: ... {formData.preRace}</p>`
       // `377: )}`
-      // `378: </div> </div>`
+      // `378: app/studio/components/PaceBandGenerator.tsx app/studio/components/PaceBandGenerator.tsx`
       // Let's see what's actually there. We will print the end of these files first.
   }
 

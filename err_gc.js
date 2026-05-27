@@ -17,5 +17,5 @@ for (let i = 0; i < 15; i++) {
    } catch(e) {
        console.log('Error with ' + i + ' divs: ', e.message);
    }
-   attempt += '\n</div>';
+   attempt += '\napp/studio/components/PaceBandGenerator.tsx';
 }

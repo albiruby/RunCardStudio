@@ -25,6 +25,6 @@ for (let i = 0; i < 15; i++) {
         fixed = true;
         break;
     }
-    attempt += '\n</div>';
+    attempt += '\napp/studio/components/PaceBandGenerator.tsx';
 }
 if (!fixed) console.log('Failed PB');

@@ -18,8 +18,8 @@ const fixFile = (file, compName, fixTailCallback) => {
     '           {[\'carbon grid\', \'race poster pro\', \'minimal white\', \'split panel\', \'neon edge\', \'print utility\', \'compact story\'].includes(template) && (\n' +
     '             <SharedTemplates template={template} formData={formData} componentName=\"'+compName+'\"'+extraData+'  />\n' +
     '           )}\n' +
-    '      </div>\n' +
-    '    </div>\n' +
+    '      app/studio/components/PaceBandGenerator.tsx\n' +
+    '    app/studio/components/PaceBandGenerator.tsx\n' +
     '  );\n' +
     '}\n';
     fs.writeFileSync('app/studio/components/' + file, expected);
@@ -27,10 +27,10 @@ const fixFile = (file, compName, fixTailCallback) => {
 }
 
 fixFile('ChallengeCardGenerator.tsx', 'ChallengeCardGenerator', (text) => {
-    return text.replace(/<\/>\s*\)\}\s*$/, '</div>\n)}').replace(/\)\}\s*$/, '</div>\n)}');
+    return text.replace(/<\/>\s*\)\}\s*$/, 'app/studio/components/PaceBandGenerator.tsx\n)}').replace(/\)\}\s*$/, 'app/studio/components/PaceBandGenerator.tsx\n)}');
 });
 fixFile('FuelingPlanGenerator.tsx', 'FuelingPlanGenerator', (text) => {
-    let t = text.replace(/<\/>\s*\)\}\s*$/, '</div>\n)}');
+    let t = text.replace(/<\/>\s*\)\}\s*$/, 'app/studio/components/PaceBandGenerator.tsx\n)}');
     t = t.replace(/<\/div>\s*\)\}\s*$/, '</>\n)}');
     return t;
 });
@@ -38,7 +38,7 @@ fixFile('GoalCardGenerator.tsx', 'GoalCardGenerator', (text) => {
     let t = text.replace(/<\/>\s*\)\}\s*$/, '');
     t = t.replace(/\)\}\s*$/, '');
     t = t.trim();
-    if (!t.endsWith('</div>')) t += '\n</div>';
+    if (!t.endsWith('app/studio/components/PaceBandGenerator.tsx')) t += '\napp/studio/components/PaceBandGenerator.tsx';
     t += '\n)}';
     return t;
 });
@@ -47,10 +47,10 @@ fixFile('PaceBandGenerator.tsx', 'PaceBandGenerator', (text) => {
     let scaleLineIdx = lines.findIndex(l => l.includes('Scale: '));
     if (scaleLineIdx !== -1) {
         let snippet = lines.slice(0, scaleLineIdx - 1).join('\n');
-        snippet = snippet.replace(/\)\}\s*$/, '</div>\n)}');
+        snippet = snippet.replace(/\)\}\s*$/, 'app/studio/components/PaceBandGenerator.tsx\n)}');
         
         let scaleDiv = lines.slice(scaleLineIdx - 1).join('\n');
-        scaleDiv = scaleDiv.replace(/<\/div>\s*<\/div>\s*\}\)\s*$/, '</div>');
+        scaleDiv = scaleDiv.replace(/<\/div>\s*<\/div>\s*\}\)\s*$/, 'app/studio/components/PaceBandGenerator.tsx');
         scaleDiv = scaleDiv.replace(/\)\}\s*$/, '');
         
         return snippet + '\n' + scaleDiv;
@@ -62,8 +62,8 @@ fixFile('PersonalBestGenerator.tsx', 'PersonalBestGenerator', (text) => {
     if (t.endsWith(')}')) {
         t = t.substring(0, t.lastIndexOf(')}')).trim();
     }
-    if (t.endsWith('</div>')) {
-        t = t.substring(0, t.lastIndexOf('</div>')).trim();
+    if (t.endsWith('app/studio/components/PaceBandGenerator.tsx')) {
+        t = t.substring(0, t.lastIndexOf('app/studio/components/PaceBandGenerator.tsx')).trim();
     }
-    return t + '\n</div>\n)}';
+    return t + '\napp/studio/components/PaceBandGenerator.tsx\n)}';
 });

@@ -9,9 +9,9 @@ for (const file of files) {
   content = content.replace(/\s*\{\['carbon grid'[\s\S]*?<SharedTemplates[\s\S]*?\/>\s*\)\}\s*<\/div>\s*/g, '\n');
   content = content.replace(/\s*\{\['carbon grid'[\s\S]*?<SharedTemplates[\s\S]*?\/>\s*\)\}\s*/g, '\n');
 
-  // The fundamental problem was that I replaced `</div>\n)}` with `)}\n</div>`
-  // AND THEN replaced `)}\n</div>` WITH `</div>\n)}` in `revert_damage`.
-  // So right now, all conditional templates are probably `</div>\n)}`. Which is actually CORRECT!
+  // The fundamental problem was that I replaced `app/studio/components/PaceBandGenerator.tsx\n)}` with `)}\napp/studio/components/PaceBandGenerator.tsx`
+  // AND THEN replaced `)}\napp/studio/components/PaceBandGenerator.tsx` WITH `app/studio/components/PaceBandGenerator.tsx\n)}` in `revert_damage`.
+  // So right now, all conditional templates are probably `app/studio/components/PaceBandGenerator.tsx\n)}`. Which is actually CORRECT!
   // Wait, if they are correct, why is there a syntax error?
   // Let's look at `ChallengeCardGenerator`:
   // Error: Expected '</', got '{' on line 391
@@ -19,9 +19,9 @@ for (const file of files) {
   // `389 | ... `
   // `390 | ... `
   // `391 | )}`
-  // Wait! In `ChallengeCardGenerator` it said: `)}` with NO closing `</div>`!
-  // That means my `revert_damage.js` replaced `)}\n            </div>\n` with `            </div>\n              )}\n`.
-  // Wait, what if the original was `<div ...> ... </div>)}` (on the same line)?
+  // Wait! In `ChallengeCardGenerator` it said: `)}` with NO closing `app/studio/components/PaceBandGenerator.tsx`!
+  // That means my `revert_damage.js` replaced `)}\n            app/studio/components/PaceBandGenerator.tsx\n` with `            app/studio/components/PaceBandGenerator.tsx\n              )}\n`.
+  // Wait, what if the original was `<div ...> ... app/studio/components/PaceBandGenerator.tsx)}` (on the same line)?
   // I must be very careful.
   
   // Actually, I can just use a simple state machine to balance the divs and find out exactly what's missing, but that's hard.
@@ -29,26 +29,26 @@ for (const file of files) {
   
   // Let's check `ChallengeCardGenerator` line 388-393
   // `388 |                      <div className="mt-4 pt-4 border-t border-gray-200 text-center">`
-  // `389 |                        <div className="...">Reward</div>`
-  // `390 |                        <div className="...">{formData.reward}</div>`
+  // `389 |                        <div className="...">Rewardapp/studio/components/PaceBandGenerator.tsx`
+  // `390 |                        <div className="...">{formData.reward}app/studio/components/PaceBandGenerator.tsx`
   // `391 |                      )}`
-  // `392 |             </div>`
+  // `392 |             app/studio/components/PaceBandGenerator.tsx`
   // `393 | </>`
   
   // Ah! Line 391 is `)}` but it NEVER CLOSED THE DIV FROM 388!
-  // Because my script replaced `</div>\n)}` with `)}\n</div>`, and then swapped back?!
-  // But line 391 `)}`, line 392 `</div>`, so it's STILL swapped! `)}` is closing BEFORE `</div>`!
+  // Because my script replaced `app/studio/components/PaceBandGenerator.tsx\n)}` with `)}\napp/studio/components/PaceBandGenerator.tsx`, and then swapped back?!
+  // But line 391 `)}`, line 392 `app/studio/components/PaceBandGenerator.tsx`, so it's STILL swapped! `)}` is closing BEFORE `app/studio/components/PaceBandGenerator.tsx`!
   // Wait, why did `revert_damage.js` not fix it?
   // `revert_damage.js` searched for `\)\}\n            <\/div>\n`. (Exactly 12 spaces!).
-  // But line 392 is `            </div>` (12 spaces), and line 391 is `                     )}` (21 spaces).
+  // But line 392 is `            app/studio/components/PaceBandGenerator.tsx` (12 spaces), and line 391 is `                     )}` (21 spaces).
   // So it matched `\)\}\n            <\/div>\n`? No, because of the 21 spaces before `)}`! It didn't match!
   
   const badOrder = /\)\}\s*<\/div>/g;
-  content = content.replace(badOrder, '</div>\n              )}');
+  content = content.replace(badOrder, 'app/studio/components/PaceBandGenerator.tsx\n              )}');
 
   // Now, what about the end of the `previewRef`?
-  // The `previewRef` contains a bunch of `)}` and `</div>`.
-  // Usually it ends with `              )}\n            </div>\n          </div>`.
+  // The `previewRef` contains a bunch of `)}` and `app/studio/components/PaceBandGenerator.tsx`.
+  // Usually it ends with `              )}\n            app/studio/components/PaceBandGenerator.tsx\n          app/studio/components/PaceBandGenerator.tsx`.
   // Let's do the indent trick again to insert the SharedTemplates.
   const lines = content.split('\n');
   let refLine = -1;
@@ -84,12 +84,12 @@ for (const file of files) {
     const isPaceBand = componentName === 'PaceBandGenerator';
     const extraDataStr = isPaceBand ? 'extraData={{ splits: typeof calculateSplits === "function" ? calculateSplits() : undefined }}' : '';
     
-    // We insert BEFORE the finalClose </div>.
+    // We insert BEFORE the finalClose app/studio/components/PaceBandGenerator.tsx.
     // If lines[finalClose] has `)}`, we'd better put it after the `)}`!
     if (lines[finalClose].includes(')}')) {
-       let p = lines[finalClose].split('</div>');
+       let p = lines[finalClose].split('app/studio/components/PaceBandGenerator.tsx');
        // p[0] is `               )}`
-       lines[finalClose] = p[0] + `\n           {['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (\n             <SharedTemplates template={template} formData={formData} componentName="${componentName}" ${extraDataStr} />\n           )}\n` + ' '.repeat(expectedIndentLength) + '</div>' + (p[1] || '');
+       lines[finalClose] = p[0] + `\n           {['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (\n             <SharedTemplates template={template} formData={formData} componentName="${componentName}" ${extraDataStr} />\n           )}\n` + ' '.repeat(expectedIndentLength) + 'app/studio/components/PaceBandGenerator.tsx' + (p[1] || '');
     } else {
        lines.splice(finalClose, 0, `           {['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (\n             <SharedTemplates template={template} formData={formData} componentName="${componentName}" ${extraDataStr} />\n           )}`);
     }

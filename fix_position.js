@@ -14,17 +14,17 @@ for (const file of files) {
   content = content.replace(allInjectionsRegex, '\n');
 
   // Now, inject it securely.
-  // We want to put it right before the closing </div> of previewRef.
+  // We want to put it right before the closing app/studio/components/PaceBandGenerator.tsx of previewRef.
   // The most reliable way is: find the string `ref={previewRef}`.
   // Find the LAST `)}` after `ref={previewRef}` but before the component's final `return` closes.
   // A simple heuristic: find the last `)}` in the file.
   
-  // Wait, some files have `{(formData.notes) && ( <div>...</div> )}` after the templates!
+  // Wait, some files have `{(formData.notes) && ( <div>...app/studio/components/PaceBandGenerator.tsx )}` after the templates!
   // So the last `)}` inside `previewRef` might not be a template. BUT it's inside `previewRef`!
   // So if we just insert after the last `)}` that belongs to the previewRef content...
   // How to find the end of previewRef content?
   // Usually, the `previewRef` wraps all the templates.
-  // `ref={previewRef}` is in a `<div`. We need its closing `</div>`.
+  // `ref={previewRef}` is in a `<div`. We need its closing `app/studio/components/PaceBandGenerator.tsx`.
   
   // Actually, we can use Babel, or we can just use the indentation!
   // Let's re-run the precise indentation calculation but properly this time.
@@ -44,8 +44,8 @@ for (const file of files) {
   const expectedIndentLength = lines[openingDivLine].search(/\S/);
 
   let finalClose = -1;
-  // Start from the bottom, find the first </div> with the exact expected indent.
-  // Wait, if expectedIndentLength is 12, there might be OTHER </div> with 12 indent outside the previewRef?
+  // Start from the bottom, find the first app/studio/components/PaceBandGenerator.tsx with the exact expected indent.
+  // Wait, if expectedIndentLength is 12, there might be OTHER app/studio/components/PaceBandGenerator.tsx with 12 indent outside the previewRef?
   // Unlikely, but possible. Let's start from refLine and go FORWARD!
   // Keep track of <div and </div pairs!
   

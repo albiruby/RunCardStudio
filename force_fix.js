@@ -32,9 +32,9 @@ function forceReplaceEnd(file, matchUpTo, perfectEnding) {
 
 // 1. ChallengeCardGenerator.tsx
 forceReplaceEnd('ChallengeCardGenerator.tsx',
-'<div className="font-bold text-[#secondary-lime] text-sm uppercase">{formData.reward}</div>',
+'<div className="font-bold text-[#secondary-lime] text-sm uppercase">{formData.reward}app/studio/components/PaceBandGenerator.tsx',
 `
-                      </div>
+                      app/studio/components/PaceBandGenerator.tsx
                    )}
                  </>
                )}
@@ -44,14 +44,14 @@ forceReplaceEnd('ChallengeCardGenerator.tsx',
 forceReplaceEnd('FuelingPlanGenerator.tsx',
 'Manual plan only. Not medical or nutrition advice.<br/>{typeof window !== \'undefined\' && window.localStorage.getItem(\'runcard-watermark\') === \'off\' ? \'\' : \'RunCard Studio\'}</p>',
 `
-                   </div>
+                   app/studio/components/PaceBandGenerator.tsx
                  </>
                )}
 `);
 
 // 3. GoalCardGenerator.tsx
 forceReplaceEnd('GoalCardGenerator.tsx',
-'<div className="absolute bottom-4 right-10 text-[8px] font-mono tracking-widest text-gray-300 uppercase">{typeof window !== \'undefined\' && window.localStorage.getItem(\'runcard-watermark\') === \'off\' ? \'\' : \'RunCard Studio\'}</div>',
+'<div className="absolute bottom-4 right-10 text-[8px] font-mono tracking-widest text-gray-300 uppercase">{typeof window !== \'undefined\' && window.localStorage.getItem(\'runcard-watermark\') === \'off\' ? \'\' : \'RunCard Studio\'}app/studio/components/PaceBandGenerator.tsx',
 `
                  </>
                )}
@@ -61,14 +61,14 @@ forceReplaceEnd('GoalCardGenerator.tsx',
 forceReplaceEnd('PaceBandGenerator.tsx',
 '<span className="font-extrabold">{typeof window !== \'undefined\' && window.localStorage.getItem(\'runcard-watermark\') === \'off\' ? \'\' : \'RunCard Studio\'}</span>',
 `
-                   </div>
-                 </div>
+                   app/studio/components/PaceBandGenerator.tsx
+                 app/studio/components/PaceBandGenerator.tsx
                )}
 `);
 
 // 5. PersonalBestGenerator.tsx
 forceReplaceEnd('PersonalBestGenerator.tsx',
-'<div className="mt-6 text-left text-[9px] font-mono tracking-widest text-gray-400 uppercase">{typeof window !== \'undefined\' && window.localStorage.getItem(\'runcard-watermark\') === \'off\' ? \'\' : \'RunCard Studio\'}</div>',
+'<div className="mt-6 text-left text-[9px] font-mono tracking-widest text-gray-400 uppercase">{typeof window !== \'undefined\' && window.localStorage.getItem(\'runcard-watermark\') === \'off\' ? \'\' : \'RunCard Studio\'}app/studio/components/PaceBandGenerator.tsx',
 `
                  </>
                )}

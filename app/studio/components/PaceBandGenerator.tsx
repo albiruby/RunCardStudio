@@ -2,7 +2,7 @@
 import SharedTemplates, { useExportSize, getExportSizeClasses } from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
 import TemplateSelector from './TemplateSelector';
-import { Copy, Save, AlertCircle } from "lucide-react";
+import { Copy, Save, AlertCircle, Eye, FileText } from "lucide-react";
 
 interface PaceBandProps {
   previewRef: MutableRefObject<HTMLDivElement | null>;
@@ -251,9 +251,9 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
   }, []);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
-      {/* LEFT: FORM (4 cols) */}
-      <div className="lg:col-span-4 flex flex-col gap-6 w-full">
+    <div className="grid grid-cols-1 xl:grid-cols-[minmax(320px,380px)_1fr_minmax(280px,340px)] gap-6 w-full">
+      {/* COLUMN 1: INPUT */}
+      <div className="flex flex-col gap-4 w-full">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Pace Band Configuration</h2>
         </div>
@@ -330,7 +330,9 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
  </p>
  )}
 
-          <div className="flex justify-between items-center py-2.5 border-b border-[#22252a] mb-2 font-mono text-sm uppercase">
+                  </div>
+
+           <div className="flex justify-between items-center py-2.5 border-b border-[#22252a] mb-2 font-mono text-sm uppercase">
             <span className="text-text-muted text-xs">Required Pace:</span>
             <span className="font-black text-secondary-lime">{formatPace(avgPaceSecs)}/{unit}</span>
           </div>
@@ -352,41 +354,23 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
                </button>
              </div>
           </div>
-          
-          <button onClick={() => saveCurrentDraft()} className="w-full mt-2 lg:mt-4 py-2 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-4 h-4 text-primary-action" /> SAVE DRAFT</button>
-          <button onClick={handleCopy} className="w-full mt-2 py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY PACE BAND
-</button>
+          <button onClick={() => saveCurrentDraft()} className="w-full mt-2 py-2.5 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-3.5 h-3.5 text-primary-action" /> SAVE DRAFT</button>
+          <button onClick={handleCopy} className="w-full py-2.5 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-3.5 h-3.5 text-secondary-lime" /> COPY PACE BAND</button>
         </div>
       </div>
 
-      {/* RIGHT: PREVIEW (8 cols) */}
-      <div className="lg:col-span-8 flex flex-col gap-6 lg:sticky lg:top-[128px] lg:self-start mb-24 lg:mb-0">
-        <div className="flex flex-col gap-1 w-full">
-          <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Live Preview</h2>
-          <p className="text-xs text-text-muted">Adjust template, accent, and export ratios below.</p>
+      {/* COLUMN 2: LIVE PREVIEW */}
+      <div className="flex flex-col gap-4 xl:sticky xl:top-[128px] xl:self-start">
+        <div className="flex flex-col gap-1 px-1">
+          <div className="flex items-center gap-1.5">
+            <Eye className="w-3.5 h-3.5 text-secondary-lime" />
+            <h2 className="text-[11px] font-bold uppercase tracking-widest text-[#f2f4f7] font-mono">LIVE PREVIEW</h2>
+          </div>
+          <p className="text-[10px] text-text-muted font-mono uppercase tracking-wider">REPRESENTS COMPLETED CANVAS</p>
         </div>
 
-        <TemplateSelector 
-          activeTemplate={template}
-          onSelectTemplate={setTemplate}
-          localTemplates={[
-            {
-              "id": "wristband",
-              "label": "Wristband"
-            },
-            {
-              "id": "phone lockscreen",
-              "label": "Phone Lockscreen"
-            },
-            {
-              "id": "printable a4",
-              "label": "Printable A4"
-            }
-          ]}
-        />
-
         {/* Scalable Container for preview */}
-        <div ref={containerRef} className="w-full bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:16px_16px] bg-[#07080a] border border-brand-border rounded-xl p-4 md:p-8 flex items-center justify-center min-h-[600px] overflow-hidden relative">
+        <div ref={containerRef} className="w-full bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:16px_16px] bg-[#07080a] border border-brand-border rounded-xl p-4 md:p-8 flex items-center justify-center min-h-[500px] xl:min-h-[550px] overflow-hidden relative shadow-inner">
           
           {/* Wrapper to handle different layouts */}
           <div 
@@ -433,17 +417,73 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
                                )}
 
             {['wristband', 'phone lockscreen', 'printable a4'].includes(template) ? (
-              <div className="absolute bottom-2 left-0 right-0 text-center font-mono text-[9px] tracking-[0.25em] uppercase opacity-40 text-gray-400">
+               <div className="absolute bottom-2 left-0 right-0 text-center font-mono text-[9px] tracking-[0.25em] uppercase opacity-40 text-gray-400">
                 {typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'made with RunCard Studio'}
               </div>
             ) : (
               <SharedTemplates template={template} formData={formData} componentName="PaceBandGenerator" extraData={{ splits: typeof calculateSplits === "function" ? calculateSplits() : undefined }} />
             )}
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
+            </div>
+          </div>
+
+          {/* Centered Ratio Dock */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-[#090b0e]/95 backdrop-blur border border-brand-border/85 px-2 py-1.5 rounded-full flex items-center gap-1 shadow-[0_8px_24px_rgba(0,0,0,0.6)] z-10 hover:border-brand-border-strong transition-all">
+            {[
+              { id: "square", label: "1:1 Feed" },
+              { id: "story", label: "9:16 Story" },
+              { id: "landscape", label: "16:9 Classic" },
+              { id: "compact", label: "Fit" },
+              { id: "printable", label: "PDF/A4" }
+            ].map((ratio) => {
+              const isActive = exportSize === ratio.id;
+              return (
+                <button
+                  key={ratio.id}
+                  onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      localStorage.setItem('runcard-default-export-size', ratio.id);
+                      window.dispatchEvent(new CustomEvent('export-size-changed', { detail: ratio.id }));
+                    }
+                  }}
+                  className={`px-2.5 py-1 rounded-full text-[9px] font-mono font-bold uppercase transition-all cursor-pointer outline-none focus:outline-none whitespace-nowrap
+                    ${isActive 
+                      ? 'bg-secondary-lime text-black shadow-[0_0_8px_rgba(160,204,0,0.4)] font-extrabold' 
+                      : 'text-text-muted hover:text-text-primary hover:bg-surface-lowest/50'}`}
+                >
+                  {ratio.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* COLUMN 3: STYLE & CONTROLS */}
+      <div className="flex flex-col gap-4 xl:sticky xl:top-[128px]">
+        <div className="flex flex-col gap-0.5 px-1">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-[#f2f4f7] font-mono">STYLE CONTROLS</span>
+          <p className="text-[10px] text-text-muted font-mono uppercase tracking-wider">Tweak appearance</p>
+        </div>
+        
+        <TemplateSelector 
+          activeTemplate={template}
+          onSelectTemplate={setTemplate}
+          localTemplates={[
+            {
+              "id": "wristband",
+              "label": "Wristband"
+            },
+            {
+              "id": "phone lockscreen",
+              "label": "Phone Lockscreen"
+            },
+            {
+              "id": "printable a4",
+              "label": "Printable A4"
+            }
+          ]}
+        />
+      </div>
+    </div>
   );
 }

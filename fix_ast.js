@@ -23,20 +23,20 @@ const checkSyntax = (code) => {
 
 const fixSuffixes = [
     '',
-    '\n</div>\n)}',
+    '\napp/studio/components/PaceBandGenerator.tsx\n)}',
     '\n</>\n)}',
-    '\n</div>\n</div>\n)}',
-    '\n</div>\n</>\n)}',
-    '\n</div>\n</div>\n</div>\n)}',
-    '\n</>\n</div>\n)}',
-    '\n</div>\n</div>\n</>\n)}',
-    '\n</div>\n</div>\n</div>\n</div>\n)}',
+    '\napp/studio/components/PaceBandGenerator.tsx\napp/studio/components/PaceBandGenerator.tsx\n)}',
+    '\napp/studio/components/PaceBandGenerator.tsx\n</>\n)}',
+    '\napp/studio/components/PaceBandGenerator.tsx\napp/studio/components/PaceBandGenerator.tsx\napp/studio/components/PaceBandGenerator.tsx\n)}',
+    '\n</>\napp/studio/components/PaceBandGenerator.tsx\n)}',
+    '\napp/studio/components/PaceBandGenerator.tsx\napp/studio/components/PaceBandGenerator.tsx\n</>\n)}',
+    '\napp/studio/components/PaceBandGenerator.tsx\napp/studio/components/PaceBandGenerator.tsx\napp/studio/components/PaceBandGenerator.tsx\napp/studio/components/PaceBandGenerator.tsx\n)}',
     '\n)}',
-    '\n</div>',
+    '\napp/studio/components/PaceBandGenerator.tsx',
     '\n</>'
 ];
 
-const postSuffix = '\n           {[' + "'carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (\n             <SharedTemplates template={template} formData={formData} componentName=\"$$$NAME$$\" $$$EXTRA$$ />\n           )\n      }\n      </div>\n    </div>\n  );\n}";
+const postSuffix = '\n           {[' + "'carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (\n             <SharedTemplates template={template} formData={formData} componentName=\"$$$NAME$$\" $$$EXTRA$$ />\n           )\n      }\n      app/studio/components/PaceBandGenerator.tsx\n    app/studio/components/PaceBandGenerator.tsx\n  );\n}";
 
 
 for (const file of filesToFix) {

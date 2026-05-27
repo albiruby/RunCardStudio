@@ -10,7 +10,7 @@ for (const file of files) {
 
   const lines = content.split('\n');
   
-  // The line we are looking for is `)}            </div>` or `              )}` followed by `            </div>`.
+  // The line we are looking for is `)}            app/studio/components/PaceBandGenerator.tsx` or `              )}` followed by `            app/studio/components/PaceBandGenerator.tsx`.
   // Because it was originally a clean file (since we removed the injection).
   
   let refLine = -1;
@@ -50,14 +50,14 @@ for (const file of files) {
              <SharedTemplates template={template} formData={formData} componentName="${componentName}" ${extraDataStr} />
            )}`;
     
-    // finalClose contains the `</div>`. Check if it also contains `)}`
+    // finalClose contains the `app/studio/components/PaceBandGenerator.tsx`. Check if it also contains `)}`
     if (lines[finalClose].includes(')}')) {
-       // e.g. `               )}            </div>`
-       // We replace this line with `               )}\n` + injection + `\n            </div>`
-       let parts = lines[finalClose].split('</div>');
-       lines[finalClose] = parts[0].trimEnd() + '\n' + injection + '\n' + ' '.repeat(expectedIndentLength) + '</div>' + parts[1];
+       // e.g. `               )}            app/studio/components/PaceBandGenerator.tsx`
+       // We replace this line with `               )}\n` + injection + `\n            app/studio/components/PaceBandGenerator.tsx`
+       let parts = lines[finalClose].split('app/studio/components/PaceBandGenerator.tsx');
+       lines[finalClose] = parts[0].trimEnd() + '\n' + injection + '\n' + ' '.repeat(expectedIndentLength) + 'app/studio/components/PaceBandGenerator.tsx' + parts[1];
     } else {
-       // it's just `</div>`. We can insert right before it.
+       // it's just `app/studio/components/PaceBandGenerator.tsx`. We can insert right before it.
        lines.splice(finalClose, 0, injection);
     }
     

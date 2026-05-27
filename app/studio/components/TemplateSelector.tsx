@@ -125,40 +125,54 @@ export default function TemplateSelector({
   onSelectTemplate,
   localTemplates
 }: TemplateSelectorProps) {
-  const combined = EXPORT_TEMPLATES.map(t => ({ id: t.id, label: t.name }));
-  const containerRef = useRef<HTMLDivElement>(null);
+  const combined = localTemplates && localTemplates.length > 0 
+    ? localTemplates.map(t => ({ id: t.id, label: t.label }))
+    : EXPORT_TEMPLATES.map(t => ({ id: t.id, label: t.name }));
+    
   const activeAccent = useTemplateAccent();
-  const activeExportSize = useInternalExportSize();
+  const activeAccentObj = ACCENTS.find(a => a.id === activeAccent) || ACCENTS[0];
+  const activeAccentHex = activeAccentObj.hex;
 
   const [favorites, setFavorites] = useState<string[]>(() => getSessionFavorites());
   const [recents, setRecents] = useState<string[]>(() => getSessionRecents());
   const [showHistoryPanel, setShowHistoryPanel] = useState(false);
 
   // Ensure activeTemplate has a valid fallback
-  const validActiveTemplate = EXPORT_TEMPLATES.some(t => t.id === activeTemplate) ? activeTemplate : "original";
+  const validActiveTemplate = combined.some(t => t.id === activeTemplate) ? activeTemplate : (combined[0]?.id || "original");
 
-  // Map templates with metadata in stable order
-  const templatesWithMeta = combined.map((t, index) => {
-    const name = t.label;
-    const numPrefix = String(index + 1).padStart(2, "0");
-    return { ...t, name, numPrefix };
-  });
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const activeBtn = container.querySelector('[data-active="true"]') as HTMLElement | null;
-    if (activeBtn) {
-       const containerRect = container.getBoundingClientRect();
-       const activeRect = activeBtn.getBoundingClientRect();
-       const scrollLeft = container.scrollLeft + (activeRect.left - containerRect.left) - (containerRect.width / 2) + (activeRect.width / 2);
-       container.scrollTo({
-         left: scrollLeft,
-         behavior: 'smooth'
-       });
-    }
-  }, [validActiveTemplate]);
+  const TEMPLATE_DESCS: Record<string, string> = {
+    "original": "Clean & bold classic summary",
+    "sport": "Kinetic racing typography",
+    "carbon": "Technical modern telemetry",
+    "carbon-grid": "High-density metric matrix",
+    "race-poster": "Elegant minimalist racer design",
+    "minimal-white": "Sleek low-density high-contrast",
+    "split-panel": "Side-by-side dashboard breakdown",
+    "neon-edge": "Vibrant glowing ambient details",
+    "print-utility": "Print-ready high contrast list",
+    "compact-story": "Optimized tall visual card",
+    "wristband": "Printable, wrap-around pacer strip",
+    "phone lockscreen": "Tailored mobile phone overlay",
+    "printable a4": "Perfect A4 scale running plan",
+    "weekly board": "Compact weekly matrix layout",
+    "training log": "Sleek workout record tracker",
+    "dark carbon": "Carbon-textured daily recap",
+    "rotation board": "Horizontal grid for active gear",
+    "shoe log": "Detailed run-life shoe logging",
+    "minimal gear": "Utterly clean simple layout",
+    "target board": "Clear visual metric milestones",
+    "countdown card": "Live countdown event marker",
+    "minimal goal": "Simple text-led performance driver",
+    "race fuel plan": "Smart workout fueling matrix",
+    "bottle strategy": "Visual bottle fluid outline",
+    "minimal nutrition": "Ultra-light hydration ledger",
+    "community challenge": "Shared badge metric template",
+    "solo mission": "Sleek single-racer objective",
+    "dark challenge": "Vibrant futuristic quest card",
+    "brutal": "Industrial brutalist damage report",
+    "receipt": "High-contrast commercial style",
+    "neon": "Vibrant electric neon theme",
+  };
 
   const handleSelect = (id: string) => {
     onSelectTemplate(id);
@@ -182,60 +196,140 @@ export default function TemplateSelector({
   };
 
   return (
-    <div className="w-full bg-[#090b0e] border border-brand-border/60 rounded-xl p-4 md:p-6 flex flex-col gap-5 shadow-[0_8px_32px_rgba(0,0,0,0.55)] select-none">
+    <div className="w-full bg-[#090b0e] border border-brand-border/60 rounded-xl p-4 md:p-5 flex flex-col gap-6 shadow-[0_8px_32px_rgba(0,0,0,0.55)] select-none">
       
       {/* 1. Template Selector Section */}
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4 text-secondary-lime" />
-            <span className="text-xs uppercase tracking-widest font-mono font-bold text-text-primary">01. Select Template</span>
+          <div className="flex items-center gap-1.5">
+            <Layers className="w-3.5 h-3.5 text-secondary-lime" />
+            <span className="text-[11px] uppercase tracking-widest font-mono font-bold text-text-primary">SELECT TEMPLATE</span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowHistoryPanel(!showHistoryPanel)}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded border text-[10px] font-mono uppercase font-bold tracking-wider transition-all cursor-pointer outline-none focus:outline-none
-                ${showHistoryPanel
-                  ? "bg-[#ff3330]/10 border-[#ff3330] text-[#ff3330]"
-                  : "bg-surface-lowest/40 border-brand-border text-text-muted hover:text-text-primary hover:border-brand-border-strong"
-                }`}
-            >
-              <History className="w-3.5 h-3.5" />
-              <span>History & Favs</span>
-              {showHistoryPanel ? <ChevronUp className="w-3 h-3 ml-0.5" /> : <ChevronDown className="w-3 h-3 ml-0.5" />}
-            </button>
-
-            <span className="text-[10px] font-mono text-secondary-lime font-bold uppercase bg-secondary-lime/10 px-2 py-0.5 rounded border border-secondary-lime/20">
-              Active: {templatesWithMeta.find(t => t.id === validActiveTemplate)?.name || validActiveTemplate}
-            </span>
-          </div>
+          <button
+            onClick={() => setShowHistoryPanel(!showHistoryPanel)}
+            className={`flex items-center gap-1 px-2 py-0.5 rounded border text-[9px] font-mono uppercase font-bold tracking-wider transition-all cursor-pointer outline-none focus:outline-none
+              ${showHistoryPanel
+                ? "bg-[#ff3330]/10 border-[#ff3330] text-[#ff3330]"
+                : "bg-surface-lowest/40 border-brand-border text-text-muted hover:text-text-primary hover:border-brand-border-strong"
+              }`}
+          >
+            <History className="w-3 h-3" />
+            <span>Favs</span>
+            {showHistoryPanel ? <ChevronUp className="w-2.5 h-2.5 ml-0.5" /> : <ChevronDown className="w-2.5 h-2.5 ml-0.5" />}
+          </button>
         </div>
 
-        {/* Templates Scroll Row */}
-        <div 
-          ref={containerRef}
-          className="flex flex-row items-center gap-2.5 overflow-x-auto subtle-scrollbar w-full py-1.5 px-0.5 whitespace-nowrap scroll-smooth"
-        >
-          {templatesWithMeta.map((t) => {
-            const isActive = validActiveTemplate === t.id;
+        {/* Expandable History & Favorites Section */}
+        {showHistoryPanel && (
+          <div className="bg-[#111317] border border-brand-border rounded-lg p-3 flex flex-col gap-2.5 animate-fade-in">
+            {/* Favorites List */}
+            <div>
+              <div className="flex items-center gap-1 mb-1 text-text-muted">
+                <Star className="w-3 h-3 text-[#facc15] fill-[#facc15]" />
+                <span className="text-[9px] font-mono font-bold uppercase tracking-wider">Favorites</span>
+              </div>
+              {favorites.length === 0 ? (
+                <div className="text-[9px] font-mono text-zinc-600 bg-surface-lowest/10 rounded-md p-1.5 border border-brand-border/40 border-dashed">
+                  No starred templates yet.
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-1.5">
+                  {favorites.map((id) => {
+                    const tMeta = combined.find(x => x.id === id);
+                    if (!tMeta) return null;
+                    const isActive = validActiveTemplate === id;
+                    return (
+                      <button
+                        key={id}
+                        onClick={() => handleSelect(id)}
+                        className={`px-2 py-0.5 rounded text-[9px] font-mono font-bold uppercase transition-all border cursor-pointer outline-none focus:outline-none
+                          ${isActive
+                            ? "border-secondary-lime text-secondary-lime bg-secondary-lime/10"
+                            : "bg-surface-lowest/50 border-brand-border text-text-muted hover:text-[#f2f4f7] hover:border-brand-border-strong"
+                          }`}
+                      >
+                        ★ {tMeta.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Recents list */}
+            <div>
+              <div className="flex items-center gap-1 mb-1 text-text-muted">
+                <History className="w-3 h-3 text-secondary-lime" />
+                <span className="text-[9px] font-mono font-bold uppercase tracking-wider">Recent</span>
+              </div>
+              {recents.length === 0 ? (
+                <div className="text-[9px] font-mono text-zinc-600 bg-surface-lowest/10 rounded-md p-1.5 border border-brand-border/40 border-dashed">
+                  None.
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-1.5">
+                  {recents.map((id) => {
+                    const tMeta = combined.find(x => x.id === id);
+                    if (!tMeta) return null;
+                    const isActive = validActiveTemplate === id;
+                    return (
+                      <button
+                        key={id}
+                        onClick={() => handleSelect(id)}
+                        className={`px-2 py-0.5 rounded text-[9px] font-mono font-bold uppercase transition-all border cursor-pointer outline-none focus:outline-none
+                          ${isActive
+                            ? "border-secondary-lime text-secondary-lime bg-secondary-lime/10"
+                            : "bg-surface-lowest/50 border-brand-border text-text-muted hover:text-[#f2f4f7] hover:border-[#ff3330]"
+                          }`}
+                      >
+                        {tMeta.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Templates Vertical Scroll List */}
+        <div className="flex flex-col gap-2 max-h-[340px] overflow-y-auto subtle-scrollbar pr-1">
+          {combined.map((t) => {
+            const isSelected = validActiveTemplate === t.id;
             const isFav = favorites.includes(t.id);
-            const fullLabel = `${t.numPrefix} ${t.name}`;
 
             return (
               <div 
                 key={t.id}
-                data-active={isActive ? "true" : "false"}
-                className={`group flex items-center gap-2 px-3.5 py-2 rounded-lg border transition-all duration-200 shrink-0 select-none cursor-pointer
-                  ${isActive 
-                    ? "border-secondary-lime text-secondary-lime bg-secondary-lime/15 shadow-[0_0_12px_rgba(204,255,0,0.15)]" 
-                    : "bg-surface-low/30 border-brand-border text-text-muted hover:border-[#ff3330]/60 hover:text-text-primary hover:bg-surface/50"
-                  }`}
                 onClick={() => handleSelect(t.id)}
+                className={`group flex items-center gap-3 p-2.5 rounded-lg border transition-all duration-200 cursor-pointer select-none relative
+                  ${isSelected 
+                    ? "border-secondary-lime bg-secondary-lime/5 text-[#f2f4f7] shadow-[0_0_15px_rgba(160,204,0,0.08)]" 
+                    : "bg-surface-low/30 border-brand-border/60 text-text-muted hover:border-brand-border-strong hover:text-text-primary hover:bg-surface-lowest/40"}`}
               >
-                <span className="text-xs font-mono font-bold uppercase whitespace-nowrap cursor-pointer">
-                  {fullLabel}
-                </span>
+                {/* Mini card visual indicator */}
+                <div className={`w-10 h-8 rounded border flex flex-col justify-between p-1 transition-all relative overflow-hidden bg-[#05070a] shrink-0
+                  ${isSelected ? "border-secondary-lime/80 animate-pulse" : "border-brand-border/80 group-hover:border-brand-border-strong"}`}
+                >
+                  <div className="h-1 w-2/3 rounded-full bg-text-muted/40" style={isSelected ? { backgroundColor: activeAccentHex + "50" } : undefined} />
+                  <div className="flex gap-0.5 items-end">
+                    <div className="h-1.5 w-1/2 bg-text-muted/20" style={isSelected ? { backgroundColor: activeAccentHex + "30" } : undefined} />
+                    <div className="h-2.5 w-1/2 bg-text-muted/25" style={isSelected ? { backgroundColor: activeAccentHex + "40" } : undefined} />
+                  </div>
+                  {isSelected && (
+                    <div className="absolute right-0.5 top-0.5 w-1 h-1 rounded-full blinking" style={{ backgroundColor: activeAccentHex }} />
+                  )}
+                </div>
+
+                <div className="flex-1 flex flex-col min-w-0">
+                  <span className="text-[11px] font-bold uppercase tracking-tight text-text-primary truncate">
+                    {t.label}
+                  </span>
+                  <span className="text-[9px] font-mono text-text-muted truncate mt-0.5 leading-none">
+                    {TEMPLATE_DESCS[t.id] || "Custom athletic layout"}
+                  </span>
+                </div>
 
                 <button
                   onClick={(e) => toggleFavorite(t.id, e)}
@@ -243,7 +337,7 @@ export default function TemplateSelector({
                   title={isFav ? "Remove from Favorites" : "Add to Favorites"}
                 >
                   <Star 
-                    className={`w-3.5 h-3.5 transition-colors duration-150 ${
+                    className={`w-3 h-3 transition-colors duration-150 ${
                       isFav 
                         ? "fill-[#facc15] text-[#facc15]" 
                         : "text-zinc-600 group-hover:text-[#ff3330]"
@@ -256,141 +350,60 @@ export default function TemplateSelector({
         </div>
       </div>
 
-      {/* Expandable History & Favorites Section */}
-      {showHistoryPanel && (
-        <div className="bg-[#111317] border border-brand-border rounded-lg p-3.5 flex flex-col gap-3 animate-fade-in">
-          {/* Favorites List */}
-          <div>
-            <div className="flex items-center gap-1.5 mb-2 text-text-muted">
-              <Star className="w-3.5 h-3.5 text-[#facc15] fill-[#facc15]" />
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider">Favorites</span>
-            </div>
-            {favorites.length === 0 ? (
-              <div className="text-[10px] font-mono text-zinc-600 bg-surface-lowest/10 rounded-md p-2 border border-brand-border/40 border-dashed">
-                No favorited templates yet. Star templates above to add them here.
-              </div>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {favorites.map((id) => {
-                  const tMeta = templatesWithMeta.find(x => x.id === id);
-                  if (!tMeta) return null;
-                  const isActive = validActiveTemplate === id;
-                  return (
-                    <button
-                      key={id}
-                      onClick={() => handleSelect(id)}
-                      className={`px-2.5 py-1 rounded text-[10px] font-mono font-bold uppercase transition-all border cursor-pointer outline-none focus:outline-none
-                        ${isActive
-                          ? "border-secondary-lime text-secondary-lime bg-secondary-lime/10"
-                          : "bg-surface-lowest/50 border-brand-border text-text-muted hover:text-[#f2f4f7] hover:border-brand-border-strong"
-                        }`}
-                    >
-                      ★ {tMeta.numPrefix} {tMeta.name}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Recents list */}
-          <div>
-            <div className="flex items-center gap-1.5 mb-2 text-text-muted">
-              <History className="w-3.5 h-3.5 text-secondary-lime" />
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider">Recent Runs</span>
-            </div>
-            {recents.length === 0 ? (
-              <div className="text-[10px] font-mono text-zinc-600 bg-surface-lowest/10 rounded-md p-2 border border-brand-border/40 border-dashed">
-                Select templates to populate session history.
-              </div>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {recents.map((id) => {
-                  const tMeta = templatesWithMeta.find(x => x.id === id);
-                  if (!tMeta) return null;
-                  const isActive = validActiveTemplate === id;
-                  return (
-                    <button
-                      key={id}
-                      onClick={() => handleSelect(id)}
-                      className={`px-2.5 py-1 rounded text-[10px] font-mono font-bold uppercase transition-all border cursor-pointer outline-none focus:outline-none
-                        ${isActive
-                          ? "border-secondary-lime text-secondary-lime bg-secondary-lime/10"
-                          : "bg-surface-lowest/50 border-brand-border text-text-muted hover:text-[#f2f4f7] hover:border-[#ff3330]"
-                        }`}
-                    >
-                      {tMeta.numPrefix} {tMeta.name}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* Divider */}
       <div className="h-px bg-brand-border/40 w-full" />
 
-      {/* 2 & 3: Accent Color and Format Ratio Side-by-Side or Stacked */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        
-        {/* Accent Selector Section */}
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-2">
-            <Palette className="w-4 h-4 text-secondary-lime" />
-            <span className="text-xs uppercase tracking-widest font-mono font-bold text-text-primary">02. Accent Color</span>
-          </div>
+      {/* 2. ACCENT COLOR Section */}
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-1.5">
+          <Palette className="w-3.5 h-3.5 text-secondary-lime" />
+          <span className="text-[11px] uppercase tracking-widest font-mono font-bold text-text-primary">ACCENT COLOR</span>
+        </div>
 
-          <div className="flex flex-wrap gap-2 mt-0.5">
-            {ACCENTS.map((acc) => {
-              const isActive = activeAccent === acc.id;
-              return (
-                <button
-                  key={acc.id}
-                  onClick={() => setTemplateAccent(acc.id)}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-mono font-semibold uppercase tracking-wider border transition-all duration-200 cursor-pointer outline-none focus:outline-none
-                    ${isActive 
-                      ? "border-secondary-lime text-text-primary bg-[#a0cc00]/10 scale-[1.03] shadow-[0_0_8px_rgba(204,255,0,0.15)]" 
-                      : "bg-surface-lowest/30 border-brand-border text-text-muted hover:text-[#f2f4f7] hover:border-brand-border-strong"
-                    }`}
-                >
-                  <span className="w-2.5 h-2.5 rounded-full shrink-0 border border-black/30" style={{ backgroundColor: acc.hex }} />
-                  <span>{acc.name}</span>
-                </button>
-              );
-            })}
+        {/* Circular Color Swatches */}
+        <div className="grid grid-cols-5 gap-2 px-1">
+          {ACCENTS.map((acc) => {
+            const isActive = activeAccent === acc.id;
+            return (
+              <button
+                key={acc.id}
+                onClick={() => setTemplateAccent(acc.id)}
+                style={{ backgroundColor: acc.hex }}
+                className={`w-7 h-7 rounded-full flex items-center justify-center border transition-all duration-200 cursor-pointer outline-none focus:outline-none relative hover:scale-[1.15]
+                  ${isActive 
+                    ? "border-secondary-lime scale-[1.12] shadow-[0_0_12px_rgba(204,255,0,0.5)] ring-2 ring-secondary-lime/20" 
+                    : "border-brand-border/70 hover:border-brand-border-strong"
+                  }`}
+                title={acc.name}
+              >
+                {isActive && (
+                  <span className="w-2.5 h-2.5 rounded-full bg-black/80 flex items-center justify-center text-[8px] text-secondary-lime font-bold">
+                    ✓
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* PREVIEW ACCENT panel - Match mockup details! */}
+        <div className="bg-[#111317]/60 border border-brand-border/60 rounded-lg p-3 flex flex-col gap-2 font-mono text-[9px] text-text-muted mt-1.5 shadow-inner">
+          <div className="flex items-center justify-between">
+            <span className="tracking-wider">PREVIEW ACCENT</span>
+            <span style={{ color: activeAccentHex }} className="font-bold uppercase">{activeAccentObj.name}</span>
+          </div>
+          <div className="h-1.5 w-full bg-surface-lowest rounded-full overflow-hidden relative border border-brand-border/30">
+            <div className="h-full rounded-full transition-all duration-300" style={{ width: '85%', backgroundColor: activeAccentHex }} />
+          </div>
+          <div className="flex items-center justify-between text-[8px] mt-0.5 opacity-80">
+            <span>MAY 17, 2025</span>
+            <span style={{ color: activeAccentHex }} className="font-bold flex items-center gap-0.5">⚡ 4:51 /KM</span>
           </div>
         </div>
 
-        {/* Export Ratio / Format Selection Section */}
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-2">
-            <Palette className="w-4 h-4 text-secondary-lime invisible md:visible" />
-            <span className="text-xs uppercase tracking-widest font-mono font-bold text-text-primary">03. Format Ratio</span>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-1.5 mt-0.5">
-            {RATIOS.map((ratio) => {
-              const isActive = activeExportSize === ratio.id;
-              return (
-                <button
-                  key={ratio.id}
-                  onClick={() => setInternalExportSize(ratio.id)}
-                  className={`flex flex-col items-center justify-center p-1.5 rounded-lg border transition-all duration-200 cursor-pointer outline-none focus:outline-none text-center
-                    ${isActive 
-                      ? "border-secondary-lime text-text-primary bg-secondary-lime/10 shadow-[0_0_8px_rgba(204,255,0,0.15)]" 
-                      : "bg-surface-lowest/30 border-brand-border text-text-muted hover:text-[#f2f4f7] hover:border-brand-border-strong"
-                    }`}
-                >
-                  <span className="text-[10px] font-bold uppercase tracking-tight font-mono">{ratio.name}</span>
-                  <span className="text-[8px] font-mono text-text-muted opacity-85 mt-0.5 leading-none">{ratio.sub}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
+        <p className="text-[10px] text-text-muted leading-relaxed font-mono opacity-80 px-1">
+          Accent applies to headers, highlights, borders, and key athlete telemetry lines.
+        </p>
       </div>
 
     </div>

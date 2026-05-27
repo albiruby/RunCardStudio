@@ -19,7 +19,7 @@ const files = [
 for (const f of files) {
    const c = fs.readFileSync('app/studio/components/' + f, 'utf8');
    const lines = c.split('\n');
-   // find consecutive `</div>` and `)}` issues
+   // find consecutive `app/studio/components/PaceBandGenerator.tsx` and `)}` issues
    // just print lines 360-400 roughly, we know the exact lines from lint!
    console.log('---', f, '---');
 }
