@@ -1,3 +1,4 @@
+import SharedTemplates from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
 import { Copy, Save } from "lucide-react";
 
@@ -313,7 +314,15 @@ export default function RaceBibGenerator({ previewRef, showToast }: RaceBibProps
               { id: 'classic', label: 'Classic Bib' },
               { id: 'elite', label: 'Elite Bib' },
               { id: 'minimal', label: 'Minimal Bib' }
-            ].map(t => (
+           ,
+              { id: 'carbon grid', label: 'Carbon Grid' },
+              { id: 'race poster pro', label: 'Race Poster Pro' },
+              { id: 'minimal white', label: 'Minimal White' },
+              { id: 'split panel', label: 'Split Panel' },
+              { id: 'neon edge', label: 'Neon Edge' },
+              { id: 'print utility', label: 'Print Utility' },
+              { id: 'compact story', label: 'Compact Story' }
+           ].map(t => (
               <button 
                 key={t.id}
                 onClick={() => setTemplate(t.id)}
@@ -323,7 +332,7 @@ export default function RaceBibGenerator({ previewRef, showToast }: RaceBibProps
                 {t.label}
               </button>
             ))}
-          </div>
+        </div>
         </div>
 
         {/* Scalable Container for preview */}
@@ -393,7 +402,9 @@ export default function RaceBibGenerator({ previewRef, showToast }: RaceBibProps
                    {/* Background Elements */}
                    <div className="absolute inset-0 opacity-[0.03] overflow-hidden pointer-events-none flex items-center justify-center">
                       <div className="w-[150%] h-[150%] flex flex-wrap -m-4">
-                         {Array(100).fill(0).map((_, i) => <div key={i} className="text-9xl font-black leading-none transform -rotate-45">ELITE</div>)}
+                         {Array(100).fill(0).map((_, i) => (
+                            <div key={i} className="text-9xl font-black leading-none transform -rotate-45">ELITE</div>
+                         ))}
                       </div>
                    </div>
 
@@ -457,9 +468,12 @@ export default function RaceBibGenerator({ previewRef, showToast }: RaceBibProps
                      </p>
                    </div>
                    <div className="absolute bottom-2 left-0 right-0 text-center text-[7px] font-mono opacity-20 uppercase tracking-widest">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'RunCard Studio'}</div>
-                 </>
+                 </>               
                )}
 
+           {['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
+             <SharedTemplates template={template} formData={formData} componentName="RaceBibGenerator"  />
+           )}
             </div>
           </div>
         </div>

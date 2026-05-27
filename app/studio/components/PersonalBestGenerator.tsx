@@ -1,3 +1,4 @@
+import SharedTemplates from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
 import { Copy, Save } from "lucide-react";
 
@@ -326,7 +327,15 @@ export default function PersonalBestGenerator({ previewRef, showToast }: Persona
               { id: 'dark carbon', label: 'PB Dark Carbon' },
               { id: 'record board', label: 'Record Board' },
               { id: 'clean white', label: 'Clean White' }
-            ].map(t => (
+           ,
+              { id: 'carbon grid', label: 'Carbon Grid' },
+              { id: 'race poster pro', label: 'Race Poster Pro' },
+              { id: 'minimal white', label: 'Minimal White' },
+              { id: 'split panel', label: 'Split Panel' },
+              { id: 'neon edge', label: 'Neon Edge' },
+              { id: 'print utility', label: 'Print Utility' },
+              { id: 'compact story', label: 'Compact Story' }
+           ].map(t => (
               <button 
                 key={t.id}
                 onClick={() => setTemplate(t.id)}
@@ -336,7 +345,7 @@ export default function PersonalBestGenerator({ previewRef, showToast }: Persona
                 {t.label}
               </button>
             ))}
-          </div>
+        </div>
         </div>
 
         {/* Scalable Container for preview */}
@@ -390,19 +399,20 @@ export default function PersonalBestGenerator({ previewRef, showToast }: Persona
                      </div>
                    </div>
 
-                   {(formData.feeling || formData.nextTarget) && (
-                     <div className="mt-6 pt-4 border-t border-[#22252a] flex justify-between items-end border-dashed">
-                       {formData.feeling && <div className="italic text-sm text-gray-400 font-serif w-2/3">&quot;{formData.feeling}&quot;</div>}
-                       {formData.nextTarget && (
-                         <div className="text-right">
-                           <div className="font-mono text-[8px] uppercase tracking-widest opacity-50">Next Target</div>
-                           <div className="font-bold text-xs uppercase">{formData.nextTarget}</div>
+                  {(formData.feeling || formData.nextTarget) && (
+                    <div className="mt-6 pt-4 border-t border-[#22252a] flex justify-between items-end border-dashed">
+                      {formData.feeling && <div className="italic text-sm text-gray-400 font-serif w-2/3">&quot;{formData.feeling}&quot;</div>}
+                      {formData.nextTarget && (
+                        <div className="text-right">
+                          <div className="font-mono text-[8px] uppercase tracking-widest opacity-50">Next Target</div>
+                          <div className="font-bold text-xs uppercase">{formData.nextTarget}</div>
                          </div>
                        )}
-                     </div>
-                   )}
+                    </div>
+                  )}
                  </>
                )}
+
 
                {template === 'record board' && (
                  <>
@@ -470,15 +480,17 @@ export default function PersonalBestGenerator({ previewRef, showToast }: Persona
                         &quot;{formData.feeling}&quot;
                      </div>
                    )}
-                   
                    <div className="mt-6 text-left text-[9px] font-mono tracking-widest text-gray-400 uppercase">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'RunCard Studio'}</div>
                  </div>
                )}
 
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+           {['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
+             <SharedTemplates template={template} formData={formData} componentName="PersonalBestGenerator"  />
+           )}
+</div>
+</div>
+</div>
+</div>
+</div>
   );
 }

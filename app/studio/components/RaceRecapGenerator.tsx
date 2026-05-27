@@ -1,3 +1,4 @@
+import SharedTemplates from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
 import { Copy, Save, AlertCircle } from "lucide-react";
 
@@ -251,14 +252,9 @@ export default function RaceRecapGenerator({ previewRef, showToast }: RaceRecapP
                  className={`w-full bg-surface-lowest border p-2 rounded text-sm text-text-primary outline-none transition-colors ${isDistanceInvalid ? 'border-primary-coral focus:border-primary-coral' : 'border-brand-border focus:border-secondary-lime'}`}
                  placeholder="42.2 KM"
                />
-               {isDistanceInvalid && (
-                 <p className="text-primary-coral text-[10px] font-mono mt-1 flex items-center gap-1">
-                   <AlertCircle className="w-3 h-3" /> Parseable number required
-                 </p>
-               )}
+               {isDistanceInvalid && ( <p className="text-primary-coral text-[10px] font-mono mt-1 flex items-center gap-1"> <AlertCircle className="w-3 h-3" /> Parseable number required </p> )}
              </div>
-             <div>
-               <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-1">Finish Time</label>
+             <div> <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-1">Finish Time</label>
                <input 
                  type="text" 
                  value={formData.finishTime}
@@ -271,7 +267,7 @@ export default function RaceRecapGenerator({ previewRef, showToast }: RaceRecapP
                    <AlertCircle className="w-3 h-3" /> MM:SS or HH:MM:SS
                  </p>
                )}
-             </div>
+               </div>
           </div>
 
           <div className="border border-brand-border rounded p-3 bg-surface-lowest">
@@ -364,7 +360,15 @@ export default function RaceRecapGenerator({ previewRef, showToast }: RaceRecapP
               { id: 'carbon', label: 'Dark Carbon' },
               { id: 'white', label: 'Clean White' },
               { id: 'poster', label: 'Race Poster' }
-            ].map(t => (
+           ,
+              { id: 'carbon grid', label: 'Carbon Grid' },
+              { id: 'race poster pro', label: 'Race Poster Pro' },
+              { id: 'minimal white', label: 'Minimal White' },
+              { id: 'split panel', label: 'Split Panel' },
+              { id: 'neon edge', label: 'Neon Edge' },
+              { id: 'print utility', label: 'Print Utility' },
+              { id: 'compact story', label: 'Compact Story' }
+           ].map(t => (
               <button 
                 key={t.id}
                 onClick={() => setTemplate(t.id)}
@@ -374,7 +378,7 @@ export default function RaceRecapGenerator({ previewRef, showToast }: RaceRecapP
                 {t.label}
               </button>
             ))}
-          </div>
+        </div>
         </div>
 
         {/* Scalable Container for preview */}
@@ -410,8 +414,8 @@ export default function RaceRecapGenerator({ previewRef, showToast }: RaceRecapP
                       ${template === 'poster' ? 'bg-white text-primary-action border-transparent font-black' : ''}
                    `}>
                      {formData.rank.trim() || 'PR (#246)'}
-                   </div>
-                 )}
+                               </div>
+)}
                </div>
 
                <div className="grid grid-cols-2 gap-4 mb-6">
@@ -449,17 +453,20 @@ export default function RaceRecapGenerator({ previewRef, showToast }: RaceRecapP
                  `}>
                    <p className="font-mono text-[10px] opacity-60 uppercase tracking-widest mb-1.5">Moment of the Match</p>
                    <p className="italic font-serif text-base leading-relaxed">&ldquo;{formData.bestMoment.trim() || 'CROWD YELLING AT MILE 20 GAVE ME A SECOND WIND.'}&rdquo;</p>
-                 </div>
-               )}
-
-               {(formData.nextTarget.trim() || "SUB 3:10 AT BOSTON") && (
+                             </div>
+              )}
+{(formData.nextTarget.trim() || "SUB 3:10 AT BOSTON") && (
                  <div className="flex justify-between items-center py-4 border-t border-b border-opacity-20 mb-8 font-mono text-xs uppercase tracking-wider">
                    <span className="opacity-60">Next Mission Target</span>
                    <span className="font-black text-primary-coral">{formData.nextTarget.trim() || 'SUB 3:10 AT BOSTON'}</span>
-                 </div>
-               )}
+                             </div>
+              )}
+<div className="text-center font-mono text-[9px] tracking-[0.25em] uppercase mt-auto opacity-40 pt-4 border-t border-dashed border-brand-border">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'made with RunCard Studio'}
 
-               <div className="text-center font-mono text-[9px] tracking-[0.25em] uppercase mt-auto opacity-40 pt-4 border-t border-dashed border-brand-border">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'made with RunCard Studio'}</div>
+</div>
+           {['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
+             <SharedTemplates template={template} formData={formData} componentName="RaceRecapGenerator"  />
+           )}
             </div>
           </div>
         </div>

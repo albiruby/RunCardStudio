@@ -1,3 +1,4 @@
+import SharedTemplates from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
 import { Copy, Save } from "lucide-react";
 
@@ -289,14 +290,12 @@ export default function RaceChecklistGenerator({ previewRef, showToast }: RaceCh
                {(Object.keys(formData) as Array<keyof typeof formData>).filter(k => typeof formData[k] === 'boolean').map(key => (
                   <label key={key} className="flex items-center gap-2 cursor-pointer select-none group">
                     <div className={`w-4 h-4 rounded-sm border flex items-center justify-center transition-colors ${formData[key] ? 'bg-secondary-lime border-secondary-lime' : 'bg-surface-lowest border-brand-border group-hover:border-text-muted'}`}>
-                       {formData[key] && (
-                         <div className="w-1.5 h-1.5 bg-[#0f1012] rounded-full"></div>
-                       )}
-                    </div>
+                       {formData[key] && <div className="w-1.5 h-1.5 bg-[#0f1012] rounded-full"></div>}
+</div>
                     <span className="text-[11px] font-mono text-text-primary uppercase tracking-wider">{key.replace('idcard', 'ID Card')}</span>
                   </label>
                ))}
-             </div>
+        </div>
           </div>
 
           <div className="border-t border-brand-border pt-4">
@@ -341,7 +340,15 @@ export default function RaceChecklistGenerator({ previewRef, showToast }: RaceCh
               { id: 'race day', label: 'Race Day' },
               { id: 'minimal', label: 'Minimal Packing' },
               { id: 'dark utility', label: 'Dark Utility' }
-            ].map(t => (
+           ,
+              { id: 'carbon grid', label: 'Carbon Grid' },
+              { id: 'race poster pro', label: 'Race Poster Pro' },
+              { id: 'minimal white', label: 'Minimal White' },
+              { id: 'split panel', label: 'Split Panel' },
+              { id: 'neon edge', label: 'Neon Edge' },
+              { id: 'print utility', label: 'Print Utility' },
+              { id: 'compact story', label: 'Compact Story' }
+           ].map(t => (
               <button 
                 key={t.id}
                 onClick={() => setTemplate(t.id)}
@@ -351,7 +358,7 @@ export default function RaceChecklistGenerator({ previewRef, showToast }: RaceCh
                 {t.label}
               </button>
             ))}
-          </div>
+        </div>
         </div>
 
         {/* Scalable Container for preview */}
@@ -400,7 +407,7 @@ export default function RaceChecklistGenerator({ previewRef, showToast }: RaceCh
                                <span className="font-bold uppercase text-sm leading-tight pt-0.5">{item}</span>
                              </div>
                            ))}
-                        </div>
+        </div>
                         <div className="flex flex-col gap-3">
                            {rightItems.map((item, i) => (
                              <div key={`r-${i}`} className="flex items-start gap-3">
@@ -408,7 +415,7 @@ export default function RaceChecklistGenerator({ previewRef, showToast }: RaceCh
                                <span className="font-bold uppercase text-sm leading-tight pt-0.5">{item}</span>
                              </div>
                            ))}
-                        </div>
+        </div>
                      </>
                   ) : template === 'minimal' ? (
                      <div className="flex flex-col gap-4 px-2">
@@ -418,7 +425,7 @@ export default function RaceChecklistGenerator({ previewRef, showToast }: RaceCh
                             <span className="text-sm border-b border-gray-200 border-dotted flex-1 pb-1">{item}</span>
                           </div>
                         ))}
-                     </div>
+        </div>
                   ) : (
                      // Dark Utility
                      <div className="flex flex-col gap-2">
@@ -430,8 +437,8 @@ export default function RaceChecklistGenerator({ previewRef, showToast }: RaceCh
                             <span className="text-xs uppercase tracking-wider text-gray-300 truncate">{item}</span>
                           </div>
                         ))}
-                     </div>
-                  )}
+        </div>
+)}
                </div>
 
                {/* Footer */}
@@ -445,11 +452,14 @@ export default function RaceChecklistGenerator({ previewRef, showToast }: RaceCh
                    Packing Protocol
                  </span>
                </div>
+            </div>
 
+           {['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
+             <SharedTemplates template={template} formData={formData} componentName="RaceChecklistGenerator"  />
+           )}
             </div>
           </div>
         </div>
       </div>
-    </div>
   );
 }

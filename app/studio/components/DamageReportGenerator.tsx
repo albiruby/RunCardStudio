@@ -1,3 +1,4 @@
+import SharedTemplates from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
 import { Copy, Save } from "lucide-react";
 
@@ -345,7 +346,15 @@ export default function DamageReportGenerator({ previewRef, showToast }: DamageR
               { id: 'brutal', label: 'Brutal Report' },
               { id: 'receipt', label: 'Dark Receipt' },
               { id: 'neon', label: 'Neon Damage' }
-            ].map(t => (
+           ,
+              { id: 'carbon grid', label: 'Carbon Grid' },
+              { id: 'race poster pro', label: 'Race Poster Pro' },
+              { id: 'minimal white', label: 'Minimal White' },
+              { id: 'split panel', label: 'Split Panel' },
+              { id: 'neon edge', label: 'Neon Edge' },
+              { id: 'print utility', label: 'Print Utility' },
+              { id: 'compact story', label: 'Compact Story' }
+           ].map(t => (
               <button 
                 key={t.id}
                 onClick={() => setTemplate(t.id)}
@@ -355,7 +364,7 @@ export default function DamageReportGenerator({ previewRef, showToast }: DamageR
                 {t.label}
               </button>
             ))}
-          </div>
+        </div>
         </div>
 
         {/* Scalable Container for preview */}
@@ -418,20 +427,24 @@ export default function DamageReportGenerator({ previewRef, showToast }: DamageR
                </div>
 
                {(formData.finalVerdict || formData.notes) && (
+                 <>
                  <div className={`mb-6 p-4 rounded-md border ${template === 'neon' ? 'bg-black border-[#ff0055]/40 text-white' : (template === 'receipt' ? 'border-gray-300' : 'bg-[#1c1d22] border-primary-coral')}`}>
                    {formData.finalVerdict && (
-                     <div className="mb-2">
-                       <span className={`font-mono text-[10px] uppercase block mb-1 ${template === 'neon' ? 'text-[#ff0055]' : 'text-primary-coral'}`}>Final Verdict</span>
-                       <span className="font-black text-xl uppercase tracking-wide">{formData.finalVerdict}</span>
-                     </div>
-                   )}
-                   {formData.notes && (
-                     <div className={`text-sm italic font-serif ${template === 'receipt' ? 'text-gray-600' : 'text-gray-400'}`}>&quot;{formData.notes}&quot;</div>
-                   )}
-                 </div>
-               )}
-
-               <div className={`text-center font-mono text-[9px] tracking-[0.25em] uppercase mt-auto pt-4 border-t ${template === 'receipt' ? 'border-dashed border-gray-400 text-gray-400' : (template === 'neon' ? 'border-[#ff0055]/20 text-[#ff0055]/50' : 'border-dashed border-[#22252a] opacity-40')}`}>{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'made with RunCard Studio'}</div>
+                      <div className="mb-2">
+                        <span className={`font-mono text-[10px] uppercase block mb-1 ${template === 'neon' ? 'text-[#ff0055]' : 'text-primary-coral'}`}>Final Verdict</span>
+                        <span className="font-black text-xl uppercase tracking-wide">{formData.finalVerdict}</span>
+                      </div>
+                    )}
+                    {formData.notes && (
+                      <div className={`text-sm italic font-serif ${template === 'receipt' ? 'text-gray-600' : 'text-gray-400'}`}>&quot;{formData.notes}&quot;</div>
+                    )}
+                  </div>
+                  <div className={`text-center font-mono text-[9px] tracking-[0.25em] uppercase mt-auto pt-4 border-t ${template === 'receipt' ? 'border-dashed border-gray-400 text-gray-400' : (template === 'neon' ? 'border-[#ff0055]/20 text-[#ff0055]/50' : 'border-dashed border-[#22252a] opacity-40')}`}>{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'made with RunCard Studio'}</div>
+                 </>
+                )}
+           {['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
+             <SharedTemplates template={template} formData={formData} componentName="DamageReportGenerator"  />
+           )}
             </div>
           </div>
         </div>

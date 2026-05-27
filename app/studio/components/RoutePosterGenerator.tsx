@@ -423,7 +423,7 @@ export default function RoutePosterGenerator({ previewRef, showToast }: RoutePos
                        </div>
                      </div>
                   </div>
-                )}
+                  )}
 
                 {template === 'dark route' && (
                   <div className="flex-1 flex flex-col p-8 font-mono relative">
@@ -470,7 +470,7 @@ export default function RoutePosterGenerator({ previewRef, showToast }: RoutePos
                        )}
                      </div>
                   </div>
-                )}
+               )}
 
                 {template === 'race route' && (
                   <div className="flex-1 flex flex-col relative bg-[#111316]">
@@ -525,7 +525,7 @@ export default function RoutePosterGenerator({ previewRef, showToast }: RoutePos
 
                      </div>
                   </div>
-                )}
+                  )}
             </div>
           </div>
         </div>

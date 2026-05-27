@@ -1,3 +1,4 @@
+import SharedTemplates from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
 import { Copy, Save } from "lucide-react";
 
@@ -298,7 +299,15 @@ export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingP
               { id: 'race fuel plan', label: 'Race Fuel Plan' },
               { id: 'bottle strategy', label: 'Bottle Strategy' },
               { id: 'minimal nutrition', label: 'Minimal Nutrition' }
-            ].map(t => (
+           ,
+              { id: 'carbon grid', label: 'Carbon Grid' },
+              { id: 'race poster pro', label: 'Race Poster Pro' },
+              { id: 'minimal white', label: 'Minimal White' },
+              { id: 'split panel', label: 'Split Panel' },
+              { id: 'neon edge', label: 'Neon Edge' },
+              { id: 'print utility', label: 'Print Utility' },
+              { id: 'compact story', label: 'Compact Story' }
+           ].map(t => (
               <button 
                 key={t.id}
                 onClick={() => setTemplate(t.id)}
@@ -308,7 +317,7 @@ export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingP
                 {t.label}
               </button>
             ))}
-          </div>
+        </div>
         </div>
 
         <div ref={containerRef} className="w-full bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:16px_16px] bg-[#07080a] border border-brand-border rounded-xl p-4 md:p-8 flex items-center justify-center min-h-[600px] overflow-hidden relative">
@@ -364,10 +373,8 @@ export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingP
                      {formData.preRace && (
                        <div>
                          <h3 className="text-[10px] uppercase tracking-widest text-gray-500 font-mono mb-2 border-b border-[#22252a] pb-1">Pre-Race</h3>
-                         <p className="text-sm font-medium bg-[#16181c] p-3 rounded">{formData.preRace}</p>
-                       </div>
-                     )}
-                   </div>
+                         <p className="text-sm font-medium bg-[#16181c] p-3 rounded">{formData.preRace}</p></div>)}
+</div>
 
                    <div className="mt-8 text-center opacity-40 flex flex-col justify-center items-center">
                      <span className="text-[7px] uppercase tracking-widest font-mono mb-1">Manual plan only. Not medical advice.</span>
@@ -418,7 +425,6 @@ export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingP
                        {"//"} {formData.note}
                      </div>
                    )}
-
                    <div className="mt-8 pt-4 border-t border-[#22252a] text-[8px] uppercase tracking-widest text-gray-600 flex justify-between">
                      <span>Not medical advice</span>
                      <span>RCS</span>
@@ -463,8 +469,8 @@ export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingP
                           <div className="font-medium px-3 py-2 flex-1">{formData.preRace}</div>
                         </div>
                       )}
-                   </div>
 
+                   </div>
                    <div className="mt-auto border-t border-gray-200 pt-6">
                      <p className="text-[8px] uppercase tracking-widest text-center text-gray-400 font-bold leading-tight">
                        Manual plan only. Not medical or nutrition advice.<br/>{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'RunCard Studio'}</p>
@@ -472,6 +478,9 @@ export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingP
                  </>
                )}
 
+           {['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
+             <SharedTemplates template={template} formData={formData} componentName="FuelingPlanGenerator"  />
+           )}
             </div>
           </div>
         </div>

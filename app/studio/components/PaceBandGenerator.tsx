@@ -1,3 +1,4 @@
+import SharedTemplates from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
 import { Copy, Save, AlertCircle } from "lucide-react";
 
@@ -340,10 +341,9 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
                 className={`w-full bg-surface-lowest border p-2 rounded text-sm text-text-primary font-mono outline-none border-brand-border focus:border-secondary-lime`}
                 placeholder="e.g. 15.0"
               />
-            </div>
-          )}
-
-          <div>
+                        </div>
+              )}
+<div>
              <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-1">Target Finish Time</label>
              <div className="flex items-center gap-2">
                <div className="w-full relative">
@@ -383,9 +383,8 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
              {isTimeInvalid && (
                <p className="text-primary-coral text-[10px] font-mono mt-1 flex items-center gap-1">
                  <AlertCircle className="w-3.5 h-3.5" /> Please check MM/SS constraints (00-59)
-               </p>
-             )}
-          </div>
+ </p>
+ )}
 
           <div className="flex justify-between items-center py-2.5 border-b border-[#22252a] mb-2 font-mono text-sm uppercase">
             <span className="text-text-muted text-xs">Required Pace:</span>
@@ -419,7 +418,7 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
       {/* RIGHT: PREVIEW (8 cols) */}
       <div className="lg:col-span-8 flex flex-col gap-0 pb-20">
         <div className="flex items-center justify-start border-b border-brand-border mb-4 overflow-x-auto no-scrollbar">
-            {['wristband', 'phone lockscreen', 'printable a4'].map(t => (
+            {['wristband', 'phone lockscreen', 'printable a4', 'carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].map(t => (
               <button 
                 key={t}
                 onClick={() => setTemplate(t)}
@@ -453,7 +452,8 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
                  <div className="w-full flex flex-col font-mono text-[10px] uppercase">
                    <div className="bg-black text-white text-center py-3.5 px-1 pb-2">
                      <div className="uppercase font-bold mb-1 opacity-80 text-[8px] tracking-wider">{formData.distanceChoice === 'Custom' ? 'Custom Dist' : formData.distanceChoice}</div>
-                     <div className="text-xl font-black mb-1.5 leading-none">{(formData.hr.padStart(2, '0'))}:{(formData.min.padStart(2, '0'))}:{(formData.sec.padStart(2, '0'))}</div>
+                     <div className="text-xl font-black mb-1.5 leading-none">{(formData.hr.padStart(2, '0'))}:{(formData.min.padStart(2, '0'))}:{(formData.sec.padStart(2, '0'))}
+        </div>
                      <div className="text-[8px] text-secondary-lime font-black">PACE {formatPace(avgPaceSecs)}</div>
                    </div>
                    <div className="flex border-b border-black text-center font-bold bg-gray-100 font-mono text-[9px] py-1">
@@ -467,119 +467,25 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
                            {s.marker === dist ? (Number.isInteger(dist) ? dist : dist.toFixed(1)) : s.marker}
                          </div>
                          <div className={`w-2/3 flex items-center justify-center text-black font-medium ${i === splits.length - 1 ? 'text-primary-coral font-black' : ''}`}>
-                           {formatTime(s.cumTime)}
-                         </div>
+                           {formatTime(s.cumTime)}</div>
                        </div>
                      ))}
-                   </div>
+        </div>
                    <div className="py-2.5 text-center text-[7px] opacity-40 uppercase tracking-widest bg-gray-50 flex flex-col items-center justify-center pt-5 pb-3">
                      <span>Wristband</span>
                      <span className="font-extrabold">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'RunCard Studio'}</span>
                    </div>
                  </div>
-              )}
+               )}
 
-              {template === 'phone lockscreen' && (
-                 <div className="w-full h-full flex flex-col font-sans relative p-6">
-                    <div className="absolute inset-0 bg-gradient-to-b from-[#1a2f4c]/20 to-transparent pointer-events-none"></div>
-                    
-                    {/* Simulated visual clock on phone lockscreen top area */}
-                    <div className="h-28 flex flex-col items-center justify-center border-b border-white/5 pb-2">
-                      <p className="text-xs uppercase tracking-widest text-white/40 font-mono">Simulated Lockscreen</p>
-                      <p className="text-2xl font-black tracking-tight text-white/90">05:08 AM</p>
-                    </div>
-
-                    <div className="flex-1 flex flex-col pt-4">
-                       <div className="mb-6">
-                         <h1 className="text-secondary-lime font-mono text-[10px] uppercase tracking-[0.2em] mb-1 font-bold">Planned Target: {formatPace(avgPaceSecs)}/{unit.toUpperCase()}</h1>
-                         <div className="text-3xl font-black font-mono text-white mb-0.5 leading-none shadow-sm pb-1 border-b border-white/10 flex justify-between items-baseline">
-                           <span>{(formData.hr.padStart(2, '0'))}:{(formData.min.padStart(2, '0'))}:{(formData.sec.padStart(2, '0'))}</span>
-                           <span className="text-sm uppercase text-primary-coral tracking-[0.1em] font-sans font-bold">{formData.distanceChoice === 'Custom' ? (formData.customDistance || '21.1') + 'KM' : formData.distanceChoice}</span>
-                         </div>
-                       </div>
-                       
-                       <div className="bg-white/[0.03] backdrop-blur-md rounded-2xl border border-white/10 overflow-hidden flex-1 flex flex-col min-h-[300px]">
-                         <div className="grid grid-cols-2 bg-white/5 py-2.5 px-4 text-[9px] font-mono text-white/50 uppercase tracking-widest border-b border-white/10">
-                           <div>Distance</div>
-                           <div className="text-right">Split Time</div>
-                         </div>
-                         <div className="overflow-y-auto flex-1 px-4 pb-4 pt-1 space-y-0.5 no-scrollbar">
-                           {splits.filter((s,i) => formData.interval === '1' ? (i % 5 === 4 || i === splits.length - 1) : true).map((s, i) => (
-                             <div key={i} className="flex justify-between items-center py-2.5 text-white font-mono border-b border-white/5 last:border-0">
-                                <span className="font-extrabold text-[#f3f4f6] text-sm">
-                                  {s.marker === dist ? (Number.isInteger(dist) ? dist : dist.toFixed(1)) : s.marker} 
-                                  <span className="text-[10px] opacity-40 font-normal ml-0.5">{unit}</span>
-                                </span>
-                                <span className={`text-base font-black text-white ${s.marker === dist ? 'text-secondary-lime' : ''}`}>{formatTime(s.cumTime)}</span>
-                             </div>
-                           ))}
-                         </div>
-                       </div>
-                    </div>
-
-                    <div className="mt-4 text-center text-[7px] font-mono uppercase tracking-[0.25em] opacity-30 pb-1">
-                       {typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'RunCard Studio'}
-                    </div>
-                 </div>
-              )}
-
-              {template === 'printable a4' && (
-                 <div className="w-full flex flex-col font-sans text-black">
-                   <div className="flex justify-between items-end border-b-4 border-black pb-4 mb-8">
-                     <div>
-                       <h1 className="text-4xl font-extrabold uppercase tracking-tighter leading-none">{formData.distanceChoice === 'Custom' ? (formData.customDistance || '21.1') + ' ' + unit : formData.distanceChoice}</h1>
-                       <p className="text-base uppercase opacity-70 tracking-widest mt-1.5 font-semibold">Pace Band Chart // Target Goal</p>
-                     </div>
-                     <div className="text-right">
-                       <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Target Pace</p>
-                       <p className="font-mono text-2xl font-black bg-black text-white px-3 py-1.5 inline-block mt-1">{formatPace(avgPaceSecs)}/{unit}</p>
-                     </div>
-                   </div>
-
-                   <div className="grid grid-cols-2 gap-8">
-                     <div className="w-full font-mono text-xs">
-                        <div className="flex bg-black text-white font-black mb-2 py-2 px-3 text-[10px] tracking-wider">
-                          <div className="w-1/2">DISTANCE ({unit.toUpperCase()})</div>
-                          <div className="w-1/2 text-right font-black">TARGET TIME</div>
-                        </div>
-                        
-                        {splits.slice(0, Math.ceil(splits.length / 2)).map((s, i) => (
-                          <div key={i} className={`flex border-b border-gray-300 py-1.5 ${s.marker === dist ? 'bg-gray-100 font-bold border-b-2 border-black' : ''}`}>
-                            <div className="w-1/2 px-3 font-semibold">{s.marker === dist ? (Number.isInteger(dist) ? dist : dist.toFixed(1)) : s.marker}</div>
-                            <div className="w-1/2 px-3 text-right">{formatTime(s.cumTime)}</div>
-                          </div>
-                        ))}
-                     </div>
-                     
-                     {splits.length > 0 && (
-                       <div className="w-full font-mono text-xs">
-                          <div className="flex bg-black text-white font-black mb-2 py-2 px-3 text-[10px] tracking-wider font-mono">
-                            <div className="w-1/2">DISTANCE ({unit.toUpperCase()})</div>
-                            <div className="w-1/2 text-right">TARGET TIME</div>
-                          </div>
-                          
-                          {splits.slice(Math.ceil(splits.length / 2)).map((s, i) => (
-                            <div key={i} className={`flex border-b border-gray-300 py-1.5 ${s.marker === dist ? 'bg-gray-100 font-bold border-b-2 border-black' : ''}`}>
-                              <div className="w-1/2 px-3 font-semibold">{s.marker === dist ? (Number.isInteger(dist) ? dist : dist.toFixed(1)) : s.marker}</div>
-                              <div className="w-1/2 px-3 text-right">{formatTime(s.cumTime)}</div>
-                            </div>
-                          ))}
-                       </div>
-                     )}
-                   </div>
-
-                   <div className="mt-16 text-center text-[10px] font-mono uppercase tracking-[0.2em] opacity-40 pt-6 border-t border-dashed border-gray-300">
-                     {typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'Generated by RunCard Studio - runcard.studio'}
-                   </div>
-                 </div>
-              )}
-            </div>
-          </div>
-          <div className="absolute bottom-2 right-2 text-[9px] font-mono text-text-muted bg-surface-lowest px-2 py-1 rounded border border-brand-border z-15 pointer-events-none opacity-40 uppercase tracking-widest font-bold">
-             Scale: {(scale * 100).toFixed(0)}%
-          </div>
-        </div>
-      </div>
-    </div>
+           {['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
+             <SharedTemplates template={template} formData={formData} componentName="PaceBandGenerator" extraData={{ splits: typeof calculateSplits === "function" ? calculateSplits() : undefined }} />
+           )}
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
   );
 }

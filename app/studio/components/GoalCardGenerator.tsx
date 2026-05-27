@@ -1,3 +1,4 @@
+import SharedTemplates from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
 import { Copy, Save } from "lucide-react";
 
@@ -287,7 +288,15 @@ export default function GoalCardGenerator({ previewRef, showToast }: GoalCardPro
               { id: 'target board', label: 'Target Board' },
               { id: 'countdown card', label: 'Countdown Card' },
               { id: 'minimal goal', label: 'Minimal Goal' }
-            ].map(t => (
+           ,
+              { id: 'carbon grid', label: 'Carbon Grid' },
+              { id: 'race poster pro', label: 'Race Poster Pro' },
+              { id: 'minimal white', label: 'Minimal White' },
+              { id: 'split panel', label: 'Split Panel' },
+              { id: 'neon edge', label: 'Neon Edge' },
+              { id: 'print utility', label: 'Print Utility' },
+              { id: 'compact story', label: 'Compact Story' }
+           ].map(t => (
               <button 
                 key={t.id}
                 onClick={() => setTemplate(t.id)}
@@ -297,7 +306,7 @@ export default function GoalCardGenerator({ previewRef, showToast }: GoalCardPro
                 {t.label}
               </button>
             ))}
-          </div>
+        </div>
         </div>
 
         <div ref={containerRef} className="w-full bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:16px_16px] bg-[#07080a] border border-brand-border rounded-xl p-4 md:p-8 flex items-center justify-center min-h-[600px] overflow-hidden relative">
@@ -342,7 +351,7 @@ export default function GoalCardGenerator({ previewRef, showToast }: GoalCardPro
                       </div>
                    </div>
 
-                   <div className="mt-auto">
+                   <div className="mt-auto flex flex-col pt-4">
                      <div className="mb-4">
                        <span className="text-[9px] uppercase tracking-widest text-gray-600 block mb-1">Primary Focus</span>
                        <span className="text-sm font-bold uppercase">{formData.mainFocus || '-'}</span>
@@ -353,7 +362,6 @@ export default function GoalCardGenerator({ previewRef, showToast }: GoalCardPro
                        </div>
                      )}
                    </div>
-                   
                  </>
                )}
 
@@ -398,47 +406,52 @@ export default function GoalCardGenerator({ previewRef, showToast }: GoalCardPro
                )}
 
                {template === 'minimal goal' && (
-                 <div className="h-full flex flex-col py-2">
-                   <div className="flex justify-between items-baseline mb-8">
-                     <h1 className="text-2xl font-black uppercase tracking-widest border-b-2 border-black pb-2">{formData.title || 'GOAL'}</h1>
-                     <span className="text-[10px] font-mono tracking-widest uppercase text-gray-500">{formData.targetDate}</span>
-                   </div>
-
-                   <div className="flex-1 flex flex-col justify-center gap-6">
-                      <div>
-                        <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Target Event</div>
-                        <div className="text-xl font-bold text-black">{formData.targetEvent || '-'}</div>
-                      </div>
-
-                      <div className="flex gap-12">
-                        <div>
-                          <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Target Time</div>
-                          <div className="text-3xl font-black tracking-tighter text-black">{formData.targetTime || '-'}</div>
-                        </div>
-                        {formData.currentBest && (
-                          <div>
-                            <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Current Best</div>
-                            <div className="text-xl font-semibold text-gray-600 mt-2">{formData.currentBest}</div>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div>
-                        <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Focus & Status</div>
-                        <div className="text-sm font-medium mb-1">{formData.mainFocus || '-'}</div>
-                        <div className="inline-block px-2 py-0.5 bg-gray-100 text-[10px] uppercase tracking-widest font-bold mt-1 text-gray-600">{formData.status}</div>
-                      </div>
-                   </div>
-
-                   {formData.motivation && (
-                     <div className="mt-6 pt-6 border-t border-gray-200">
-                       <p className="text-sm font-serif italic text-gray-700">&quot;{formData.motivation}&quot;</p>
+                 <>
+                   <div className="h-full flex flex-col py-2">
+                     <div className="flex justify-between items-baseline mb-8">
+                       <h1 className="text-2xl font-black uppercase tracking-widest border-b-2 border-black pb-2">{formData.title || 'GOAL'}</h1>
+                       <span className="text-[10px] font-mono tracking-widest uppercase text-gray-500">{formData.targetDate}</span>
                      </div>
-                   )}
+
+                     <div className="flex-1 flex flex-col justify-center gap-6">
+                        <div>
+                          <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Target Event</div>
+                          <div className="text-xl font-bold text-black">{formData.targetEvent || '-'}</div>
+                        </div>
+
+                        <div className="flex gap-12">
+                          <div>
+                            <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Target Time</div>
+                            <div className="text-3xl font-black tracking-tighter text-black">{formData.targetTime || '-'}</div>
+                          </div>
+                          {formData.currentBest && (
+                            <div>
+                              <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Current Best</div>
+                              <div className="text-xl font-semibold text-gray-600 mt-2">{formData.currentBest}</div>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div>
+                          <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Focus & Status</div>
+                          <div className="text-sm font-medium mb-1">{formData.mainFocus || '-'}</div>
+                          <div className="inline-block px-2 py-0.5 bg-gray-100 text-[10px] uppercase tracking-widest font-bold mt-1 text-gray-600">{formData.status}</div>
+                        </div>
+                     </div>
+
+                     {formData.motivation && (
+                       <div className="mt-6 pt-6 border-t border-gray-200">
+                         <p className="text-sm font-serif italic text-gray-700">&quot;{formData.motivation}&quot;</p>
+                       </div>
+                     )}
+                   </div>
                    <div className="absolute bottom-4 right-10 text-[8px] font-mono tracking-widest text-gray-300 uppercase">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'RunCard Studio'}</div>
-                 </div>
+                 </>
                )}
 
+           {['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
+             <SharedTemplates template={template} formData={formData} componentName="GoalCardGenerator"  />
+           )}
             </div>
           </div>
         </div>

@@ -1,3 +1,4 @@
+import SharedTemplates from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
 import { Copy, Save } from "lucide-react";
 
@@ -307,7 +308,15 @@ export default function ChallengeCardGenerator({ previewRef, showToast }: Challe
               { id: 'community challenge', label: 'Community Challenge' },
               { id: 'solo mission', label: 'Solo Mission' },
               { id: 'dark challenge', label: 'Dark Challenge' }
-            ].map(t => (
+           ,
+              { id: 'carbon grid', label: 'Carbon Grid' },
+              { id: 'race poster pro', label: 'Race Poster Pro' },
+              { id: 'minimal white', label: 'Minimal White' },
+              { id: 'split panel', label: 'Split Panel' },
+              { id: 'neon edge', label: 'Neon Edge' },
+              { id: 'print utility', label: 'Print Utility' },
+              { id: 'compact story', label: 'Compact Story' }
+           ].map(t => (
               <button 
                 key={t.id}
                 onClick={() => setTemplate(t.id)}
@@ -317,7 +326,7 @@ export default function ChallengeCardGenerator({ previewRef, showToast }: Challe
                 {t.label}
               </button>
             ))}
-          </div>
+        </div>
         </div>
 
         <div ref={containerRef} className="w-full bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:16px_16px] bg-[#07080a] border border-brand-border rounded-xl p-4 md:p-8 flex items-center justify-center min-h-[600px] overflow-hidden relative">
@@ -379,9 +388,9 @@ export default function ChallengeCardGenerator({ previewRef, showToast }: Challe
                      <div className="mt-4 pt-4 border-t border-gray-200 text-center">
                        <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Reward</div>
                        <div className="text-sm font-black uppercase text-[#1a56db]">{formData.reward}</div>
-                     </div>
-                   )}
-                 </>
+</div>
+)}
+</>
                )}
 
                {template === 'solo mission' && (
@@ -461,12 +470,15 @@ export default function ChallengeCardGenerator({ previewRef, showToast }: Challe
                    {formData.reward && (
                      <div className="mt-auto border border-[#22252a] bg-[#121316] p-3 text-center rounded">
                        <span className="text-[10px] text-gray-500 uppercase tracking-widest">Reward</span>
-                       <div className="font-bold text-[#secondary-lime] text-sm uppercase">{formData.reward}</div>
-                     </div>
+                       <div className="font-bold text-secondary-lime text-sm uppercase">{formData.reward}</div>
+                      </div>
                    )}
                  </>
                )}
 
+           {['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
+             <SharedTemplates template={template} formData={formData} componentName="ChallengeCardGenerator"  />
+           )}
             </div>
           </div>
         </div>

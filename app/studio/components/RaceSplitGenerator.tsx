@@ -1,3 +1,4 @@
+import SharedTemplates from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
 import { Copy, Save, AlertCircle } from "lucide-react";
 
@@ -320,10 +321,9 @@ export default function RaceSplitGenerator({ previewRef, showToast }: RaceSplitP
                 className={`w-full bg-surface-lowest border p-2 rounded text-sm text-text-primary outline-none transition-colors border-brand-border focus:border-secondary-lime`}
                 placeholder="e.g. 15.0"
               />
-            </div>
-          )}
-
-          <div>
+                        </div>
+              )}
+<div>
              <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-1">Target Finish Time (HH:MM:SS)</label>
              <div className="flex items-center gap-2">
                <input 
@@ -353,11 +353,7 @@ export default function RaceSplitGenerator({ previewRef, showToast }: RaceSplitP
                  placeholder="00"
                />
              </div>
-             {isTimeInvalid && (
-               <p className="text-primary-coral text-[10px] font-mono mt-1 flex items-center gap-1">
-                 <AlertCircle className="w-3 h-3" /> Valid HH:MM:SS format required
-               </p>
-             )}
+             {isTimeInvalid && ( <p className="text-primary-coral text-[10px] font-mono mt-1 flex items-center gap-1"> <AlertCircle className="w-3 h-3" /> Valid HH:MM:SS format required </p> )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -402,7 +398,15 @@ export default function RaceSplitGenerator({ previewRef, showToast }: RaceSplitP
               { id: 'table', label: 'Performance Table' },
               { id: 'plan', label: 'Race Plan' },
               { id: 'carbon', label: 'Dark Carbon' }
-            ].map(t => (
+           ,
+              { id: 'carbon grid', label: 'Carbon Grid' },
+              { id: 'race poster pro', label: 'Race Poster Pro' },
+              { id: 'minimal white', label: 'Minimal White' },
+              { id: 'split panel', label: 'Split Panel' },
+              { id: 'neon edge', label: 'Neon Edge' },
+              { id: 'print utility', label: 'Print Utility' },
+              { id: 'compact story', label: 'Compact Story' }
+           ].map(t => (
               <button 
                 key={t.id}
                 onClick={() => setTemplate(t.id)}
@@ -412,7 +416,7 @@ export default function RaceSplitGenerator({ previewRef, showToast }: RaceSplitP
                 {t.label}
               </button>
             ))}
-          </div>
+        </div>
         </div>
 
         {/* Scalable Container for preview */}
@@ -480,13 +484,11 @@ export default function RaceSplitGenerator({ previewRef, showToast }: RaceSplitP
                             <div className={`text-center font-bold
                               ${template === 'plan' ? 'text-black' : (isFaster ? 'text-secondary-lime' : isSlower ? 'text-primary-coral font-black' : 'text-text-primary')}
                             `}>
-                              {formatPace(split.splitPace)}
-                            </div>
+                              {formatPace(split.splitPace)}</div>
                             <div className={`text-right font-black ${template === 'plan' ? 'text-[#18181b]' : (i === splits.length - 1 ? 'text-secondary-lime font-black' : 'text-text-primary')}`}>
-                              {formatTime(split.cumTime)}
-                            </div>
+                              {formatTime(split.cumTime)}</div>
                           </div>
-                        )
+                        );
                       })}
                     </div>
                   )}
@@ -505,6 +507,9 @@ export default function RaceSplitGenerator({ previewRef, showToast }: RaceSplitP
                     <div className="h-full bg-[#00f0ff] flex-1"></div>
                  </div>
                )}
+           {['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
+             <SharedTemplates template={template} formData={formData} componentName="RaceSplitGenerator"  />
+           )}
             </div>
           </div>
         </div>

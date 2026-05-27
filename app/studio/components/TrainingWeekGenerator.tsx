@@ -1,3 +1,4 @@
+import SharedTemplates from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
 import { Copy, Save } from "lucide-react";
 
@@ -317,7 +318,15 @@ export default function TrainingWeekGenerator({ previewRef, showToast }: Trainin
               { id: 'weekly board', label: 'Weekly Board' },
               { id: 'training log', label: 'Training Log' },
               { id: 'dark carbon', label: 'Dark Carbon Summary' }
-            ].map(t => (
+           ,
+              { id: 'carbon grid', label: 'Carbon Grid' },
+              { id: 'race poster pro', label: 'Race Poster Pro' },
+              { id: 'minimal white', label: 'Minimal White' },
+              { id: 'split panel', label: 'Split Panel' },
+              { id: 'neon edge', label: 'Neon Edge' },
+              { id: 'print utility', label: 'Print Utility' },
+              { id: 'compact story', label: 'Compact Story' }
+           ].map(t => (
               <button 
                 key={t.id}
                 onClick={() => setTemplate(t.id)}
@@ -327,7 +336,7 @@ export default function TrainingWeekGenerator({ previewRef, showToast }: Trainin
                 {t.label}
               </button>
             ))}
-          </div>
+        </div>
         </div>
 
         <div ref={containerRef} className="w-full bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:16px_16px] bg-[#07080a] border border-brand-border rounded-xl p-4 md:p-8 flex items-center justify-center min-h-[600px] overflow-hidden relative">
@@ -386,17 +395,14 @@ export default function TrainingWeekGenerator({ previewRef, showToast }: Trainin
                      {formData.strength && (
                        <div className="bg-gray-100 p-3 rounded-sm border-l-4 border-gray-400">
                          <span className="block text-[10px] font-bold uppercase opacity-50 mb-1">Strength / Other</span>
-                         <span className="font-bold text-gray-700">{formData.strength}</span>
-                       </div>
-                     )}
-                   </div>
+                         <span className="font-bold text-gray-700">{formData.strength}</span></div>)}</div>
 
                    {formData.note && (
                      <div className="italic text-sm text-gray-600 border-t border-gray-300 pt-4 mt-auto">
                         &quot;{formData.note}&quot;
-                     </div>
-                   )}
-                   <div className="mt-4 text-left text-[9px] font-black tracking-widest text-gray-400 uppercase border-t-2 border-black pt-2">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'RunCard Studio'}</div>
+                                 </div>
+              )}
+<div className="mt-4 text-left text-[9px] font-black tracking-widest text-gray-400 uppercase border-t-2 border-black pt-2">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'RunCard Studio'}</div>
                  </>
                )}
 
@@ -443,9 +449,9 @@ export default function TrainingWeekGenerator({ previewRef, showToast }: Trainin
                    {formData.note && (
                      <div className="bg-[#111113] p-4 text-sm text-gray-300 border-l border-gray-500 italic mt-auto">
                         &quot;{formData.note}&quot;
-                     </div>
-                   )}
-                   <div className="mt-6 text-center text-[9px] uppercase tracking-[0.2em] text-[#3f3f46]">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'RunCard Studio'}</div>
+                                 </div>
+              )}
+<div className="mt-6 text-center text-[9px] uppercase tracking-[0.2em] text-[#3f3f46]">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'RunCard Studio'}</div>
                  </>
                )}
 
@@ -490,18 +496,18 @@ export default function TrainingWeekGenerator({ previewRef, showToast }: Trainin
                      {formData.note && (
                        <div className="flex-1 border-l border-[#22252a] pl-4 text-xs italic text-gray-400 font-serif overflow-hidden">
                          &quot;{formData.note}&quot;
-                       </div>
-                     )}
-                   </div>
+                                   </div>
+)}
                    
                    <div className="absolute top-8 right-8 text-[8px] font-mono tracking-widest text-[#22252a] uppercase">RunCard</div>
-                 </>
-               )}
-
+                 </>               )}
+           {['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
+             <SharedTemplates template={template} formData={formData} componentName="TrainingWeekGenerator"  />
+           )}
             </div>
           </div>
         </div>
       </div>
     </div>
   );
-}
+} 

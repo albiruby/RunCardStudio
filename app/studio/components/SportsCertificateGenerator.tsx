@@ -1,3 +1,4 @@
+import SharedTemplates from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
 import { Copy, Save } from "lucide-react";
 
@@ -281,7 +282,15 @@ export default function SportsCertificateGenerator({ previewRef, showToast }: Sp
               { id: 'classic', label: 'Certificate Classic' },
               { id: 'survival', label: 'Survival Certificate' },
               { id: 'minimal award', label: 'Minimal Award' }
-            ].map(t => (
+           ,
+              { id: 'carbon grid', label: 'Carbon Grid' },
+              { id: 'race poster pro', label: 'Race Poster Pro' },
+              { id: 'minimal white', label: 'Minimal White' },
+              { id: 'split panel', label: 'Split Panel' },
+              { id: 'neon edge', label: 'Neon Edge' },
+              { id: 'print utility', label: 'Print Utility' },
+              { id: 'compact story', label: 'Compact Story' }
+           ].map(t => (
               <button 
                 key={t.id}
                 onClick={() => setTemplate(t.id)}
@@ -291,7 +300,7 @@ export default function SportsCertificateGenerator({ previewRef, showToast }: Sp
                 {t.label}
               </button>
             ))}
-          </div>
+        </div>
         </div>
 
         {/* Scalable Container for preview */}
@@ -340,8 +349,7 @@ export default function SportsCertificateGenerator({ previewRef, showToast }: Sp
                     </div>
                  </div>
                )}
-
-               {template === 'survival' && (
+{template === 'survival' && (
                  <div className="w-full h-full flex flex-col flex-1 relative border border-[#22252a] p-8 pt-6">
                     <div className="absolute top-0 right-0 bg-[#ff2020] text-black font-black text-xs px-2 py-1 uppercase tracking-widest">Official Record</div>
                     
@@ -357,9 +365,7 @@ export default function SportsCertificateGenerator({ previewRef, showToast }: Sp
                       </div>
                       
                       {formData.detailText && (
-                        <p className="text-xs uppercase text-gray-400 opacity-80 leading-relaxed max-w-[80%]">&quot;{formData.detailText}&quot;</p>
-                      )}
-                    </div>
+                        <p className="text-xs uppercase text-gray-400 opacity-80 leading-relaxed max-w-[80%]">&quot;{formData.detailText}&quot;</p>)}</div>
 
                     <div className="mt-auto grid grid-cols-2 gap-8 text-xs uppercase pt-6 border-t border-[#22252a] items-end">
                        <div>
@@ -372,9 +378,8 @@ export default function SportsCertificateGenerator({ previewRef, showToast }: Sp
                        </div>
                     </div>
                  </div>
-               )}
-
-               {template === 'minimal award' && (
+)}
+{template === 'minimal award' && (
                  <div className="w-full h-full flex flex-col flex-1 relative justify-center text-center">
                     
                     <div className="w-12 h-12 border-2 border-black rounded-full mx-auto mb-8 flex items-center justify-center">
@@ -393,9 +398,11 @@ export default function SportsCertificateGenerator({ previewRef, showToast }: Sp
                       <div className="text-[10px] font-mono uppercase tracking-[0.2em] opacity-30">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'RunCard Studio'}</div>
                       <div className="text-[10px] font-mono uppercase tracking-widest font-bold opacity-70">{formData.signatureTitle}</div>
                     </div>
-                 </div>
-               )}
-
+                </div>
+)}
+           {['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
+             <SharedTemplates template={template} formData={formData} componentName="SportsCertificateGenerator"  />
+           )}
             </div>
           </div>
         </div>

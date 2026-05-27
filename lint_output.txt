@@ -1,0 +1,121 @@
+
+> ai-studio-applet@0.1.0 lint
+> eslint .
+
+
+/app/applet/app/drafts/page.tsx
+  13:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/app/applet/app/drafts/page.tsx:13:5
+  11 |
+  12 |   useEffect(() => {
+> 13 |     setDrafts(getDrafts());
+     |     ^^^^^^^^^ Avoid calling setState() directly within an effect
+  14 |   }, []);
+  15 |
+  16 |   const handleOpen = (draft: LocalDraft) => {  react-hooks/set-state-in-effect
+
+/app/applet/app/studio/components/ChallengeCardGenerator.tsx
+  171:37  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/app/applet/app/studio/components/ChallengeCardGenerator.tsx:171:37
+  169 |              const draft = JSON.parse(loadStr);
+  170 |              if (draft && draft.cardType === "challenge-card") {
+> 171 |                 if (draft.formData) setFormData(draft.formData);
+      |                                     ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  172 |                 if (draft.template && typeof setTemplate === "function") setTemplate(draft.template);
+  173 |                 // Template is loaded if the form has a template state.
+  174 |                 // We'll just check if setTemplate exists in this code  react-hooks/set-state-in-effect
+
+/app/applet/app/studio/components/ClientRender.tsx
+  6:19  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/app/applet/app/studio/components/ClientRender.tsx:6:19
+  4 | export default function ClientRender({ children, fallback = null }: { children: ReactNode, fallback?: ReactNode }) {
+  5 |   const [mounted, setMounted] = useState(false);
+> 6 |   useEffect(() => setMounted(true), []);
+    |                   ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  7 |   return mounted ? <>{children}</> : <>{fallback}</>;
+  8 | }
+  9 |  react-hooks/set-state-in-effect
+
+/app/applet/app/studio/components/DamageReportGenerator.tsx
+  430:17  error  Parsing error: JSX expressions must have one parent element
+
+/app/applet/app/studio/components/FuelingPlanGenerator.tsx
+  378:14  error  Parsing error: ')' expected
+
+/app/applet/app/studio/components/GoalCardGenerator.tsx
+  363:14  error  Parsing error: ')' expected
+
+/app/applet/app/studio/components/PaceBandGenerator.tsx
+  387:13  error  Parsing error: ')' expected
+
+/app/applet/app/studio/components/PersonalBestGenerator.tsx
+  410:14  error  Parsing error: ')' expected
+
+/app/applet/app/studio/components/RaceBibGenerator.tsx
+  298:27  error  Parsing error: ',' expected
+
+/app/applet/app/studio/components/RaceChecklistGenerator.tsx
+  295:14  error  Parsing error: ')' expected
+
+/app/applet/app/studio/components/RaceRecapGenerator.tsx
+  259:15  error  Parsing error: ')' expected
+
+/app/applet/app/studio/components/RaceSplitGenerator.tsx
+  360:13  error  Parsing error: ')' expected
+
+/app/applet/app/studio/components/RoutePosterGenerator.tsx
+  240:37  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/app/applet/app/studio/components/RoutePosterGenerator.tsx:240:37
+  238 |              const draft = JSON.parse(loadStr);
+  239 |              if (draft && draft.cardType === "route-poster") {
+> 240 |                 if (draft.formData) setFormData(draft.formData);
+      |                                     ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  241 |                 if (draft.template && typeof setTemplate === "function") setTemplate(draft.template);
+  242 |              }
+  243 |           }  react-hooks/set-state-in-effect
+
+/app/applet/app/studio/components/RunReceiptGenerator.tsx
+  270:15  error  Parsing error: ')' expected
+
+/app/applet/app/studio/components/ShoeRotationGenerator.tsx
+  373:14  error  Parsing error: ')' expected
+
+/app/applet/app/studio/components/SportsCertificateGenerator.tsx
+  369:22  error  Parsing error: ')' expected
+
+/app/applet/app/studio/components/TrainingWeekGenerator.tsx
+  400:14  error  Parsing error: ')' expected
+
+/app/applet/app/studio/components/WorkoutCardGenerator.tsx
+  388:0  error  Parsing error: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+
+✖ 18 problems (18 errors, 0 warnings)
+

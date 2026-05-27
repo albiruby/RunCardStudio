@@ -1,3 +1,4 @@
+import SharedTemplates from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
 import { Copy, Save, AlertCircle } from "lucide-react";
 
@@ -285,7 +286,15 @@ export default function WorkoutCardGenerator({ previewRef, showToast }: WorkoutC
               { id: 'coach', label: 'Coach Board' },
               { id: 'track', label: 'Track Session' },
               { id: 'minimal', label: 'Minimal Program' }
-            ].map(t => (
+           ,
+              { id: 'carbon grid', label: 'Carbon Grid' },
+              { id: 'race poster pro', label: 'Race Poster Pro' },
+              { id: 'minimal white', label: 'Minimal White' },
+              { id: 'split panel', label: 'Split Panel' },
+              { id: 'neon edge', label: 'Neon Edge' },
+              { id: 'print utility', label: 'Print Utility' },
+              { id: 'compact story', label: 'Compact Story' }
+           ].map(t => (
               <button 
                 key={t.id}
                 onClick={() => setTemplate(t.id)}
@@ -295,7 +304,7 @@ export default function WorkoutCardGenerator({ previewRef, showToast }: WorkoutC
                 {t.label}
               </button>
             ))}
-          </div>
+        </div>
         </div>
 
         {/* Scalable Container for preview */}
@@ -364,14 +373,16 @@ export default function WorkoutCardGenerator({ previewRef, showToast }: WorkoutC
                {(formData.notes.trim() || "Postural focus, bicycle stride on final intervals.") && (
                  <div className="mb-6 text-xs leading-relaxed border-t border-brand-border pt-4">
                    <p className="uppercase font-mono text-[9px] opacity-60 tracking-widest mb-1">Special Notes & Stratems</p>
-                   <p className="italic text-text-primary text-[11px]">{formData.notes.trim() || 'Postural focus, bicycle stride on final intervals.'}</p>
-                 </div>
-               )}
+                   <p className="italic text-text-primary text-[11px]">{formData.notes.trim() || 'Postural focus, bicycle stride on final intervals.'}</p></div>)}
+</div>
+<div className="text-center font-mono text-[9px] tracking-[0.25em] uppercase mt-auto opacity-40 pt-4 border-t border-dashed border-brand-border">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'made with RunCard Studio'}
 
-               <div className="text-center font-mono text-[9px] tracking-[0.25em] uppercase mt-auto opacity-40 pt-4 border-t border-dashed border-brand-border">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'made with RunCard Studio'}</div>
-            </div>
-          </div>
-        </div>
+</div>
+           {['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
+             <SharedTemplates template={template} formData={formData} componentName="WorkoutCardGenerator"  />
+           )}
+       </div>
+     </div>
       </div>
     </div>
   );

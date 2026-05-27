@@ -1,3 +1,4 @@
+import SharedTemplates from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
 import { Copy, Save } from "lucide-react";
 
@@ -304,7 +305,15 @@ export default function ShoeRotationGenerator({ previewRef, showToast }: ShoeRot
               { id: 'rotation board', label: 'Shoe Log' },
               { id: 'shoe log', label: 'Rotation Board' },
               { id: 'minimal gear', label: 'Minimal Gear' }
-            ].map(t => (
+           ,
+              { id: 'carbon grid', label: 'Carbon Grid' },
+              { id: 'race poster pro', label: 'Race Poster Pro' },
+              { id: 'minimal white', label: 'Minimal White' },
+              { id: 'split panel', label: 'Split Panel' },
+              { id: 'neon edge', label: 'Neon Edge' },
+              { id: 'print utility', label: 'Print Utility' },
+              { id: 'compact story', label: 'Compact Story' }
+           ].map(t => (
               <button 
                 key={t.id}
                 onClick={() => setTemplate(t.id)}
@@ -314,7 +323,7 @@ export default function ShoeRotationGenerator({ previewRef, showToast }: ShoeRot
                 {t.label}
               </button>
             ))}
-          </div>
+        </div>
         </div>
 
         <div ref={containerRef} className="w-full bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:16px_16px] bg-[#07080a] border border-brand-border rounded-xl p-4 md:p-8 flex items-center justify-center min-h-[600px] overflow-hidden relative">
@@ -358,11 +367,8 @@ export default function ShoeRotationGenerator({ previewRef, showToast }: ShoeRot
                            <span>{usagePercent} (Max: {formData.maxDistance})</span>
                          </div>
                          <div className="w-full h-1.5 bg-[#22252a] rounded-full overflow-hidden">
-                           <div className="h-full bg-secondary-lime" style={{ width: usagePercent === '—' ? '0%' : usagePercent }}></div>
-                         </div>
-                       </div>
-                     )}
-                   </div>
+                           <div className="h-full bg-secondary-lime" style={{ width: usagePercent === '—' ? '0%' : usagePercent }}></div></div></div>)}
+</div>
 
                    <div className="grid grid-cols-2 gap-4 mb-6 flex-1">
                       <div>
@@ -378,10 +384,9 @@ export default function ShoeRotationGenerator({ previewRef, showToast }: ShoeRot
                    {formData.lastNote && (
                      <div className="mb-6 pt-4 border-t border-[#22252a] text-xs italic text-gray-400 font-serif">
                        &quot;{formData.lastNote}&quot;
-                     </div>
-                   )}
-
-                   <div className="mt-auto text-[8px] font-mono tracking-widest text-[#22252a] uppercase text-right">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'RunCard Studio'}</div>
+                                 </div>
+              )}
+<div className="mt-auto text-[8px] font-mono tracking-widest text-[#22252a] uppercase text-right">{typeof window !== 'undefined' && window.localStorage.getItem('runcard-watermark') === 'off' ? '' : 'RunCard Studio'}</div>
                  </>
                )}
 
@@ -422,10 +427,9 @@ export default function ShoeRotationGenerator({ previewRef, showToast }: ShoeRot
                    {formData.lastNote && (
                      <div className="mt-auto p-3 bg-[#111113] border-l-2 border-primary-coral text-xs text-gray-400">
                        {formData.lastNote}
-                     </div>
-                   )}
-
-                   <div className="mt-6 text-center text-[9px] uppercase tracking-[0.2em] opacity-30">RunCard System</div>
+                                 </div>
+              )}
+<div className="mt-6 text-center text-[9px] uppercase tracking-[0.2em] opacity-30">RunCard System</div>
                  </>
                )}
 
@@ -466,13 +470,14 @@ export default function ShoeRotationGenerator({ previewRef, showToast }: ShoeRot
                    <div className="mt-auto text-center">
                      <span className="text-[9px] uppercase tracking-[0.2em] font-bold opacity-30">RunCard Gear</span>
                    </div>
-                 </>
-               )}
-
+           {['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
+             <SharedTemplates template={template} formData={formData} componentName="ShoeRotationGenerator"  />
+           )}
+                 </>               )}
             </div>
           </div>
         </div>
       </div>
     </div>
   );
-}
+} 

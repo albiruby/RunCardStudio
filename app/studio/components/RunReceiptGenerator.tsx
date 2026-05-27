@@ -1,3 +1,4 @@
+import SharedTemplates from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
 import { Copy, Save, AlertCircle } from "lucide-react";
 
@@ -265,8 +266,8 @@ export default function RunReceiptGenerator({ previewRef, showToast }: RunReceip
                {isDistanceInvalid && (
                  <p className="text-primary-coral text-[10px] font-mono mt-1 flex items-center gap-1">
                    <AlertCircle className="w-3 h-3" /> Positive number
-                 </p>
-               )}
+ </p>
+ )}
              </div>
              <div>
                <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-1">Duration</label>
@@ -277,12 +278,7 @@ export default function RunReceiptGenerator({ previewRef, showToast }: RunReceip
                  className={`w-full bg-surface-lowest border p-2 rounded text-sm text-text-primary focus:border-secondary-lime outline-none transition-colors ${isDurationInvalid ? 'border-primary-coral focus:border-primary-coral font-mono' : 'border-brand-border focus:border-secondary-lime font-mono'}`}
                  placeholder="00:48:30"
                />
-               {isDurationInvalid && (
-                 <p className="text-primary-coral text-[10px] font-mono mt-1 flex items-center gap-1">
-                   <AlertCircle className="w-3 h-3" /> MM:SS or HH:MM:SS
-                 </p>
-               )}
-             </div>
+               {isDurationInvalid && ( <p className="text-primary-coral text-[10px] font-mono mt-1 flex items-center gap-1"> <AlertCircle className="w-3 h-3" /> MM:SS or HH:MM:SS </p> )}
           </div>
 
           <div>
@@ -391,7 +387,15 @@ export default function RunReceiptGenerator({ previewRef, showToast }: RunReceip
               { id: 'carbon', label: 'Thermal Receipt' },
               { id: 'thermal', label: 'Neon Sport' },
               { id: 'neon', label: 'Dark Carbon Receipt' }
-            ].map(t => (
+           ,
+              { id: 'carbon grid', label: 'Carbon Grid' },
+              { id: 'race poster pro', label: 'Race Poster Pro' },
+              { id: 'minimal white', label: 'Minimal White' },
+              { id: 'split panel', label: 'Split Panel' },
+              { id: 'neon edge', label: 'Neon Edge' },
+              { id: 'print utility', label: 'Print Utility' },
+              { id: 'compact story', label: 'Compact Story' }
+           ].map(t => (
               <button 
                 key={t.id}
                 onClick={() => setTemplate(t.id)}
@@ -401,7 +405,7 @@ export default function RunReceiptGenerator({ previewRef, showToast }: RunReceip
                 {t.label}
               </button>
             ))}
-          </div>
+        </div>
         </div>
 
         {/* Scalable Container for preview */}
@@ -504,12 +508,15 @@ export default function RunReceiptGenerator({ previewRef, showToast }: RunReceip
               
               {/* Thermal bottom edge effect */}
               {template === 'thermal' && (
-                <div className="absolute -bottom-2 left-0 right-0 h-4 bg-[#f4f4f5]" style={{ clipPath: 'polygon(0 0, 5% 100%, 10% 0, 15% 100%, 20% 0, 25% 100%, 30% 0, 35% 100%, 40% 0, 45% 100%, 50% 0, 55% 100%, 60% 0, 65% 100%, 70% 0, 75% 100%, 80% 0, 85% 100%, 90% 0, 95% 100%, 100% 0)' }}></div>
+                <div className="absolute -bottom-2 left-0 right-0 h-4 bg-[#f4f4f5]" style={{ clipPath: 'polygon(0 0, 5% 100%, 10% 0, 15% 100%, 20% 0, 25% 100%, 30% 0, 35% 100%, 40% 0, 45% 100%, 50% 0, 55% 100%, 60% 0, 65% 100%, 70% 0, 75% 100%, 80% 0, 85% 100%, 90% 0, 95% 100%, 100% 0)' }}>
+</div>
               )}
+           {['carbon grid', 'race poster pro', 'minimal white', 'split panel', 'neon edge', 'print utility', 'compact story'].includes(template) && (
+             <SharedTemplates template={template} formData={formData} componentName="RunReceiptGenerator"  />
+           )}
             </div>
           </div>
         </div>
       </div>
-    </div>
   );
 }
