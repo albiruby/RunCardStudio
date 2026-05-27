@@ -360,7 +360,7 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
       </div>
 
       {/* RIGHT: PREVIEW (8 cols) */}
-      <div className="lg:col-span-8 flex flex-col gap-0 pb-20">
+      <div className="lg:col-span-8 flex flex-col gap-6 lg:sticky lg:top-[128px] lg:self-start mb-24 lg:mb-0">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full mb-4">
           <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary shrink-0">Live Preview</h2>
           <TemplateSelector 

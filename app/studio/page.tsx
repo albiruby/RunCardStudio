@@ -431,8 +431,8 @@ function StudioContent() {
       )}
 
       {/* Main Studio Area */}
-      <ClientRender fallback={<div className="p-8 text-center text-text-muted uppercase font-mono max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8 h-[60vh] flex items-center justify-center">Loading Generator...</div>}>
-        <div className="max-w-[1280px] mx-auto w-full px-4 md:px-8 py-8">
+      <ClientRender fallback={<div className="p-8 text-center text-text-muted uppercase font-mono max-w-[1600px] xl:max-w-none mx-auto w-full px-4 md:px-8 xl:px-12 py-6 lg:py-8 min-h-[50vh] flex items-center justify-center">Loading Generator...</div>}>
+        <div className="max-w-[1600px] xl:max-w-none mx-auto w-full px-4 md:px-8 xl:px-12 py-6 lg:py-8 min-h-[calc(100vh-136px)]">
           {!isImplemented && <ComingSoonPlaceholder activeTab={activeTab} />}
           {isImplemented && activeTab === "run-receipt" && <RunReceiptGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}
           {isImplemented && activeTab === "race-recap" && <RaceRecapGenerator key={resetKey} previewRef={previewRef} showToast={showToast} />}

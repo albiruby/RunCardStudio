@@ -400,7 +400,7 @@ export default function RaceSplitGenerator({ previewRef, showToast }: RaceSplitP
       </div>
 
       {/* RIGHT: PREVIEW (8 cols) */}
-      <div className="lg:col-span-8 flex flex-col gap-6 pb-20 animate-fade-in">
+      <div className="lg:col-span-8 flex flex-col gap-6 lg:sticky lg:top-[128px] lg:self-start mb-24 lg:mb-0 animate-fade-in">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
           <h2 className="text-xl font-bold uppercase tracking-tight text-[#f2f4f7] shrink-0">Live Preview</h2>
           <TemplateSelector 
