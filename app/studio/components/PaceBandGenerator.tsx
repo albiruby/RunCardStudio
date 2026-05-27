@@ -361,27 +361,29 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
 
       {/* RIGHT: PREVIEW (8 cols) */}
       <div className="lg:col-span-8 flex flex-col gap-6 lg:sticky lg:top-[128px] lg:self-start mb-24 lg:mb-0">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full mb-4">
-          <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary shrink-0">Live Preview</h2>
-          <TemplateSelector 
-            activeTemplate={template}
-            onSelectTemplate={setTemplate}
-            localTemplates={[
-  {
-    "id": "wristband",
-    "label": "Wristband"
-  },
-  {
-    "id": "phone lockscreen",
-    "label": "Phone Lockscreen"
-  },
-  {
-    "id": "printable a4",
-    "label": "Printable A4"
-  }
-]}
-          />
+        <div className="flex flex-col gap-1 w-full">
+          <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">Live Preview</h2>
+          <p className="text-xs text-text-muted">Adjust template, accent, and export ratios below.</p>
         </div>
+
+        <TemplateSelector 
+          activeTemplate={template}
+          onSelectTemplate={setTemplate}
+          localTemplates={[
+            {
+              "id": "wristband",
+              "label": "Wristband"
+            },
+            {
+              "id": "phone lockscreen",
+              "label": "Phone Lockscreen"
+            },
+            {
+              "id": "printable a4",
+              "label": "Printable A4"
+            }
+          ]}
+        />
 
         {/* Scalable Container for preview */}
         <div ref={containerRef} className="w-full bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:16px_16px] bg-[#07080a] border border-brand-border rounded-xl p-4 md:p-8 flex items-center justify-center min-h-[600px] overflow-hidden relative">
