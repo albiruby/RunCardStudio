@@ -1,9 +1,8 @@
-import StudioPageShell from './StudioPageShell';
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useState, MutableRefObject, useRef, useEffect } from "react";
-import TemplateSelector from './TemplateSelector';
+import TemplateSelector, { useTemplateAccent, ACCENTS } from './TemplateSelector';
 import SharedTemplates, { useExportSize, getExportSizeClasses } from './SharedTemplates';
-import { Copy, Save, Upload } from "lucide-react";
+import { Copy, Save, Upload, Eye, Map } from "lucide-react";
 
 interface RoutePosterGeneratorProps {
   previewRef: MutableRefObject<HTMLDivElement | null>;
@@ -24,6 +23,8 @@ export default function RoutePosterGenerator({ previewRef, showToast }: RoutePos
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
   const exportSize = useExportSize();
+  const activeAccentId = useTemplateAccent();
+  const activeAccent = ACCENTS.find(a => a.id === activeAccentId) || ACCENTS[0];
 
   const [parsedData, setParsedData] = useState<{
     path: string;
@@ -255,11 +256,15 @@ export default function RoutePosterGenerator({ previewRef, showToast }: RoutePos
   }, []);
 
   return (
-    <StudioPageShell
-      inputTitle="POSTER DATA"
-      inputSubtitle="Log details"
-      inputContent={
-        <div className="bg-surface border border-brand-border p-5 rounded-lg flex flex-col gap-4 shadow-xl">
+    <div className="grid grid-cols-1 xl:grid-cols-[minmax(320px,380px)_1fr_minmax(280px,340px)] gap-6 w-full font-sans">
+      {/* COLUMN 1: POSTER DATA */}
+      <div className="flex flex-col gap-4 w-full">
+        <div className="flex items-center gap-2 px-1">
+          <Map className="w-3.5 h-3.5" style={{ color: activeAccent.hex }} />
+          <h2 className="text-[11px] font-bold uppercase tracking-widest text-[#f2f4f7] font-mono">POSTER DATA</h2>
+        </div>
+
+        <div className="bg-surface border border-brand-border p-5 rounded-xl flex flex-col gap-4 shadow-xl">
           <div>
             <label className="block text-[11px] font-mono text-primary-coral font-bold uppercase tracking-wider mb-2">Upload GPX</label>
             <label className="w-full bg-surface-lowest border border-brand-border border-dashed hover:border-primary-action px-3 py-4 rounded text-sm text-text-muted flex flex-col items-center justify-center gap-2 cursor-pointer transition-all min-h-[80px]">
@@ -267,7 +272,7 @@ export default function RoutePosterGenerator({ previewRef, showToast }: RoutePos
               <span className="text-xs uppercase font-bold tracking-wider">Select GPX File</span>
               <input type="file" accept=".gpx" className="hidden" onChange={handleFileUpload} />
             </label>
-            {parsedData && <p className="text-[10px] text-secondary-lime uppercase font-mono mt-2">Route loaded ✓</p>}
+            {parsedData && <p className="text-[10px] uppercase font-mono mt-2" style={{ color: activeAccent.hex }}>Route loaded ✓</p>}
           </div>
 
           <div>
@@ -324,7 +329,7 @@ export default function RoutePosterGenerator({ previewRef, showToast }: RoutePos
                    onChange={e => handleChange("showStartEnd", e.target.checked)}
                    className="sr-only"
                  />
-                 <div className={`block w-8 h-4 rounded-full transition-colors ${formData.showStartEnd ? 'bg-secondary-lime' : 'bg-surface-lowest border border-brand-border'}`}></div>
+                 <div className={`block w-8 h-4 rounded-full transition-colors ${formData.showStartEnd ? '' : 'bg-surface-lowest border border-brand-border'}`} style={formData.showStartEnd ? { backgroundColor: activeAccent.hex } : undefined}></div>
                  <div className={`absolute left-1 top-1 w-2 h-2 rounded-full transition-transform ${formData.showStartEnd ? 'translate-x-4 bg-surface-lowest' : 'bg-brand-border'}`}></div>
                </div>
                <span className="text-xs uppercase font-bold text-text-muted group-hover:text-text-primary transition-colors">Show Start / End Markers</span>
@@ -338,7 +343,7 @@ export default function RoutePosterGenerator({ previewRef, showToast }: RoutePos
                    onChange={e => handleChange("showElevation", e.target.checked)}
                    className="sr-only"
                  />
-                 <div className={`block w-8 h-4 rounded-full transition-colors ${formData.showElevation ? 'bg-secondary-lime' : 'bg-surface-lowest border border-brand-border'}`}></div>
+                 <div className={`block w-8 h-4 rounded-full transition-colors ${formData.showElevation ? '' : 'bg-surface-lowest border border-brand-border'}`} style={formData.showElevation ? { backgroundColor: activeAccent.hex } : undefined}></div>
                  <div className={`absolute left-1 top-1 w-2 h-2 rounded-full transition-transform ${formData.showElevation ? 'translate-x-4 bg-surface-lowest' : 'bg-brand-border'}`}></div>
                </div>
                <span className="text-xs uppercase font-bold text-text-muted group-hover:text-text-primary transition-colors">Show Elevation Stats</span>
@@ -348,23 +353,47 @@ export default function RoutePosterGenerator({ previewRef, showToast }: RoutePos
              )}
           </div>
 
-          <button onClick={() => saveCurrentDraft()} className="w-full mt-2 lg:mt-4 py-2 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-4 h-4 text-primary-action" /> SAVE DRAFT</button>
-          <button onClick={handleCopy} className="w-full py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY ROUTE INFO</button>
+          <button onClick={() => saveCurrentDraft()} className="w-full mt-2 lg:mt-4 py-2.5 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-3.5 h-3.5 text-primary-action" /> SAVE DRAFT</button>
+          <button 
+            onClick={handleCopy} 
+            className="w-full py-2.5 bg-transparent border rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] hover:bg-gray-800"
+            style={{ borderColor: activeAccent.hex, color: activeAccent.hex }}
+          ><Copy className="w-3.5 h-3.5" style={{ color: activeAccent.hex }} /> COPY ROUTE INFO</button>
         </div>
-      }
-      containerRef={containerRef}
-      scale={scale}
-      exportSize={exportSize}
-      previewContent={
-        <div
-          ref={previewRef}
-            className={`${getExportSizeClasses(exportSize, template)}` + `  flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none overflow-hidden
-              ${template === 'minimal line' ? 'bg-[#f4f4f5] border border-[#e4e4e7] text-[#18181b]' : ''}
-              ${template === 'dark route' ? 'bg-[#181a1f] border border-[#22252a] text-[#f2f4f7]' : ''}
-              ${template === 'race route' ? 'bg-[#111316] border-2 border-primary-action text-white' : ''}
-            `}
-            style={{ minHeight: '550px' }}
+      </div>
+
+      {/* COLUMN 2: LIVE PREVIEW */}
+      <div className="flex flex-col gap-4 xl:sticky xl:top-[128px] xl:self-start">
+        <div className="flex flex-col gap-1 px-1">
+          <div className="flex items-center gap-1.5">
+            <Eye className="w-3.5 h-3.5" style={{ color: activeAccent.hex }} />
+            <span className="text-[11px] font-bold uppercase tracking-widest text-[#f2f4f7] font-mono">LIVE PREVIEW</span>
+          </div>
+          <p className="text-[10px] text-text-muted font-mono uppercase tracking-wider">REPRESENTS COMPLETED CANVAS</p>
+        </div>
+
+        {/* Scalable Container for preview */}
+        <div ref={containerRef} className="w-full bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:16px_16px] bg-[#07080a] border border-brand-border rounded-xl p-4 md:p-8 flex items-center justify-center min-h-[500px] xl:min-h-[550px] overflow-hidden relative shadow-inner">
+          <div 
+            style={{ 
+              transform: `scale(${scale})`, 
+              transformOrigin: "center",
+              transition: "transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)" 
+            }}
+            className="shrink-0"
           >
+            <div
+              ref={previewRef}
+              className={`${getExportSizeClasses(exportSize, template)}` + ` flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none overflow-hidden
+                ${template === 'minimal line' ? 'bg-[#f4f4f5] border border-[#e4e4e7] text-[#18181b]' : ''}
+                ${template === 'dark route' ? 'bg-[#181a1f] border border-[#22252a] text-[#f2f4f7]' : ''}
+                ${template === 'race route' ? 'bg-[#111316] border-2 text-white' : ''}
+              `}
+              style={{ 
+                minHeight: '550px',
+                borderColor: template === 'race route' ? activeAccent.hex : undefined 
+              }}
+            >
               {template === 'minimal line' && (
                 <div className="flex-1 flex flex-col p-8 font-sans">
                    <div className="flex-1 border p-2 flex items-center justify-center">
@@ -373,7 +402,7 @@ export default function RoutePosterGenerator({ previewRef, showToast }: RoutePos
                             <path d={parsedData.path} fill="none" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
                             {formData.showStartEnd && parsedData.points.length > 0 && (
                               <>
-                                <circle cx={parsedData.points[0].x} cy={parsedData.points[0].y} r="6" fill="#a0cc00" stroke="#18181b" strokeWidth="2" />
+                                <circle cx={parsedData.points[0].x} cy={parsedData.points[0].y} r="6" fill={activeAccent.hex} stroke="#18181b" strokeWidth="2" />
                                 <circle cx={parsedData.points[parsedData.points.length-1].x} cy={parsedData.points[parsedData.points.length-1].y} r="6" fill="#ff0055" stroke="#18181b" strokeWidth="2" />
                               </>
                             )}
@@ -391,7 +420,7 @@ export default function RoutePosterGenerator({ previewRef, showToast }: RoutePos
                      
                      <div className="flex justify-between items-end mt-4 pt-4 border-t border-gray-300">
                        {formData.distance ? (
-                         <div className="text-4xl font-black uppercase text-secondary-lime">{formData.distance}</div>
+                         <div className="text-4xl font-black uppercase" style={{ color: activeAccent.hex }}>{formData.distance}</div>
                        ) : <div></div>}
                        
                        {formData.showElevation && parsedData?.eleInfo.valid && (
@@ -407,7 +436,7 @@ export default function RoutePosterGenerator({ previewRef, showToast }: RoutePos
 
               {template === 'dark route' && (
                 <div className="flex-1 flex flex-col p-8 font-mono relative">
-                   <div className="absolute top-0 right-0 bg-[#22252a] text-[#a0cc00] text-[9px] uppercase tracking-widest px-3 py-1 font-bold">ROUTE DATA</div>
+                   <div className="absolute top-0 right-0 bg-[#22252a] text-[9px] uppercase tracking-widest px-3 py-1 font-bold" style={{ color: activeAccent.hex }}>ROUTE DATA</div>
                    
                    <div className="mb-6 z-10 pt-4">
                      <h1 className="text-3xl font-black text-[#f2f4f7] tracking-tight uppercase leading-none mb-2">{formData.title || 'UNKNOWN ROUTE'}</h1>
@@ -422,7 +451,7 @@ export default function RoutePosterGenerator({ previewRef, showToast }: RoutePos
                       <div className="absolute w-[360px] h-[360px] border-l border-r border-[#22252a] opacity-20"></div>
                       <div className="absolute w-[360px] h-[360px] border-t border-b border-[#22252a] opacity-20"></div>
                       {parsedData ? (
-                         <svg viewBox="0 0 360 360" className="w-[340px] h-[340px] stroke-[#a0cc00] drop-shadow-[0_0_8px_rgba(160,204,0,0.5)] z-10 overflow-visible">
+                         <svg viewBox="0 0 360 360" className="w-[340px] h-[340px] z-10 overflow-visible" style={{ stroke: activeAccent.hex, filter: `drop-shadow(0 0 8px ${activeAccent.hex}80)` }}>
                             <path d={parsedData.path} fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
                             {formData.showStartEnd && parsedData.points.length > 0 && (
                               <>
@@ -460,13 +489,13 @@ export default function RoutePosterGenerator({ previewRef, showToast }: RoutePos
                      <div className="flex justify-between items-start mb-6">
                        <div>
                           <h1 className="text-3xl font-black uppercase tracking-tighter leading-none mb-1 text-white">{formData.title || 'RACE ROUTE'}</h1>
-                          <div className="text-xs font-bold uppercase tracking-widest text-primary-coral">
+                          <div className="text-xs font-bold uppercase tracking-widest text-[#f2f4f7] mb-1">
                              {formData.location || 'UNKNOWN LOCATION'} {formData.date ? ` // ${formData.date}` : ''}
                           </div>
                        </div>
                        <div className="bg-[#22252a] border border-[#3f3f46] p-2 text-center rounded w-20">
                          <div className="text-[9px] uppercase tracking-widest text-gray-400 font-bold mb-1">DST</div>
-                         <div className="text-sm font-black uppercase text-secondary-lime">{formData.distance || '-'}</div>
+                         <div className="text-sm font-black uppercase" style={{ color: activeAccent.hex }}>{formData.distance || '-'}</div>
                        </div>
                      </div>
 
@@ -476,7 +505,7 @@ export default function RoutePosterGenerator({ previewRef, showToast }: RoutePos
                               <path d={parsedData.path} fill="none" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
                               {formData.showStartEnd && parsedData.points.length > 0 && (
                                 <>
-                                  <circle cx={parsedData.points[0].x} cy={parsedData.points[0].y} r="6" fill="#a0cc00" stroke="#07080a" strokeWidth="3" />
+                                  <circle cx={parsedData.points[0].x} cy={parsedData.points[0].y} r="6" fill={activeAccent.hex} stroke="#07080a" strokeWidth="3" />
                                   <circle cx={parsedData.points[parsedData.points.length-1].x} cy={parsedData.points[parsedData.points.length-1].y} r="6" fill="white" stroke="#07080a" strokeWidth="3" />
                                 </>
                               )}
@@ -518,28 +547,68 @@ export default function RoutePosterGenerator({ previewRef, showToast }: RoutePos
 {['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(template) && (
               <SharedTemplates template={template} formData={formData} componentName="RoutePosterGenerator" extraData={{ parsedData }} />
             )}
+            </div>
           </div>
-      }
-      templateSelector={
+
+          {/* Centered Ratio Dock */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-[#090b0e]/95 backdrop-blur border border-brand-border/85 px-2 py-1.5 rounded-full flex items-center gap-1 shadow-[0_8px_24px_rgba(0,0,0,0.6)] z-10 hover:border-brand-border-strong transition-all">
+            {[
+              { id: "square", label: "1:1 Feed" },
+              { id: "story", label: "9:16 Story" },
+              { id: "landscape", label: "16:9 Classic" },
+              { id: "compact", label: "Fit" },
+              { id: "printable", label: "PDF/A4" }
+            ].map((ratio) => {
+              const isActive = exportSize === ratio.id;
+              return (
+                <button
+                  key={ratio.id}
+                  onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      localStorage.setItem('runcard-default-export-size', ratio.id);
+                      window.dispatchEvent(new CustomEvent('export-size-changed', { detail: ratio.id }));
+                    }
+                  }}
+                  className={`px-2.5 py-1 rounded-full text-[9px] font-mono font-bold uppercase transition-all cursor-pointer outline-none focus:outline-none whitespace-nowrap
+                    ${isActive 
+                      ? 'bg-secondary-lime text-black shadow-[0_0_8px_rgba(160,204,0,0.4)] font-extrabold' 
+                      : 'text-text-muted hover:text-text-primary hover:bg-surface-lowest/50'}`}
+                  style={isActive ? { backgroundColor: activeAccent.hex } : undefined}
+                >
+                  {ratio.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* COLUMN 3: STYLE CONTROLS */}
+      <div className="flex flex-col gap-4 xl:sticky xl:top-[128px]">
+        <div className="flex flex-col gap-0.5 px-1">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-[#f2f4f7] font-mono">STYLE CONTROLS</span>
+          <p className="text-[10px] text-text-muted font-mono uppercase tracking-wider">Tweak appearance</p>
+        </div>
+        
         <TemplateSelector 
-        activeTemplate={template}
-        onSelectTemplate={setTemplate}
-        localTemplates={[
-          {
-            "id": "minimal line",
-            "label": "Minimal Line"
-          },
-          {
-            "id": "dark route",
-            "label": "Dark Route"
-          },
-          {
-            "id": "race route",
-            "label": "Race Route"
-          }
-        ]}
+          activeTemplate={template}
+          onSelectTemplate={setTemplate}
+          localTemplates={[
+            {
+              "id": "minimal line",
+              "label": "Minimal Line"
+            },
+            {
+              "id": "dark route",
+              "label": "Dark Route"
+            },
+            {
+              "id": "race route",
+              "label": "Race Route"
+            }
+          ]}
         />
-      }
-    />
+      </div>
+    </div>
   );
 }
