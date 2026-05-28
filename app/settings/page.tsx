@@ -7,6 +7,12 @@ export default function Settings() {
   const [unit, setUnit] = useState("metric");
   const [exportSize, setExportSize] = useState("square");
   const [watermark, setWatermark] = useState(true);
+  const [toast, setToast] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  };
 
   useEffect(() => {
     setTimeout(() => {
@@ -145,13 +151,30 @@ export default function Settings() {
         
         <div className="mt-8">
           <button
-            onClick={resetSettings}
+            onClick={() => {
+              if (window.confirm("Are you sure you want to clear all local data, including drafts and settings?")) {
+                Object.keys(localStorage).forEach(key => {
+                  if (key.startsWith('runcard-')) {
+                    localStorage.removeItem(key);
+                  }
+                });
+                resetSettings();
+                showToast("Local RunCard data cleared.");
+              }
+            }}
             className="px-4 py-2 border border-brand-border text-text-muted hover:text-primary-coral hover:border-primary-coral rounded font-semibold uppercase text-sm transition-colors"
           >
-            Reset Settings
+            Clear Local Data
           </button>
         </div>
       </div>
+      
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-surface border border-brand-border text-text-primary px-4 py-2 rounded shadow-2xl z-50 text-sm font-mono flex items-center gap-2">
+          <Save className="w-4 h-4 text-secondary-lime" />
+          {toast}
+        </div>
+      )}
     </div>
   );
 }

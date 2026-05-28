@@ -9,7 +9,10 @@ interface SportsCertificateProps {
   showToast: (msg: string) => void;
 }
 
+const getUnit = () => typeof window !== 'undefined' && window.localStorage.getItem('runcard-unit') === 'imperial' ? 'mi' : 'km';
+
 export default function SportsCertificateGenerator({ previewRef, showToast }: SportsCertificateProps) {
+  const unit = getUnit();
   const [formData, setFormData] = useState({
     athleteName: "",
     achievement: "",
@@ -162,7 +165,7 @@ export default function SportsCertificateGenerator({ previewRef, showToast }: Sp
       cardType: "sports-certificate",
       title: String(title),
       template: typeof template !== 'undefined' ? template : "default",
-      exportSize: typeof window !== 'undefined' ? localStorage.getItem('runcard-default-export-size') || "square" : "square",
+      exportSize: typeof exportSize !== 'undefined' ? exportSize : "square",
       formData: plainData,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -226,7 +229,7 @@ export default function SportsCertificateGenerator({ previewRef, showToast }: Sp
                value={formData.achievement}
                onChange={e => handleChange("achievement", e.target.value)}
                className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
-               placeholder="e.g. The 100km Ultra Challenge"
+               placeholder={`e.g. The 100${unit} Ultra Challenge`}
              />
           </div>
           
@@ -437,8 +440,7 @@ export default function SportsCertificateGenerator({ previewRef, showToast }: Sp
                   key={ratio.id}
                   onClick={() => {
                     if (typeof window !== 'undefined') {
-                      localStorage.setItem('runcard-default-export-size', ratio.id);
-                      window.dispatchEvent(new CustomEvent('export-size-changed', { detail: ratio.id }));
+                                            window.dispatchEvent(new CustomEvent('export-size-changed', { detail: ratio.id }));
                     }
                   }}
                   className={`px-2.5 py-1 rounded-full text-[9px] font-mono font-bold uppercase transition-all cursor-pointer outline-none focus:outline-none whitespace-nowrap

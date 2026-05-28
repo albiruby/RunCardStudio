@@ -2,29 +2,64 @@
 @import "tw-animate-css";
 
 @theme {
-  --color-brand-bg: #0a0b0d;
-  --color-surface-lowest: #121316;
-  --color-surface-low: #181a1f;
-  --color-surface: #202229;
-  --color-surface-high: #2a2d36;
-  --color-surface-highest: #373a45;
-  --color-text-primary: #f2f4f7;
-  --color-text-muted: #8e96a3;
-  --color-brand-border: #22252a;
-  --color-brand-border-strong: #3f444e;
-  --color-primary-coral: #ff5451;
-  --color-primary-action: #ff3330;
-  --color-secondary-lime: #ccff00;
-  --color-tertiary-cyan: #00f0ff;
+  --color-brand-bg: var(--c-brand-bg);
+  --color-surface-lowest: var(--c-surface-lowest);
+  --color-surface-low: var(--c-surface-low);
+  --color-surface: var(--c-surface);
+  --color-surface-high: var(--c-surface-high);
+  --color-surface-highest: var(--c-surface-highest);
+  --color-text-primary: var(--c-text-primary);
+  --color-text-muted: var(--c-text-muted);
+  --color-brand-border: var(--c-brand-border);
+  --color-brand-border-strong: var(--c-brand-border-strong);
+  --color-primary-coral: var(--c-primary-coral);
+  --color-primary-action: var(--c-primary-action);
+  --color-secondary-lime: var(--c-secondary-lime);
+  --color-tertiary-cyan: var(--c-tertiary-cyan);
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, monospace;
 }
 
 :root {
+  --c-brand-bg: #0a0b0d;
+  --c-surface-lowest: #121316;
+  --c-surface-low: #181a1f;
+  --c-surface: #202229;
+  --c-surface-high: #2a2d36;
+  --c-surface-highest: #373a45;
+  --c-text-primary: #f2f4f7;
+  --c-text-muted: #8e96a3;
+  --c-brand-border: #22252a;
+  --c-brand-border-strong: #3f444e;
+  --c-primary-coral: #ff5451;
+  --c-primary-action: #ff3330;
+  --c-secondary-lime: #ccff00;
+  --c-tertiary-cyan: #00f0ff;
+  
   background-color: var(--color-brand-bg);
   color: var(--color-text-primary);
   color-scheme: dark;
+}
+
+:root.light {
+  --c-brand-bg: #f3f4f6; /* off-white / light gray */
+  --c-surface-lowest: #e5e7eb;
+  --c-surface-low: #f9fafb;
+  --c-surface: #ffffff; /* surface: white */
+  --c-surface-high: #fdfdfd;
+  --c-surface-highest: #d1d5db;
+  --c-text-primary: #1f2937; /* deep carbon */
+  --c-text-muted: #6b7280; /* dark gray */
+  --c-brand-border: #e5e7eb; /* light gray */
+  --c-brand-border-strong: #d1d5db;
+  --c-primary-coral: #ff5451; /* remains coral */
+  --c-primary-action: #ff3330; /* remains red */
+  /* lime needs to remain readable, maybe slightly darker for text contrast if used as bg */
+  --c-secondary-lime: #b4e600; 
+  --c-tertiary-cyan: #00d2df;
+
+  color-scheme: light;
 }
 
 body {

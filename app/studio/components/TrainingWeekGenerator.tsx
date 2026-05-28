@@ -9,7 +9,10 @@ interface TrainingWeekProps {
   showToast: (msg: string) => void;
 }
 
+const getUnit = () => typeof window !== 'undefined' && window.localStorage.getItem('runcard-unit') === 'imperial' ? 'mi' : 'km';
+
 export default function TrainingWeekGenerator({ previewRef, showToast }: TrainingWeekProps) {
+  const unit = getUnit();
   const [formData, setFormData] = useState({
     title: "",
     dateRange: "",
@@ -158,7 +161,7 @@ export default function TrainingWeekGenerator({ previewRef, showToast }: Trainin
       cardType: "training-week",
       title: String(title),
       template: typeof template !== 'undefined' ? template : "default",
-      exportSize: typeof window !== 'undefined' ? localStorage.getItem('runcard-default-export-size') || "square" : "square",
+      exportSize: typeof exportSize !== 'undefined' ? exportSize : "square",
       formData: plainData,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -235,7 +238,7 @@ export default function TrainingWeekGenerator({ previewRef, showToast }: Trainin
                  value={formData.totalDistance}
                  onChange={e => handleChange("totalDistance", e.target.value)}
                  className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
-                 placeholder="70 km"
+                 placeholder={`70 ${unit}`}
                />
              </div>
              <div>
@@ -285,7 +288,7 @@ export default function TrainingWeekGenerator({ previewRef, showToast }: Trainin
                value={formData.keySession}
                onChange={e => handleChange("keySession", e.target.value)}
                className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
-               placeholder="6x1km @ 3:45"
+               placeholder={`6x1${unit} @ 3:45`}
              />
           </div>
           <div>
@@ -295,7 +298,7 @@ export default function TrainingWeekGenerator({ previewRef, showToast }: Trainin
                value={formData.longRun}
                onChange={e => handleChange("longRun", e.target.value)}
                className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-secondary-lime transition-all"
-               placeholder="25km progression"
+               placeholder={`25${unit} progression`}
              />
           </div>
           <div>
@@ -529,8 +532,7 @@ export default function TrainingWeekGenerator({ previewRef, showToast }: Trainin
                   key={ratio.id}
                   onClick={() => {
                     if (typeof window !== 'undefined') {
-                      localStorage.setItem('runcard-default-export-size', ratio.id);
-                      window.dispatchEvent(new CustomEvent('export-size-changed', { detail: ratio.id }));
+                                            window.dispatchEvent(new CustomEvent('export-size-changed', { detail: ratio.id }));
                     }
                   }}
                   className={`px-2.5 py-1 rounded-full text-[9px] font-mono font-bold uppercase transition-all cursor-pointer outline-none focus:outline-none whitespace-nowrap

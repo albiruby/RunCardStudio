@@ -9,7 +9,10 @@ interface RoutePosterGeneratorProps {
   showToast: (msg: string) => void;
 }
 
+const getUnit = () => typeof window !== 'undefined' && window.localStorage.getItem('runcard-unit') === 'imperial' ? 'mi' : 'km';
+
 export default function RoutePosterGenerator({ previewRef, showToast }: RoutePosterGeneratorProps) {
+  const unit = getUnit();
   const [formData, setFormData] = useState({
     title: "",
     location: "",
@@ -223,7 +226,7 @@ export default function RoutePosterGenerator({ previewRef, showToast }: RoutePos
       cardType: "route-poster" as any, // bypassing the enum check for drafts temporarily
       title: String(title),
       template: typeof template !== 'undefined' ? template : "default",
-      exportSize: typeof window !== 'undefined' ? localStorage.getItem('runcard-default-export-size') || "square" : "square",
+      exportSize: typeof exportSize !== 'undefined' ? exportSize : "square",
       formData: plainData,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -571,8 +574,7 @@ export default function RoutePosterGenerator({ previewRef, showToast }: RoutePos
                   key={ratio.id}
                   onClick={() => {
                     if (typeof window !== 'undefined') {
-                      localStorage.setItem('runcard-default-export-size', ratio.id);
-                      window.dispatchEvent(new CustomEvent('export-size-changed', { detail: ratio.id }));
+                                            window.dispatchEvent(new CustomEvent('export-size-changed', { detail: ratio.id }));
                     }
                   }}
                   className={`px-2.5 py-1 rounded-full text-[9px] font-mono font-bold uppercase transition-all cursor-pointer outline-none focus:outline-none whitespace-nowrap

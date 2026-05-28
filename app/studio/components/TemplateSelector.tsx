@@ -68,7 +68,6 @@ function useInternalExportSize() {
 
 function setInternalExportSize(size: string) {
   if (typeof window === 'undefined') return;
-  localStorage.setItem('runcard-default-export-size', size);
   window.dispatchEvent(new CustomEvent('export-size-changed', { detail: size }));
 }
 

@@ -117,7 +117,6 @@ function StudioContent() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('runcard-default-export-size', exportSize);
       window.dispatchEvent(new CustomEvent('export-size-changed', { detail: exportSize }));
     }
   }, [exportSize]);
@@ -326,14 +325,14 @@ function StudioContent() {
     <div className="flex flex-col flex-1 pb-24 lg:pb-16">
       {/* Toolbar Sticky */}
       <div className="bg-surface-lowest border-b border-brand-border sticky top-16 z-40 max-w-full">
-        <div className="max-w-[1280px] mx-auto px-4 md:px-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 py-4">
-          <div ref={tabsContainerRef} className="flex overflow-x-auto w-full lg:w-auto subtle-scrollbar gap-2 pb-2 lg:pb-0 border-b border-brand-border lg:border-none pr-4 scroll-smooth">
+        <div className="max-w-[1280px] mx-auto px-4 md:px-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 py-4 min-w-0">
+          <div ref={tabsContainerRef} className="flex-1 min-w-0 flex overflow-x-auto subtle-scrollbar gap-2 pb-2 lg:pb-0 border-b border-brand-border lg:border-none pr-4 scroll-smooth">
             {TAB_TYPES.map(tab => (
               <button
                 key={tab.id}
                 data-active={activeTab === tab.id ? "true" : "false"}
                 onClick={() => setActiveTab(tab.id)}
-                className={`whitespace-nowrap px-4 py-2 text-[11px] lg:text-sm font-bold uppercase tracking-wider rounded transition-colors duration-200 cursor-pointer
+                className={`flex-shrink-0 whitespace-nowrap px-4 py-2 text-[11px] lg:text-sm font-bold uppercase tracking-wider rounded transition-colors duration-200 cursor-pointer
                   ${activeTab === tab.id 
                     ? 'bg-primary-coral text-white shadow-[0_0_15px_rgba(255,84,81,0.35)]' 
                     : 'text-text-muted hover:text-text-primary hover:bg-surface'}`}
@@ -343,18 +342,18 @@ function StudioContent() {
             ))}
           </div>
 
-          <div className="flex items-center justify-between lg:justify-end gap-2 w-full lg:w-auto overflow-x-auto no-scrollbar">
+          <div className="flex items-center justify-between lg:justify-end gap-2 shrink-0 overflow-x-auto no-scrollbar max-w-full">
              <button
                 onClick={handleReset}
                 disabled={!isImplemented}
-                className="px-3 py-2 text-xs font-bold uppercase tracking-wider border border-brand-border text-text-muted hover:text-text-primary hover:bg-surface rounded transition-colors flex items-center gap-1 bg-surface-lowest disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                className="whitespace-nowrap px-3 py-2 text-xs font-bold uppercase tracking-wider border border-brand-border text-text-muted hover:text-text-primary hover:bg-surface rounded transition-colors flex items-center gap-1 bg-surface-lowest disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
              >
                 <RotateCcw className="w-4 h-4" /> Reset Form
              </button>
              
              <div className="hidden lg:block h-6 w-px bg-brand-border mx-1 shrink-0"></div>
 
-             <div className="hidden lg:flex items-center gap-2">
+             <div className="hidden lg:flex items-center gap-2 shrink-0">
                <select 
                  value={exportSize}
                  onChange={e => setExportSize(e.target.value)}
@@ -370,7 +369,7 @@ function StudioContent() {
                <button
                   onClick={handleExportPng}
                   disabled={isExporting || !isImplemented}
-                  className="px-4 py-2 text-xs font-bold uppercase tracking-wider bg-primary-action text-white hover:bg-opacity-90 rounded transition-colors flex items-center gap-1 shadow-[0_0_15px_rgba(255,84,81,0.2)] disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                  className="whitespace-nowrap px-4 py-2 text-xs font-bold uppercase tracking-wider bg-primary-action text-white hover:bg-opacity-90 rounded transition-colors flex items-center gap-1 shadow-[0_0_15px_rgba(255,84,81,0.2)] disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
                >
                   <Download className="w-4 h-4" /> {isExporting ? 'Exporting...' : 'Export PNG'}
                </button>
@@ -379,7 +378,7 @@ function StudioContent() {
                  <button
                     onClick={handleExportPdf}
                     disabled={isExporting || !isImplemented}
-                    className="px-4 py-2 text-xs font-bold uppercase tracking-wider bg-secondary-lime text-surface-lowest hover:bg-opacity-90 rounded transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                    className="whitespace-nowrap px-4 py-2 text-xs font-bold uppercase tracking-wider bg-secondary-lime text-surface-lowest hover:bg-opacity-90 rounded transition-colors flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
                  >
                     <FileText className="w-4 h-4" /> PDF
                  </button>

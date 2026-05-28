@@ -9,7 +9,10 @@ interface ChallengeCardProps {
   showToast: (msg: string) => void;
 }
 
+const getUnit = () => typeof window !== 'undefined' && window.localStorage.getItem('runcard-unit') === 'imperial' ? 'mi' : 'km';
+
 export default function ChallengeCardGenerator({ previewRef, showToast }: ChallengeCardProps) {
+  const unit = getUnit();
   const [formData, setFormData] = useState({
     name: "",
     type: "Distance",
@@ -153,7 +156,7 @@ export default function ChallengeCardGenerator({ previewRef, showToast }: Challe
       cardType: "challenge-card",
       title: String(title),
       template: typeof template !== 'undefined' ? template : "default",
-      exportSize: typeof window !== 'undefined' ? localStorage.getItem('runcard-default-export-size') || "square" : "square",
+      exportSize: typeof exportSize !== 'undefined' ? exportSize : "square",
       formData: plainData,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -250,7 +253,7 @@ export default function ChallengeCardGenerator({ previewRef, showToast }: Challe
                value={formData.target}
                onChange={e => handleChange("target", e.target.value)}
                className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary outline-none focus:border-primary-coral transition-all font-bold"
-               placeholder="Run 500km total"
+               placeholder={`Run 500${unit} total`}
              />
           </div>
           
@@ -511,8 +514,7 @@ export default function ChallengeCardGenerator({ previewRef, showToast }: Challe
                   key={ratio.id}
                   onClick={() => {
                     if (typeof window !== 'undefined') {
-                      localStorage.setItem('runcard-default-export-size', ratio.id);
-                      window.dispatchEvent(new CustomEvent('export-size-changed', { detail: ratio.id }));
+                                            window.dispatchEvent(new CustomEvent('export-size-changed', { detail: ratio.id }));
                     }
                   }}
                   className={`px-2.5 py-1 rounded-full text-[9px] font-mono font-bold uppercase transition-all cursor-pointer outline-none focus:outline-none whitespace-nowrap

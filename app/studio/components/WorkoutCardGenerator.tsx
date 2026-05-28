@@ -9,7 +9,10 @@ interface WorkoutCardProps {
   showToast: (msg: string) => void;
 }
 
+const getUnit = () => typeof window !== 'undefined' && window.localStorage.getItem('runcard-unit') === 'imperial' ? 'mi' : 'km';
+
 export default function WorkoutCardGenerator({ previewRef, showToast }: WorkoutCardProps) {
+  const unit = getUnit();
   const [formData, setFormData] = useState({
     title: "",
     sport: "Running",
@@ -149,7 +152,7 @@ export default function WorkoutCardGenerator({ previewRef, showToast }: WorkoutC
       cardType: "workout-card",
       title: String(title),
       template: typeof template !== 'undefined' ? template : "default",
-      exportSize: typeof window !== 'undefined' ? localStorage.getItem('runcard-default-export-size') || "square" : "square",
+      exportSize: typeof exportSize !== 'undefined' ? exportSize : "square",
       formData: plainData,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -244,7 +247,7 @@ export default function WorkoutCardGenerator({ previewRef, showToast }: WorkoutC
                 value={formData.warmup}
                 onChange={e => handleChange("warmup", e.target.value)}
                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none resize-none h-16 transition-colors"
-                placeholder="2km easy jog, dynamic drills, 3x100m strides"
+                placeholder={`2${unit} easy jog, dynamic drills, 3x100m strides`}
               ></textarea>
            </div>
 
@@ -274,7 +277,7 @@ export default function WorkoutCardGenerator({ previewRef, showToast }: WorkoutC
                 value={formData.cooldown}
                 onChange={e => handleChange("cooldown", e.target.value)}
                 className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none resize-none h-16 transition-colors"
-                placeholder="1.5km recovery jog + light lower limb stretching"
+                placeholder={`1.5${unit} recovery jog + light lower limb stretching`}
               ></textarea>
            </div>
            
@@ -342,8 +345,7 @@ export default function WorkoutCardGenerator({ previewRef, showToast }: WorkoutC
                   key={ratio.id}
                   onClick={() => {
                     if (typeof window !== 'undefined') {
-                      localStorage.setItem('runcard-default-export-size', ratio.id);
-                      window.dispatchEvent(new CustomEvent('export-size-changed', { detail: ratio.id }));
+                                            window.dispatchEvent(new CustomEvent('export-size-changed', { detail: ratio.id }));
                     }
                   }}
                   className={`px-2.5 py-1 rounded-full text-[9px] font-mono font-bold uppercase transition-all cursor-pointer outline-none focus:outline-none whitespace-nowrap

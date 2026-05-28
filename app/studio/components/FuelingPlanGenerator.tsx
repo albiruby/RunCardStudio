@@ -9,7 +9,10 @@ interface FuelingPlanProps {
   showToast: (msg: string) => void;
 }
 
+const getUnit = () => typeof window !== 'undefined' && window.localStorage.getItem('runcard-unit') === 'imperial' ? 'mi' : 'km';
+
 export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingPlanProps) {
+  const unit = getUnit();
   const [formData, setFormData] = useState({
     sessionName: "",
     duration: "",
@@ -153,7 +156,7 @@ export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingP
       cardType: "fueling-plan",
       title: String(title),
       template: typeof template !== 'undefined' ? template : "default",
-      exportSize: typeof window !== 'undefined' ? localStorage.getItem('runcard-default-export-size') || "square" : "square",
+      exportSize: typeof exportSize !== 'undefined' ? exportSize : "square",
       formData: plainData,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -296,7 +299,7 @@ export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingP
                value={formData.note}
                onChange={e => handleChange("note", e.target.value)}
                className="w-full bg-surface-lowest border border-brand-border px-3 py-3 min-h-[44px] rounded text-sm text-text-primary focus:border-secondary-lime outline-none resize-none h-16 transition-colors"
-               placeholder="Caffeine at 30km mark."
+               placeholder={`Caffeine at 30${unit} mark.`}
              ></textarea>
           </div>
 
@@ -514,8 +517,7 @@ export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingP
                   key={ratio.id}
                   onClick={() => {
                     if (typeof window !== 'undefined') {
-                      localStorage.setItem('runcard-default-export-size', ratio.id);
-                      window.dispatchEvent(new CustomEvent('export-size-changed', { detail: ratio.id }));
+                                            window.dispatchEvent(new CustomEvent('export-size-changed', { detail: ratio.id }));
                     }
                   }}
                   className={`px-2.5 py-1 rounded-full text-[9px] font-mono font-bold uppercase transition-all cursor-pointer outline-none focus:outline-none whitespace-nowrap
