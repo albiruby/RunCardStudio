@@ -150,9 +150,18 @@ export default function RaceSplitGenerator({ previewRef, showToast }: RaceSplitP
 
   const formatTime = (secs: number) => {
     if (isNaN(secs) || secs < 0) return "—";
-    const h = Math.floor(secs / 3600);
-    const m = Math.floor((secs % 3600) / 60);
-    const s = Math.floor(secs % 60);
+    let h = Math.floor(secs / 3600);
+    let m = Math.floor((secs % 3600) / 60);
+    let s = Math.round(secs % 60);
+    
+    if (s === 60) {
+      m++;
+      s = 0;
+    }
+    if (m === 60) {
+      h++;
+      m = 0;
+    }
     
     if (h > 0) {
       return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
@@ -163,7 +172,10 @@ export default function RaceSplitGenerator({ previewRef, showToast }: RaceSplitP
   const formatPace = (secsPerKm: number) => {
     if (isNaN(secsPerKm) || secsPerKm <= 0) return "—";
     const m = Math.floor(secsPerKm / 60);
-    const s = Math.floor(secsPerKm % 60);
+    const s = Math.round(secsPerKm % 60);
+    if (s === 60) {
+      return `${m + 1}:00`;
+    }
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 

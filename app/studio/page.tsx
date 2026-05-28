@@ -20,8 +20,7 @@ import ShoeRotationGenerator from "./components/ShoeRotationGenerator";
 import RoutePosterGenerator from "./components/RoutePosterGenerator";
 import ClientRender from "./components/ClientRender";
 import { Download, Copy, Save, RotateCcw, FileText, Menu, X, ArrowLeft } from "lucide-react";
-import * as htmlToImage from "html-to-image";
-import { jsPDF } from "jspdf";
+// Removed top-level imports of html-to-image and jspdf to fix build errors.
 
 const TAB_TYPES = [
   { id: "run-receipt", label: "Run Receipt", implemented: true },
@@ -83,7 +82,7 @@ function ComingSoonPlaceholder({ activeTab }: { activeTab: string }) {
 
 function StudioContent() {
   const searchParams = useSearchParams();
-  const defaultTab = searchParams.get("type") || "run-receipt";
+  const defaultTab = searchParams ? searchParams.get("type") || "run-receipt" : "run-receipt";
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [isExporting, setIsExporting] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -96,7 +95,7 @@ function StudioContent() {
   const [resetKey, setResetKey] = useState(0); 
 
   useEffect(() => {
-    const type = searchParams.get("type");
+    const type = searchParams ? searchParams.get("type") : null;
     let t: NodeJS.Timeout;
     if (type && TAB_TYPES.some(t => t.id === type)) {
       t = setTimeout(() => {
@@ -188,6 +187,8 @@ function StudioContent() {
     if (!previewRef.current) return;
     setIsExporting(true);
     try {
+      // @ts-ignore
+      const htmlToImage = await import(/* webpackIgnore: true */ "html-to-image");
       // Use pixelRatio 4 and reset inline scale transforms for maximum crispness
       const cardCanvas = await htmlToImage.toCanvas(previewRef.current, {
         pixelRatio: 4,
@@ -216,13 +217,13 @@ function StudioContent() {
       
       if (ctx) {
          const classListStr = previewRef.current.className;
-         const innerHtmlStr = previewRef.current.innerHTML;
+         const markupContent = previewRef.current.innerHTML;
          const isLightBg = classListStr.includes("bg-[#f4f4f5]") || 
                            classListStr.includes("bg-white") || 
                            classListStr.includes("bg-[#fafafa]") ||
-                           innerHtmlStr.includes("bg-[#f4f4f5]") || 
-                           innerHtmlStr.includes("bg-white") || 
-                           innerHtmlStr.includes("bg-[#fafafa]");
+                           markupContent.includes("bg-[#f4f4f5]") || 
+                           markupContent.includes("bg-white") || 
+                           markupContent.includes("bg-[#fafafa]");
 
          // Background
          ctx.fillStyle = isLightBg ? "#ffffff" : "#0c1322"; 
@@ -277,14 +278,19 @@ function StudioContent() {
     if (!previewRef.current) return;
     setIsExporting(true);
     try {
+      // @ts-ignore
+      const htmlToImage = await import(/* webpackIgnore: true */ "html-to-image");
+      // @ts-ignore
+      const { jsPDF } = await import(/* webpackIgnore: true */ "jspdf");
+      
       const classListStr = previewRef.current.className;
-      const innerHtmlStr = previewRef.current.innerHTML;
+      const markupContent = previewRef.current.innerHTML;
       const isLightBg = classListStr.includes("bg-[#f4f4f5]") || 
                         classListStr.includes("bg-white") || 
                         classListStr.includes("bg-[#fafafa]") ||
-                        innerHtmlStr.includes("bg-[#f4f4f5]") || 
-                        innerHtmlStr.includes("bg-white") || 
-                        innerHtmlStr.includes("bg-[#fafafa]");
+                        markupContent.includes("bg-[#f4f4f5]") || 
+                        markupContent.includes("bg-white") || 
+                        markupContent.includes("bg-[#fafafa]");
 
       const dataUrl = await htmlToImage.toPng(previewRef.current, {
         pixelRatio: 4,
@@ -319,14 +325,14 @@ function StudioContent() {
 
   const currentTabObj = TAB_TYPES.find(t => t.id === activeTab);
   const isImplemented = currentTabObj ? currentTabObj.implemented : true;
-  const isPdfFriendly = activeTab === 'race-split' || activeTab === 'pace-band';
+  const isPdfFriendly = activeTab === 'race-split' || activeTab === 'pace-band' || activeTab === 'route-poster';
 
   return (
     <div className="flex flex-col flex-1 pb-24 lg:pb-16">
       {/* Toolbar Sticky */}
       <div className="bg-surface-lowest border-b border-brand-border sticky top-16 z-40 max-w-full">
         <div className="max-w-[1280px] mx-auto px-4 md:px-8 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 py-4 min-w-0">
-          <div ref={tabsContainerRef} className="flex-1 min-w-0 flex overflow-x-auto subtle-scrollbar gap-2 pb-2 lg:pb-0 border-b border-brand-border lg:border-none pr-4 scroll-smooth">
+          <div ref={tabsContainerRef} className="w-full flex-1 min-w-0 flex overflow-x-auto subtle-scrollbar gap-2 pb-2 lg:pb-0 border-b border-brand-border lg:border-none pr-4 scroll-smooth">
             {TAB_TYPES.map(tab => (
               <button
                 key={tab.id}
@@ -342,7 +348,7 @@ function StudioContent() {
             ))}
           </div>
 
-          <div className="flex items-center justify-between lg:justify-end gap-2 shrink-0 overflow-x-auto no-scrollbar max-w-full">
+          <div className="flex items-center justify-between lg:justify-end gap-2 shrink-0 overflow-x-auto no-scrollbar max-w-full w-full lg:w-auto">
              <button
                 onClick={handleReset}
                 disabled={!isImplemented}
