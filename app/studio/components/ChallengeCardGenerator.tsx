@@ -1,9 +1,8 @@
-import StudioPageShell from './StudioPageShell';
 /* eslint-disable react-hooks/set-state-in-effect */
 import SharedTemplates, { useExportSize, getExportSizeClasses } from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
-import TemplateSelector from './TemplateSelector';
-import { Copy, Save } from "lucide-react";
+import TemplateSelector, { useTemplateAccent, ACCENTS } from './TemplateSelector';
+import { Copy, Save, Trophy, Eye } from "lucide-react";
 
 interface ChallengeCardProps {
   previewRef: MutableRefObject<HTMLDivElement | null>;
@@ -27,6 +26,8 @@ export default function ChallengeCardGenerator({ previewRef, showToast }: Challe
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
   const exportSize = useExportSize();
+  const activeAccentId = useTemplateAccent();
+  const activeAccent = ACCENTS.find(a => a.id === activeAccentId) || ACCENTS[0];
 
 
       useEffect(() => {
@@ -187,11 +188,15 @@ export default function ChallengeCardGenerator({ previewRef, showToast }: Challe
   }, []);
 
   return (
-    <StudioPageShell
-      inputTitle="CHALLENGE DATA"
-      inputSubtitle="Log details"
-      inputContent={
-        <div className="bg-surface border border-brand-border p-5 rounded-lg flex flex-col gap-4 shadow-xl">
+    <div className="grid grid-cols-1 xl:grid-cols-[minmax(320px,380px)_1fr_minmax(280px,340px)] gap-6 w-full font-sans">
+      {/* COLUMN 1: CHALLENGE DATA */}
+      <div className="flex flex-col gap-4 w-full">
+        <div className="flex items-center gap-2 px-1">
+          <Trophy className="w-3.5 h-3.5 text-secondary-lime" style={{ color: activeAccent.hex }} />
+          <h2 className="text-[11px] font-bold uppercase tracking-widest text-[#f2f4f7] font-mono">CHALLENGE DATA</h2>
+        </div>
+
+        <div className="bg-surface border border-brand-border p-5 rounded-xl flex flex-col gap-4 shadow-xl">
           <div>
              <label className="block text-[11px] font-mono text-text-muted uppercase tracking-wider mb-1">Challenge Name</label>
              <input 
@@ -300,24 +305,47 @@ export default function ChallengeCardGenerator({ previewRef, showToast }: Challe
              />
           </div>
 
-          <button onClick={() => saveCurrentDraft()} className="w-full mt-2 lg:mt-4 py-2 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-4 h-4 text-primary-action" /> SAVE DRAFT</button>
-          <button onClick={handleCopy} className="w-full py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY CHALLENGE
-</button>
+          <button onClick={() => saveCurrentDraft()} className="w-full mt-2 lg:mt-4 py-2.5 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-3.5 h-3.5 text-primary-action" /> SAVE DRAFT</button>
+          <button 
+            onClick={handleCopy} 
+            className="w-full py-2.5 bg-transparent border rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] hover:bg-gray-800"
+            style={{ borderColor: activeAccent.hex, color: activeAccent.hex }}
+          ><Copy className="w-3.5 h-3.5" style={{ color: activeAccent.hex }} /> COPY CHALLENGE</button>
         </div>
-      }
-      containerRef={containerRef}
-      scale={scale}
-      exportSize={exportSize}
-      previewContent={
-        <div
-          ref={previewRef}
-            className={`${getExportSizeClasses(exportSize, template)}` + `  flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none overflow-hidden
-              ${template === 'community challenge' ? 'bg-white border-2 border-[#121316] text-[#121316] p-8 font-sans' : ''}
-              ${template === 'solo mission' ? 'bg-[#181a1f] border border-[#22252a] text-[#f2f4f7] rounded-xl p-8 font-mono' : ''}
-              ${template === 'dark challenge' ? 'bg-[#0f1012] border border-[#ff0055]/30 text-white rounded-lg p-8' : ''}
-            `}
-            style={{ minHeight: '440px' }}
+      </div>
+
+      {/* COLUMN 2: LIVE PREVIEW */}
+      <div className="flex flex-col gap-4 xl:sticky xl:top-[128px] xl:self-start">
+        <div className="flex flex-col gap-1 px-1">
+          <div className="flex items-center gap-1.5">
+            <Eye className="w-3.5 h-3.5 text-secondary-lime" style={{ color: activeAccent.hex }} />
+            <span className="text-[11px] font-bold uppercase tracking-widest text-[#f2f4f7] font-mono">LIVE PREVIEW</span>
+          </div>
+          <p className="text-[10px] text-text-muted font-mono uppercase tracking-wider">REPRESENTS COMPLETED CANVAS</p>
+        </div>
+
+        {/* Scalable Container for preview */}
+        <div ref={containerRef} className="w-full bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:16px_16px] bg-[#07080a] border border-brand-border rounded-xl p-4 md:p-8 flex items-center justify-center min-h-[500px] xl:min-h-[550px] overflow-hidden relative shadow-inner">
+          <div 
+            style={{ 
+              transform: `scale(${scale})`, 
+              transformOrigin: "center",
+              transition: "transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)" 
+            }}
+            className="shrink-0"
           >
+            <div
+              ref={previewRef}
+              className={`${getExportSizeClasses(exportSize, template)}` + ` flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none overflow-hidden
+                ${template === 'community challenge' ? 'bg-white border-2 border-[#121316] text-[#121316] p-8 font-sans' : ''}
+                ${template === 'solo mission' ? 'bg-[#181a1f] border border-[#22252a] text-[#f2f4f7] rounded-xl p-8 font-mono' : ''}
+                ${template === 'dark challenge' ? 'bg-[#0f1012] border border-[#ff0055]/30 text-white rounded-lg p-8' : ''}
+              `}
+              style={{ 
+                minHeight: '440px',
+                borderColor: template === 'dark challenge' ? `${activeAccent.hex}30` : undefined
+              }}
+            >
              
              {template === 'community challenge' && (
                <>
@@ -346,7 +374,7 @@ export default function ChallengeCardGenerator({ previewRef, showToast }: Challe
 
                    <div className="flex justify-between items-center bg-black text-white px-4 py-3 mb-6">
                       <div className="text-xs font-bold uppercase tracking-widest">Start: {formData.startDate || '-'}</div>
-                      <div className="text-xs font-bold uppercase tracking-widest text-[#a0cc00]">End: {formData.endDate || '-'}</div>
+                      <div className="text-xs font-bold uppercase tracking-widest font-black" style={{ color: activeAccent.hex }}>End: {formData.endDate || '-'}</div>
                    </div>
 
                    <div className="mb-4">
@@ -358,7 +386,7 @@ export default function ChallengeCardGenerator({ previewRef, showToast }: Challe
                  {formData.reward && (
                    <div className="mt-4 pt-4 border-t border-gray-200 text-center">
                      <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-1">Reward</div>
-                     <div className="text-sm font-black uppercase text-[#1a56db]">{formData.reward}</div>
+                     <div className="text-sm font-black uppercase" style={{ color: activeAccent.hex }}>{formData.reward}</div>
 </div>
 )}
 </>
@@ -370,7 +398,7 @@ export default function ChallengeCardGenerator({ previewRef, showToast }: Challe
                    <h1 className="text-2xl font-black uppercase leading-tight w-2/3">{formData.name || 'SOLO MISSION'}</h1>
                    <div className="text-right">
                      <div className="text-[10px] uppercase text-gray-500 opacity-60">Status</div>
-                     <div className="text-xs font-bold uppercase text-secondary-lime">Accepted</div>
+                     <div className="text-xs font-bold uppercase" style={{ color: activeAccent.hex }}>Accepted</div>
                    </div>
                  </div>
 
@@ -394,7 +422,7 @@ export default function ChallengeCardGenerator({ previewRef, showToast }: Challe
 
                  <div className="flex-1 mb-6">
                     <div className="text-[10px] uppercase tracking-widest text-gray-500 mb-2">Directives</div>
-                    <p className="text-sm leading-relaxed text-gray-300 border-l border-secondary-lime pl-3 whitespace-pre-wrap">{formData.rules || 'Execute mission.'}</p>
+                    <p className="text-sm leading-relaxed text-gray-300 border-l pl-3 whitespace-pre-wrap" style={{ borderColor: activeAccent.hex }}>{formData.rules || 'Execute mission.'}</p>
                  </div>
 
                  <div className="mt-auto border-t border-[#22252a] pt-4 flex justify-between items-end">
@@ -440,7 +468,7 @@ export default function ChallengeCardGenerator({ previewRef, showToast }: Challe
                  {formData.reward && (
                    <div className="mt-auto border border-[#22252a] bg-[#121316] p-3 text-center rounded">
                      <span className="text-[10px] text-gray-500 uppercase tracking-widest">Reward</span>
-                     <div className="font-bold text-secondary-lime text-sm uppercase">{formData.reward}</div>
+                     <div className="font-bold text-sm uppercase" style={{ color: activeAccent.hex }}>{formData.reward}</div>
                     </div>
                  )}
                </>
@@ -457,30 +485,70 @@ export default function ChallengeCardGenerator({ previewRef, showToast }: Challe
 )}
 
 {['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(template) && (
-           <SharedTemplates template={template} formData={formData} componentName="ChallengeCardGenerator"  />
-         )}
+            <SharedTemplates template={template} formData={formData} componentName="ChallengeCardGenerator"  />
+          )}
+            </div>
           </div>
-      }
-      templateSelector={
+
+          {/* Centered Ratio Dock */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-[#090b0e]/95 backdrop-blur border border-brand-border/85 px-2 py-1.5 rounded-full flex items-center gap-1 shadow-[0_8px_24px_rgba(0,0,0,0.6)] z-10 hover:border-brand-border-strong transition-all">
+            {[
+              { id: "square", label: "1:1 Feed" },
+              { id: "story", label: "9:16 Story" },
+              { id: "landscape", label: "16:9 Classic" },
+              { id: "compact", label: "Fit" },
+              { id: "printable", label: "PDF/A4" }
+            ].map((ratio) => {
+              const isActive = exportSize === ratio.id;
+              return (
+                <button
+                  key={ratio.id}
+                  onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      localStorage.setItem('runcard-default-export-size', ratio.id);
+                      window.dispatchEvent(new CustomEvent('export-size-changed', { detail: ratio.id }));
+                    }
+                  }}
+                  className={`px-2.5 py-1 rounded-full text-[9px] font-mono font-bold uppercase transition-all cursor-pointer outline-none focus:outline-none whitespace-nowrap
+                    ${isActive 
+                      ? 'bg-secondary-lime text-black shadow-[0_0_8px_rgba(160,204,0,0.4)] font-extrabold' 
+                      : 'text-text-muted hover:text-text-primary hover:bg-surface-lowest/50'}`}
+                  style={isActive ? { backgroundColor: activeAccent.hex } : undefined}
+                >
+                  {ratio.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* COLUMN 3: STYLE CONTROLS */}
+      <div className="flex flex-col gap-4 xl:sticky xl:top-[128px]">
+        <div className="flex flex-col gap-0.5 px-1">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-[#f2f4f7] font-mono">STYLE CONTROLS</span>
+          <p className="text-[10px] text-text-muted font-mono uppercase tracking-wider">Tweak appearance</p>
+        </div>
+        
         <TemplateSelector 
-        activeTemplate={template}
-        onSelectTemplate={setTemplate}
-        localTemplates={[
-          {
-            "id": "community challenge",
-            "label": "Community Challenge"
-          },
-          {
-            "id": "solo mission",
-            "label": "Solo Mission"
-          },
-          {
-            "id": "dark challenge",
-            "label": "Dark Challenge"
-          }
-        ]}
+          activeTemplate={template}
+          onSelectTemplate={setTemplate}
+          localTemplates={[
+            {
+              "id": "community challenge",
+              "label": "Community Challenge"
+            },
+            {
+              "id": "solo mission",
+              "label": "Solo Mission"
+            },
+            {
+              "id": "dark challenge",
+              "label": "Dark Challenge"
+            }
+          ]}
         />
-      }
-    />
+      </div>
+    </div>
   );
 }
