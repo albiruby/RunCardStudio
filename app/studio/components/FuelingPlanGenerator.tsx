@@ -1,9 +1,8 @@
-import StudioPageShell from './StudioPageShell';
 /* eslint-disable react-hooks/set-state-in-effect */
 import SharedTemplates, { useExportSize, getExportSizeClasses } from './SharedTemplates';
 import { useState, MutableRefObject, useRef, useEffect } from "react";
-import TemplateSelector from './TemplateSelector';
-import { Copy, Save } from "lucide-react";
+import TemplateSelector, { useTemplateAccent, ACCENTS } from './TemplateSelector';
+import { Copy, Save, Eye, Droplet } from "lucide-react";
 
 interface FuelingPlanProps {
   previewRef: MutableRefObject<HTMLDivElement | null>;
@@ -27,6 +26,8 @@ export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingP
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
   const exportSize = useExportSize();
+  const activeAccentId = useTemplateAccent();
+  const activeAccent = ACCENTS.find(a => a.id === activeAccentId) || ACCENTS[0];
 
 
       useEffect(() => {
@@ -187,11 +188,15 @@ export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingP
   }, []);
 
   return (
-    <StudioPageShell
-      inputTitle="NUTRITION DATA"
-      inputSubtitle="Log details"
-      inputContent={
-        <div className="bg-surface border border-brand-border p-5 rounded-lg flex flex-col gap-4 shadow-xl">
+    <div className="grid grid-cols-1 xl:grid-cols-[minmax(320px,380px)_1fr_minmax(280px,340px)] gap-6 w-full font-sans">
+      {/* COLUMN 1: NUTRITION DATA */}
+      <div className="flex flex-col gap-4 w-full">
+        <div className="flex items-center gap-2 px-1">
+          <Droplet className="w-3.5 h-3.5" style={{ color: activeAccent.hex }} />
+          <h2 className="text-[11px] font-bold uppercase tracking-widest text-[#f2f4f7] font-mono">NUTRITION DATA</h2>
+        </div>
+
+        <div className="bg-surface border border-brand-border p-5 rounded-xl flex flex-col gap-4 shadow-xl">
           <div className="bg-surface-high border-l-4 border-primary-coral p-3 text-xs text-text-muted mb-2">
             <strong className="text-text-primary">Disclaimer:</strong> This is a manual visual formatter. Not medical advice. Input your own strategy.
           </div>
@@ -291,24 +296,47 @@ export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingP
              ></textarea>
           </div>
 
-          <button onClick={() => saveCurrentDraft()} className="w-full mt-2 lg:mt-4 py-2 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-4 h-4 text-primary-action" /> SAVE DRAFT</button>
-          <button onClick={handleCopy} className="w-full py-2 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY FUEL PLAN
-</button>
+          <button onClick={() => saveCurrentDraft()} className="w-full mt-2 lg:mt-4 py-2.5 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-3.5 h-3.5 text-primary-action" /> SAVE DRAFT</button>
+          <button 
+            onClick={handleCopy} 
+            className="w-full py-2.5 bg-transparent border rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] hover:bg-gray-800"
+            style={{ borderColor: activeAccent.hex, color: activeAccent.hex }}
+          ><Copy className="w-3.5 h-3.5" style={{ color: activeAccent.hex }} /> COPY FUEL PLAN</button>
         </div>
-      }
-      containerRef={containerRef}
-      scale={scale}
-      exportSize={exportSize}
-      previewContent={
-        <div
-          ref={previewRef}
-            className={`${getExportSizeClasses(exportSize, template)}` + `  flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none overflow-hidden
-              ${template === 'race fuel plan' ? 'bg-[#121316] border border-[#22252a] text-[#f2f4f7] rounded-xl p-8 font-sans' : ''}
-              ${template === 'bottle strategy' ? 'bg-[#0f1012] border-l-8 border-tertiary-cyan text-white p-8 rounded font-mono' : ''}
-              ${template === 'minimal nutrition' ? 'bg-[#fafafa] border border-gray-200 text-black p-8 font-mono rounded-sm' : ''}
-            `}
-            style={{ minHeight: '500px' }}
+      </div>
+
+      {/* COLUMN 2: LIVE PREVIEW */}
+      <div className="flex flex-col gap-4 xl:sticky xl:top-[128px] xl:self-start">
+        <div className="flex flex-col gap-1 px-1">
+          <div className="flex items-center gap-1.5">
+            <Eye className="w-3.5 h-3.5" style={{ color: activeAccent.hex }} />
+            <span className="text-[11px] font-bold uppercase tracking-widest text-[#f2f4f7] font-mono">LIVE PREVIEW</span>
+          </div>
+          <p className="text-[10px] text-text-muted font-mono uppercase tracking-wider">REPRESENTS COMPLETED CANVAS</p>
+        </div>
+
+        {/* Scalable Container for preview */}
+        <div ref={containerRef} className="w-full bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:16px_16px] bg-[#07080a] border border-brand-border rounded-xl p-4 md:p-8 flex items-center justify-center min-h-[500px] xl:min-h-[550px] overflow-hidden relative shadow-inner">
+          <div 
+            style={{ 
+              transform: `scale(${scale})`, 
+              transformOrigin: "center",
+              transition: "transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)" 
+            }}
+            className="shrink-0"
           >
+            <div
+              ref={previewRef}
+              className={`${getExportSizeClasses(exportSize, template)}` + ` flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative transition-all duration-300 select-none overflow-hidden
+                ${template === 'race fuel plan' ? 'bg-[#121316] border border-[#22252a] text-[#f2f4f7] rounded-xl p-8 font-sans' : ''}
+                ${template === 'bottle strategy' ? 'bg-[#0f1012] border-l-8 text-white p-8 rounded font-mono' : ''}
+                ${template === 'minimal nutrition' ? 'bg-[#fafafa] border border-gray-200 text-black p-8 font-mono rounded-sm' : ''}
+              `}
+              style={{ 
+                minHeight: '500px',
+                borderLeftColor: template === 'bottle strategy' ? activeAccent.hex : undefined
+              }}
+            >
              
              {template === 'race fuel plan' && (
                <>
@@ -319,11 +347,11 @@ export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingP
 
                  <div className="grid grid-cols-3 gap-2 mb-8 border border-[#22252a] rounded overflow-hidden">
                    <div className="bg-[#181a1f] p-3 text-center">
-                     <span className="block text-[9px] uppercase tracking-widest text-[#a0cc00] mb-1 font-mono">Carbs/hr</span>
+                     <span className="block text-[9px] uppercase tracking-widest mb-1 font-mono" style={{ color: activeAccent.hex }}>Carbs/hr</span>
                      <span className="text-xl font-bold">{formData.carbs || '-'}</span>
                    </div>
                    <div className="bg-[#181a1f] p-3 text-center border-l border-[#22252a]">
-                     <span className="block text-[9px] uppercase tracking-widest text-tertiary-cyan mb-1 font-mono">Fluid/hr</span>
+                     <span className="block text-[9px] uppercase tracking-widest mb-1 font-mono" style={{ color: activeAccent.hex }}>Fluid/hr</span>
                      <span className="text-xl font-bold">{formData.fluid || '-'}</span>
                    </div>
                    <div className="bg-[#181a1f] p-3 text-center border-l border-[#22252a]">
@@ -356,7 +384,7 @@ export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingP
              {template === 'bottle strategy' && (
                <>
                  <div className="mb-8">
-                   <span className="text-tertiary-cyan text-[10px] uppercase tracking-widest bg-tertiary-cyan/10 px-2 py-1">NUTRITION LOG</span>
+                   <span className="text-[10px] uppercase tracking-widest px-2 py-1" style={{ color: activeAccent.hex, backgroundColor: `${activeAccent.hex}15` }}>NUTRITION LOG</span>
                    <h1 className="text-3xl font-black uppercase tracking-tighter leading-none mt-3 mb-2">{formData.sessionName || 'SESSION'}</h1>
                    <div className="text-xs uppercase text-gray-400 tracking-widest">Time block: {formData.duration || '-'}</div>
                  </div>
@@ -460,30 +488,70 @@ export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingP
 )}
 
 {['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(template) && (
-           <SharedTemplates template={template} formData={formData} componentName="FuelingPlanGenerator"  />
-         )}
+            <SharedTemplates template={template} formData={formData} componentName="FuelingPlanGenerator"  />
+          )}
+            </div>
           </div>
-      }
-      templateSelector={
+
+          {/* Centered Ratio Dock */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-[#090b0e]/95 backdrop-blur border border-brand-border/85 px-2 py-1.5 rounded-full flex items-center gap-1 shadow-[0_8px_24px_rgba(0,0,0,0.6)] z-10 hover:border-brand-border-strong transition-all">
+            {[
+              { id: "square", label: "1:1 Feed" },
+              { id: "story", label: "9:16 Story" },
+              { id: "landscape", label: "16:9 Classic" },
+              { id: "compact", label: "Fit" },
+              { id: "printable", label: "PDF/A4" }
+            ].map((ratio) => {
+              const isActive = exportSize === ratio.id;
+              return (
+                <button
+                  key={ratio.id}
+                  onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      localStorage.setItem('runcard-default-export-size', ratio.id);
+                      window.dispatchEvent(new CustomEvent('export-size-changed', { detail: ratio.id }));
+                    }
+                  }}
+                  className={`px-2.5 py-1 rounded-full text-[9px] font-mono font-bold uppercase transition-all cursor-pointer outline-none focus:outline-none whitespace-nowrap
+                    ${isActive 
+                      ? 'bg-secondary-lime text-black shadow-[0_0_8px_rgba(160,204,0,0.4)] font-extrabold' 
+                      : 'text-text-muted hover:text-text-primary hover:bg-surface-lowest/50'}`}
+                  style={isActive ? { backgroundColor: activeAccent.hex } : undefined}
+                >
+                  {ratio.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* COLUMN 3: STYLE CONTROLS */}
+      <div className="flex flex-col gap-4 xl:sticky xl:top-[128px]">
+        <div className="flex flex-col gap-0.5 px-1">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-[#f2f4f7] font-mono">STYLE CONTROLS</span>
+          <p className="text-[10px] text-text-muted font-mono uppercase tracking-wider">Tweak appearance</p>
+        </div>
+        
         <TemplateSelector 
-        activeTemplate={template}
-        onSelectTemplate={setTemplate}
-        localTemplates={[
-          {
-            "id": "race fuel plan",
-            "label": "Race Fuel Plan"
-          },
-          {
-            "id": "bottle strategy",
-            "label": "Bottle Strategy"
-          },
-          {
-            "id": "minimal nutrition",
-            "label": "Minimal Nutrition"
-          }
-        ]}
+          activeTemplate={template}
+          onSelectTemplate={setTemplate}
+          localTemplates={[
+            {
+              "id": "race fuel plan",
+              "label": "Race Fuel Plan"
+            },
+            {
+              "id": "bottle strategy",
+              "label": "Bottle Strategy"
+            },
+            {
+              "id": "minimal nutrition",
+              "label": "Minimal Nutrition"
+            }
+          ]}
         />
-      }
-    />
+      </div>
+    </div>
   );
 }
