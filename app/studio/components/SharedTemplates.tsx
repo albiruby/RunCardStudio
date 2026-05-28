@@ -38,7 +38,7 @@ export function useExportSize() {
 
 export function getExportSizeClasses(exportSize: string, template: string) {
   const norm = (template || '').toLowerCase().trim().replace(/\s+/g, '-');
-  const isShared = ['carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(norm);
+  const isShared = ['original', 'sport', 'carbon', 'carbon-grid', 'race-poster', 'minimal-white', 'split-panel', 'neon-edge', 'print-utility', 'compact-story'].includes(norm);
 
   switch (exportSize) {
     case "story":
