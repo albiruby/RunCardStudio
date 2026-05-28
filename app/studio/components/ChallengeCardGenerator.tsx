@@ -511,7 +511,7 @@ export default function ChallengeCardGenerator({ previewRef, showToast }: Challe
                   }}
                   className={`px-2.5 py-1 rounded-full text-[9px] font-mono font-bold uppercase transition-all cursor-pointer outline-none focus:outline-none whitespace-nowrap
                     ${isActive 
-                      ? 'bg-secondary-lime text-black shadow-[0_0_8px_rgba(160,204,0,0.4)] font-extrabold' 
+                      ? 'text-black font-extrabold' 
                       : 'text-text-muted hover:text-text-primary hover:bg-surface-lowest/50'}`}
                   style={isActive ? { backgroundColor: activeAccent.hex } : undefined}
                 >

@@ -286,7 +286,7 @@ export default function GoalCardGenerator({ previewRef, showToast }: GoalCardPro
           </div>
 
           <button onClick={() => saveCurrentDraft()} className="w-full mt-2 lg:mt-4 py-2.5 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-3.5 h-3.5 text-primary-action" /> SAVE DRAFT</button>
-          <button onClick={handleCopy} className="w-full py-2.5 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-3.5 h-3.5 text-secondary-lime" /> COPY GOAL</button>
+          <button onClick={handleCopy} className="w-full py-2.5 bg-transparent border hover:bg-gray-800 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]" style={{ borderColor: activeAccent.hex, color: activeAccent.hex }}><Copy className="w-3.5 h-3.5 " style={{ color: activeAccent.hex }} /> COPY GOAL</button>
         </div>
       </div>
 
@@ -480,7 +480,7 @@ export default function GoalCardGenerator({ previewRef, showToast }: GoalCardPro
                   }}
                   className={`px-2.5 py-1 rounded-full text-[9px] font-mono font-bold uppercase transition-all cursor-pointer outline-none focus:outline-none whitespace-nowrap
                     ${isActive 
-                      ? 'bg-secondary-lime text-black shadow-[0_0_8px_rgba(160,204,0,0.4)] font-extrabold' 
+                      ? 'text-black font-extrabold' 
                       : 'text-text-muted hover:text-text-primary hover:bg-surface-lowest/50'}`}
                   style={isActive ? { backgroundColor: activeAccent.hex } : undefined}
                 >

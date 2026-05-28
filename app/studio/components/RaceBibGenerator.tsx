@@ -311,8 +311,8 @@ export default function RaceBibGenerator({ previewRef, showToast }: RaceBibProps
              </div>
           </div>
 
-          <button onClick={() => saveCurrentDraft()} className="w-full mt-2 lg:mt-4 py-2.5 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-4 h-4 text-primary-action" /> SAVE DRAFT</button>
-          <button onClick={handleCopy} className="w-full py-2.5 bg-transparent hover:bg-secondary-lime/10 border border-secondary-lime text-secondary-lime rounded text-sm font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Copy className="w-4 h-4 text-secondary-lime" /> COPY BIB</button>
+          <button onClick={() => saveCurrentDraft()} className="w-full mt-2 lg:mt-4 py-2.5 bg-transparent hover:bg-primary-action/10 border border-primary-action text-primary-action rounded-lg text-xs tracking-wider font-bold uppercase transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"><Save className="w-4 h-4 text-primary-action" /> SAVE DRAFT</button>
+          <button onClick={handleCopy} className="w-full py-2.5 bg-transparent border rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] hover:bg-gray-800" style={{ borderColor: activeAccent.hex, color: activeAccent.hex }}><Copy className="w-4 h-4 " style={{ color: activeAccent.hex }} /> COPY BIB</button>
         </div>
       </div>
 
@@ -320,7 +320,7 @@ export default function RaceBibGenerator({ previewRef, showToast }: RaceBibProps
       <div className="flex flex-col gap-4 xl:sticky xl:top-[128px] xl:self-start">
         <div className="flex flex-col gap-1 px-1">
           <div className="flex items-center gap-1.5 animate-pulse">
-            <Eye className="w-3.5 h-3.5 text-secondary-lime" />
+            <Eye className="w-3.5 h-3.5 " style={{ color: activeAccent.hex }} />
             <h2 className="text-[11px] font-bold uppercase tracking-widest text-[#f2f4f7] font-mono">LIVE PREVIEW</h2>
           </div>
           <p className="text-[10px] text-text-muted font-mono uppercase tracking-wider">REPRESENTS COMPLETED CANVAS</p>
@@ -495,8 +495,9 @@ export default function RaceBibGenerator({ previewRef, showToast }: RaceBibProps
                   }}
                   className={`px-2.5 py-1 rounded-full text-[9px] font-mono font-bold uppercase transition-all cursor-pointer outline-none focus:outline-none whitespace-nowrap
                     ${isActive 
-                      ? 'bg-secondary-lime text-black shadow-[0_0_8px_rgba(160,204,0,0.4)] font-extrabold' 
+                      ? 'text-black font-extrabold' 
                       : 'text-text-muted hover:text-text-primary hover:bg-surface-lowest/50'}`}
+                  style={isActive ? { backgroundColor: activeAccent.hex } : undefined}
                 >
                   {ratio.label}
                 </button>
