@@ -96,6 +96,7 @@ export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingP
       lines.push("Note: " + val);
     }
     lines.push("");
+    lines.push("Made with RunCard Studio");
     const textToCopy = lines.join("\n");
     
     const fallbackCopy = (text: string) => {
@@ -322,11 +323,13 @@ export default function FuelingPlanGenerator({ previewRef, showToast }: FuelingP
         <div ref={containerRef} className="w-full bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:16px_16px] bg-[#07080a] border border-brand-border rounded-xl p-4 md:p-8 flex items-center justify-center flex-1 min-h-[500px] xl:min-h-[600px] relative shadow-inner overflow-clip">
           <div 
             style={{ 
-              transform: `scale(${scale})`, 
-              transformOrigin: "center",
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: `translate(-50%, -50%) scale(${scale})`, 
+              transformOrigin: 'center center',
               transition: "transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)" 
             }}
-            className="shrink-0"
           >
             <div
               ref={previewRef}

@@ -134,6 +134,7 @@ export default function RunReceiptGenerator({ previewRef, showToast }: RunReceip
       lines.push("Notes: " + val);
     }
     lines.push("");
+    lines.push("Made with RunCard Studio");
     const textToCopy = lines.join("\n");
     
     const fallbackCopy = (text: string) => {
@@ -406,11 +407,13 @@ export default function RunReceiptGenerator({ previewRef, showToast }: RunReceip
           {/* Card Component matching selected template */}
           <div 
             style={{ 
-              transform: `scale(${scale})`, 
-              transformOrigin: "center",
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: `translate(-50%, -50%) scale(${scale})`, 
+              transformOrigin: 'center center',
               transition: "transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)" 
             }}
-            className="shrink-0"
           >
             <div 
               ref={previewRef}

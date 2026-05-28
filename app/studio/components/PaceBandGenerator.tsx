@@ -160,6 +160,7 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
       lines.push("Interval: " + val);
     }
     lines.push("");
+    lines.push("Made with RunCard Studio");
     const textToCopy = lines.join("\n");
     
     const fallbackCopy = (text: string) => {
@@ -379,11 +380,13 @@ export default function PaceBandGenerator({ previewRef, showToast }: PaceBandPro
           {/* Wrapper to handle different layouts */}
           <div 
             style={{ 
-              transform: `scale(${scale})`, 
-              transformOrigin: "center",
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: `translate(-50%, -50%) scale(${scale})`, 
+              transformOrigin: 'center center',
               transition: "transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)" 
             }}
-            className="shrink-0"
           >
             <div ref={previewRef} className={`relative flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden transition-all duration-300 select-none
                ${template === 'wristband' ? 'w-[140px] bg-white text-black min-h-[350px] border border-gray-300 rounded' : ''}
