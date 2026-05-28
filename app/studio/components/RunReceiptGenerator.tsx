@@ -39,20 +39,20 @@ export default function RunReceiptGenerator({ previewRef, showToast }: RunReceip
     if (!containerRef.current) return;
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        const width = entry.contentRect.width;
-        let target = 480;
-        if (exportSize === "story") target = 400;
-        else if (exportSize === "landscape") target = 640;
-        else if (exportSize === "compact") target = 540;
-        else if (exportSize === "printable") target = 595;
+        const { width, height } = entry.contentRect;
+        let targetW = 480;
+        let targetH = 480;
+        if (exportSize === "story") { targetW = 400; targetH = 711; }
+        else if (exportSize === "landscape") { targetW = 640; targetH = 360; }
+        else if (exportSize === "compact") { targetW = 540; targetH = 283; }
+        else if (exportSize === "printable") { targetW = 595; targetH = 842; }
 
-        // Apply scaling factor with a small padding allowance
-        const boundsTarget = target + 16;
-        if (width < boundsTarget) {
-          setScale(width / boundsTarget);
-        } else {
-          setScale(1);
-        }
+        // We leave 48px horizontal padding, and 100px vertical padding (for the ratio dock and top spacing)
+        const scaleW = width / (targetW + 48);
+        const scaleH = height / (targetH + 110);
+        const newScale = Math.min(scaleW, scaleH, 1); // Cap at 1
+        
+        setScale(newScale);
       }
     });
     observer.observe(containerRef.current);
@@ -235,9 +235,9 @@ export default function RunReceiptGenerator({ previewRef, showToast }: RunReceip
   }, []);
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-[minmax(320px,380px)_1fr_minmax(280px,340px)] gap-6 w-full">
+    <div className="grid grid-cols-1 xl:grid-cols-[minmax(320px,420px)_minmax(0,1fr)_minmax(300px,380px)] gap-6 w-full">
       {/* COLUMN 1: INPUT */}
-      <div className="flex flex-col gap-4 w-full">
+      <div className="flex flex-col gap-4 w-full min-w-0">
         <div className="flex items-center gap-2 px-1">
           <FileText className="w-3.5 h-3.5 " style={{ color: activeAccent.hex }} />
           <h2 className="text-[11px] font-bold uppercase tracking-widest text-[#f2f4f7] font-mono">INPUT PARAMETERS</h2>
@@ -392,7 +392,7 @@ export default function RunReceiptGenerator({ previewRef, showToast }: RunReceip
       </div>
 
       {/* COLUMN 2: LIVE PREVIEW */}
-      <div className="flex flex-col gap-4 xl:sticky xl:top-[128px] xl:self-start">
+      <div className="flex flex-col gap-4 xl:sticky xl:top-[128px] xl:self-start min-h-[calc(100vh-140px)] min-w-0">
         <div className="flex flex-col gap-1 px-1">
           <div className="flex items-center gap-1.5">
             <Eye className="w-3.5 h-3.5 " style={{ color: activeAccent.hex }} />
@@ -402,7 +402,7 @@ export default function RunReceiptGenerator({ previewRef, showToast }: RunReceip
         </div>
 
         {/* Scalable Container for preview */}
-        <div ref={containerRef} className="w-full bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:16px_16px] bg-[#07080a] border border-brand-border rounded-xl p-4 md:p-8 flex items-center justify-center min-h-[500px] xl:min-h-[550px] overflow-hidden relative shadow-inner">
+        <div ref={containerRef} className="w-full bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:16px_16px] bg-[#07080a] border border-brand-border rounded-xl p-4 md:p-8 flex items-center justify-center flex-1 min-h-[500px] xl:min-h-[600px] relative shadow-inner overflow-clip">
           {/* Card Component matching selected template */}
           <div 
             style={{ 
@@ -458,7 +458,7 @@ export default function RunReceiptGenerator({ previewRef, showToast }: RunReceip
       </div>
 
       {/* COLUMN 3: STYLE & CONTROLS */}
-      <div className="flex flex-col gap-4 xl:sticky xl:top-[128px]">
+      <div className="flex flex-col gap-4 xl:sticky xl:top-[128px] min-w-0">
         <div className="flex flex-col gap-0.5 px-1">
           <span className="text-[11px] font-bold uppercase tracking-widest text-[#f2f4f7] font-mono">STYLE CONTROLS</span>
           <p className="text-[10px] text-text-muted font-mono uppercase tracking-wider">Tweak appearance</p>

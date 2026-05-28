@@ -33,18 +33,20 @@ export default function RaceBibGenerator({ previewRef, showToast }: RaceBibProps
     if (!containerRef.current) return;
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        const width = entry.contentRect.width;
-        // Bib sizes: classic is wider, minimal is square-ish
-        let target = 480;
-        if (exportSize === "story") target = 400;
-        else if (exportSize === "landscape") target = 640;
-        else if (exportSize === "compact") target = 540;
-        else if (exportSize === "printable") target = 595;
-        if (width < target) {
-          setScale(width / target);
-        } else {
-          setScale(1);
-        }
+        const { width, height } = entry.contentRect;
+        let targetW = 480;
+        let targetH = 480;
+        if (exportSize === "story") { targetW = 400; targetH = 711; }
+        else if (exportSize === "landscape") { targetW = 640; targetH = 360; }
+        else if (exportSize === "compact") { targetW = 540; targetH = 283; }
+        else if (exportSize === "printable") { targetW = 595; targetH = 842; }
+
+        // We leave 48px horizontal padding, and 100px vertical padding (for the ratio dock and top spacing)
+        const scaleW = width / (targetW + 48);
+        const scaleH = height / (targetH + 110);
+        const newScale = Math.min(scaleW, scaleH, 1); // Cap at 1
+        
+        setScale(newScale);
       }
     });
     observer.observe(containerRef.current);
@@ -211,9 +213,9 @@ export default function RaceBibGenerator({ previewRef, showToast }: RaceBibProps
   }, []);
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-[minmax(320px,380px)_1fr_minmax(280px,340px)] gap-6 w-full">
+    <div className="grid grid-cols-1 xl:grid-cols-[minmax(320px,420px)_minmax(0,1fr)_minmax(300px,380px)] gap-6 w-full">
       {/* COLUMN 1: CONFIGURATION */}
-      <div className="flex flex-col gap-4 w-full">
+      <div className="flex flex-col gap-4 w-full min-w-0">
         <div className="flex items-center justify-between">
           <div className="flex flex-col gap-1">
             <h2 className="text-xl font-bold uppercase tracking-tight text-text-primary">BIB DATA</h2>
@@ -317,7 +319,7 @@ export default function RaceBibGenerator({ previewRef, showToast }: RaceBibProps
       </div>
 
       {/* COLUMN 2: LIVE PREVIEW */}
-      <div className="flex flex-col gap-4 xl:sticky xl:top-[128px] xl:self-start">
+      <div className="flex flex-col gap-4 xl:sticky xl:top-[128px] xl:self-start min-h-[calc(100vh-140px)] min-w-0">
         <div className="flex flex-col gap-1 px-1">
           <div className="flex items-center gap-1.5 animate-pulse">
             <Eye className="w-3.5 h-3.5 " style={{ color: activeAccent.hex }} />
@@ -327,7 +329,7 @@ export default function RaceBibGenerator({ previewRef, showToast }: RaceBibProps
         </div>
 
         {/* Scalable Container for preview */}
-        <div ref={containerRef} className="w-full bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:16px_16px] bg-[#07080a] border border-brand-border rounded-xl p-4 md:p-8 flex items-center justify-center min-h-[500px] xl:min-h-[550px] overflow-hidden relative shadow-inner">
+        <div ref={containerRef} className="w-full bg-[radial-gradient(#22252a_1px,transparent_1px)] [background-size:16px_16px] bg-[#07080a] border border-brand-border rounded-xl p-4 md:p-8 flex items-center justify-center flex-1 min-h-[500px] xl:min-h-[600px] relative shadow-inner overflow-clip">
           <div 
             style={{ 
               transform: `scale(${scale})`, 
@@ -508,7 +510,7 @@ export default function RaceBibGenerator({ previewRef, showToast }: RaceBibProps
       </div>
 
       {/* COLUMN 3: STYLE CONTROLS */}
-      <div className="flex flex-col gap-4 xl:sticky xl:top-[128px]">
+      <div className="flex flex-col gap-4 xl:sticky xl:top-[128px] min-w-0">
         <div className="flex flex-col gap-0.5 px-1">
           <span className="text-[11px] font-bold uppercase tracking-widest text-[#f2f4f7] font-mono">STYLE CONTROLS</span>
           <p className="text-[10px] text-text-muted font-mono uppercase tracking-wider">Tweak appearance</p>
